@@ -1,0 +1,92 @@
+/**
+ * Middleware keamanan: Security Headers, CORS ketat, CSRF Origin Check, dan Rate Limiter.
+ */
+
+export function applySecurityHeaders(res, config) {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  res.setHeader('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'");
+  res.setHeader('X-Powered-By', ''); // Sembunyikan identitas server
+  if (config.isProd) {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+}
+
+export function applyCors(req, res, config) {
+  const origin = req.headers.origin;
+  if (origin && config.allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With');
+  }
+}
+
+/**
+ * Validasi CSRF berbasis header Origin pada semua metode mutasi (POST, PUT, PATCH, DELETE).
+ * Jika browser mengirim Origin yang tidak ada di whitelist APP_ORIGIN -> tolak 403.
+ */
+export function checkOriginCsrf(req, config) {
+  const method = (req.method || 'GET').toUpperCase();
+  if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') return { ok: true };
+
+  const origin = req.headers.origin;
+  if (origin && !config.allowedOrigins.includes(origin)) {
+    return {
+      ok: false,
+      status: 403,
+      code: 'FORBIDDEN_ORIGIN',
+      message: 'Origin permintaan tidak diizinkan.',
+    };
+  }
+  return { ok: true };
+}
+
+export function getClientIp(req, config) {
+  if (config.trustProxy) {
+    const cfIp = req.headers['cf-connecting-ip'];
+    if (typeof cfIp === 'string' && cfIp.trim()) return cfIp.trim();
+    const xff = req.headers['x-forwarded-for'];
+    if (typeof xff === 'string' && xff.trim()) return xff.split(',')[0].trim();
+  }
+  return req.socket?.remoteAddress || '127.0.0.1';
+}
+
+export function createRateLimiter(config) {
+  const buckets = new Map();
+
+  function check(ip, bucketName, maxRequests) {
+    const now = Date.now();
+    // Cegah kebocoran RAM saat lonjakan IP tinggi di VPS 2 GB
+    if (buckets.size > 5000) {
+      for (const [k, v] of buckets.entries()) {
+        if (now >= v.resetAt) buckets.delete(k);
+      }
+    }
+    const key = `${bucketName}:${ip}`;
+    const entry = buckets.get(key);
+
+    if (!entry || now >= entry.resetAt) {
+      buckets.set(key, { count: 1, resetAt: now + config.rateLimitWindowMs });
+      return { allowed: true, remaining: maxRequests - 1 };
+    }
+
+    entry.count += 1;
+    if (entry.count > maxRequests) {
+      return {
+        allowed: false,
+        retryAfterSec: Math.max(1, Math.ceil((entry.resetAt - now) / 1000)),
+      };
+    }
+    return { allowed: true, remaining: maxRequests - entry.count };
+  }
+
+  function reset() {
+    buckets.clear();
+  }
+
+  return { check, reset };
+}
