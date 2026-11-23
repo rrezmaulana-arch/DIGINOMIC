@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1640 1640" width="1640" height="1640">
+  <title>02 Daun kiri atas</title>
+  <defs>
+    <linearGradient id="g" x1="208" y1="0" x2="720" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#D2AE7F"/>
+      <stop offset="0.55" stop-color="#B38858"/>
+      <stop offset="1" stop-color="#946A3E"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#g)" d="M214,192 C400,278 560,330 720,374 C600,395 500,470 392,596 C260,545 170,450 208,290 C208,250 210,220 214,192 Z"/>
+</svg>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1640 1640" width="1640" height="1640">
+  <title>04 Pita vertikal kiri</title>
+  <defs>
+    <linearGradient id="tan" x1="212" y1="0" x2="1015" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#CFAA7B"/>
+      <stop offset="0.3" stop-color="#BE9566"/>
+      <stop offset="1" stop-color="#946A3E"/>
+    </linearGradient>
+    <linearGradient id="dark" x1="0" y1="815" x2="0" y2="1597" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4A2E22"/>
+      <stop offset="0.35" stop-color="#5A3B27"/>
+      <stop offset="0.55" stop-color="#7A5636"/>
+      <stop offset="0.8" stop-color="#5E3D25"/>
+      <stop offset="1" stop-color="#4A3220"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#tan)" d="M358,683 C480,530 600,480 730,480 C850,480 950,520 1015,567 C900,525 780,520 680,580 C580,640 520,740 495,815 L212,1435 C195,1000 260,780 358,683 Z"/>
+  <path fill="url(#dark)" d="M495,815 L468,1380 C468,1420 450,1465 395,1495 L212,1597 L212,1435 Z"/>
+</svg>

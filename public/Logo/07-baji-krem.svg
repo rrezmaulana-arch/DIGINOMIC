@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1640 1640" width="1640" height="1640">
+  <title>07 Bidang baji krem</title>
+  <defs>
+    <linearGradient id="w" x1="745" y1="0" x2="1353" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#E3C9A2"/>
+      <stop offset="0.2" stop-color="#E6CFAB"/>
+      <stop offset="0.5" stop-color="#AB8157"/>
+      <stop offset="0.75" stop-color="#C9A87A"/>
+      <stop offset="0.9" stop-color="#E6CFAB"/>
+      <stop offset="1" stop-color="#E6CFAB"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#w)" d="M745,1219 C900,1230 1150,1130 1353,797 L1353,1077 C1200,1260 1000,1300 745,1219 Z"/>
+</svg>

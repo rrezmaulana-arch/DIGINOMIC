@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1640 1640" width="1640" height="1640">
+  <title>03 Pita besar atas-kanan</title>
+  <defs>
+    <linearGradient id="top" x1="408" y1="0" x2="1380" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4E3220"/>
+      <stop offset="0.3" stop-color="#8A6540"/>
+      <stop offset="0.65" stop-color="#CBA678"/>
+      <stop offset="1" stop-color="#D6B68A"/>
+    </linearGradient>
+    <linearGradient id="inner" x1="690" y1="0" x2="1440" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4E3220"/>
+      <stop offset="0.35" stop-color="#6A4529"/>
+      <stop offset="0.75" stop-color="#7A5636"/>
+      <stop offset="1" stop-color="#4A3125"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#top)" d="M408,170 C800,140 1200,200 1380,560 C1330,480 1200,370 940,362 L690,342 C520,310 440,220 408,170 Z"/>
+  <path fill="url(#inner)" d="M690,342 L940,362 C1150,372 1300,440 1350,517 L1380,560 C1440,660 1450,900 1435,985 C1430,1000 1400,1030 1372,1052 L1372,746 L1220,903 C1220,700 1000,450 720,374 Z"/>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1640 1640" width="1640" height="1640">
+  <title>05 Sapuan bawah (crescent)</title>
+  <defs>
+    <linearGradient id="sw" x1="500" y1="0" x2="1350" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#D0AD7E"/>
+      <stop offset="0.45" stop-color="#B38858"/>
+      <stop offset="1" stop-color="#8C6338"/>
+    </linearGradient>
+    <linearGradient id="sh" x1="880" y1="0" x2="1465" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4A2E1C"/>
+      <stop offset="1" stop-color="#3A2010"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#sw)" d="M507,940 C600,1170 730,1300 880,1348 C1050,1385 1200,1380 1347,1330 C1230,1490 1080,1570 930,1572 C780,1572 650,1510 560,1400 C510,1300 495,1100 507,940 Z"/>
+  <path fill="url(#sh)" d="M880,1348 C1050,1385 1250,1400 1465,1133 C1420,1235 1390,1285 1347,1330 C1200,1380 1050,1385 880,1348 Z"/>
+</svg>

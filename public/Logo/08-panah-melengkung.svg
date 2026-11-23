@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1640 1640" width="1640" height="1640">
+  <title>08 Panah melengkung</title>
+  <defs>
+    <linearGradient id="a" x1="838" y1="0" x2="1612" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#D2B183"/>
+      <stop offset="0.5" stop-color="#D4B38C"/>
+      <stop offset="1" stop-color="#AA7F52"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#a)" d="M838,1291 C1200,1300 1420,1130 1530,889 L1498,877 L1608,775 L1612,922 L1579,909 C1530,1050 1250,1380 838,1291 Z"/>
+</svg>

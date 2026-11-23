@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1640 1640" width="1640" height="1640">
+<title>Logo gabungan</title>
+
+  
+  <rect x="162" y="28" width="82" height="82" fill="#A67F50"/>
+  <rect x="293" y="105" width="65" height="65" fill="#D2B183"/>
+  <rect x="29" y="170" width="68" height="68" fill="#C29A6B"/>
+  <rect x="113" y="252" width="63" height="63" fill="#CFAA7F"/>
+
+
+  
+  <defs>
+    <linearGradient id="g" x1="208" y1="0" x2="720" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#D2AE7F"/>
+      <stop offset="0.55" stop-color="#B38858"/>
+      <stop offset="1" stop-color="#946A3E"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#g)" d="M214,192 C400,278 560,330 720,374 C600,395 500,470 392,596 C260,545 170,450 208,290 C208,250 210,220 214,192 Z"/>
+
+
+  
+  <defs>
+    <linearGradient id="top" x1="408" y1="0" x2="1380" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4E3220"/>
+      <stop offset="0.3" stop-color="#8A6540"/>
+      <stop offset="0.65" stop-color="#CBA678"/>
+      <stop offset="1" stop-color="#D6B68A"/>
+    </linearGradient>
+    <linearGradient id="inner" x1="690" y1="0" x2="1440" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4E3220"/>
+      <stop offset="0.35" stop-color="#6A4529"/>
+      <stop offset="0.75" stop-color="#7A5636"/>
+      <stop offset="1" stop-color="#4A3125"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#top)" d="M408,170 C800,140 1200,200 1380,560 C1330,480 1200,370 940,362 L690,342 C520,310 440,220 408,170 Z"/>
+  <path fill="url(#inner)" d="M690,342 L940,362 C1150,372 1300,440 1350,517 L1380,560 C1440,660 1450,900 1435,985 C1430,1000 1400,1030 1372,1052 L1372,746 L1220,903 C1220,700 1000,450 720,374 Z"/>
+
+
+  
+  <defs>
+    <linearGradient id="tan" x1="212" y1="0" x2="1015" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#CFAA7B"/>
+      <stop offset="0.3" stop-color="#BE9566"/>
+      <stop offset="1" stop-color="#946A3E"/>
+    </linearGradient>
+    <linearGradient id="dark" x1="0" y1="815" x2="0" y2="1597" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4A2E22"/>
+      <stop offset="0.35" stop-color="#5A3B27"/>
+      <stop offset="0.55" stop-color="#7A5636"/>
+      <stop offset="0.8" stop-color="#5E3D25"/>
+      <stop offset="1" stop-color="#4A3220"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#tan)" d="M358,683 C480,530 600,480 730,480 C850,480 950,520 1015,567 C900,525 780,520 680,580 C580,640 520,740 495,815 L212,1435 C195,1000 260,780 358,683 Z"/>
+  <path fill="url(#dark)" d="M495,815 L468,1380 C468,1420 450,1465 395,1495 L212,1597 L212,1435 Z"/>
+
+
+  
+  <defs>
+    <linearGradient id="sw" x1="500" y1="0" x2="1350" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#D0AD7E"/>
+      <stop offset="0.45" stop-color="#B38858"/>
+      <stop offset="1" stop-color="#8C6338"/>
+    </linearGradient>
+    <linearGradient id="sh" x1="880" y1="0" x2="1465" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4A2E1C"/>
+      <stop offset="1" stop-color="#3A2010"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#sw)" d="M507,940 C600,1170 730,1300 880,1348 C1050,1385 1200,1380 1347,1330 C1230,1490 1080,1570 930,1572 C780,1572 650,1510 560,1400 C510,1300 495,1100 507,940 Z"/>
+  <path fill="url(#sh)" d="M880,1348 C1050,1385 1250,1400 1465,1133 C1420,1235 1390,1285 1347,1330 C1200,1380 1050,1385 880,1348 Z"/>
+
+
+  
+  <polygon fill="#553B22" points="760,1027 836,990 836,1187 759,1193"/>
+  <polygon fill="#4A3020" points="867,926 944,889 944,1152 866,1177"/>
+  <polygon fill="#B48F63" points="980,845 1057,807 1057,1070 980,1123"/>
+
+
+  
+  <defs>
+    <linearGradient id="w" x1="745" y1="0" x2="1353" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#E3C9A2"/>
+      <stop offset="0.2" stop-color="#E6CFAB"/>
+      <stop offset="0.5" stop-color="#AB8157"/>
+      <stop offset="0.75" stop-color="#C9A87A"/>
+      <stop offset="0.9" stop-color="#E6CFAB"/>
+      <stop offset="1" stop-color="#E6CFAB"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#w)" d="M745,1219 C900,1230 1150,1130 1353,797 L1353,1077 C1200,1260 1000,1300 745,1219 Z"/>
+
+
+  
+  <defs>
+    <linearGradient id="a" x1="838" y1="0" x2="1612" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#D2B183"/>
+      <stop offset="0.5" stop-color="#D4B38C"/>
+      <stop offset="1" stop-color="#AA7F52"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#a)" d="M838,1291 C1200,1300 1420,1130 1530,889 L1498,877 L1608,775 L1612,922 L1579,909 C1530,1050 1250,1380 838,1291 Z"/>
+
+</svg>
