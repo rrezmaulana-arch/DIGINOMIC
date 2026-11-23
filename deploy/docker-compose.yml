@@ -1,0 +1,75 @@
+name: digiconomic-prod
+
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    mem_limit: 64m
+    networks:
+      - edge
+    depends_on:
+      api:
+        condition: service_healthy
+
+  api:
+    build: ../api
+    restart: unless-stopped
+    expose:
+      - "4000"
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: "4000"
+      TRUST_PROXY: "true"
+      UPLOAD_DIR: /app/uploads
+      DATABASE_URL: postgresql://app:${DB_PASSWORD}@db:5432/digiconomic
+    volumes:
+      - ./data/uploads:/app/uploads
+    mem_limit: 450m
+    networks:
+      - edge
+      - backend
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: digiconomic
+    command:
+      - postgres
+      - -c
+      - shared_buffers=256MB
+      - -c
+      - max_connections=40
+      - -c
+      - work_mem=4MB
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d digiconomic"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    mem_limit: 600m
+    networks:
+      - backend # Jaringan internal: database tidak terbuka ke publik
+
+networks:
+  edge: {}
+  backend:
+    internal: true
+
+volumes:
+  pgdata: {}

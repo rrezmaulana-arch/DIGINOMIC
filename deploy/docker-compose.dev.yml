@@ -1,0 +1,41 @@
+name: digiconomic-dev
+
+services:
+  api:
+    build: ../api
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: development
+      PORT: "4000"
+      APP_ORIGIN: http://localhost:5173
+      UPLOAD_DIR: /app/uploads
+      DATABASE_URL: postgresql://app:devpassword123@db:5432/digiconomic
+      SUPERADMIN_EMAIL: superadmin@diginomic.id
+      SUPERADMIN_PASSWORD: SuperAdmin2027!
+    volumes:
+      - ../api/src:/app/src
+      - ../api/db:/app/db
+      - ./data/uploads-dev:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: devpassword123
+      POSTGRES_DB: digiconomic
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d digiconomic"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+
+volumes:
+  pgdata_dev: {}
