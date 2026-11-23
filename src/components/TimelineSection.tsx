@@ -130,14 +130,21 @@ export const TimelineSection: React.FC = () => {
         {/* Timeline Cards Container */}
         <div className="relative pt-2 sm:pt-6 pb-4 sm:pb-8">
           
+          {/* Mobile Swipe Hint */}
+          <div className="flex sm:hidden items-center justify-end mb-2 pr-1">
+            <span className="text-[9px] font-cinzel text-[#8a5e38] tracking-wider uppercase bg-[#f5ede0] px-2.5 py-0.5 rounded-full border border-[#ebdcc8]">
+              Geser Tahapan ➔
+            </span>
+          </div>
+
           {/* Central Connecting Spine Line (Desktop) */}
           <div className="hidden lg:block absolute top-1/2 left-4 right-4 h-0.5 -translate-y-1/2 z-0 bg-gradient-to-r from-[#ebdcc8] via-[#caa152] to-[#ebdcc8]" />
 
-          {/* Milestone Cards Grid */}
+          {/* Milestone Cards Grid: Horizontal Snap Carousel on Mobile, Grid on Desktop */}
           <div
-            className={`grid grid-cols-1 sm:grid-cols-2 ${
-              currentPhase.events.length === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-4'
-            } gap-3 sm:gap-6 relative z-10`}
+            className={`flex sm:grid ${
+              currentPhase.events.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-4'
+            } overflow-x-auto sm:overflow-visible snap-x snap-mandatory no-scrollbar gap-3 pb-2 -mx-3.5 px-3.5 sm:mx-0 sm:px-0 relative z-10`}
           >
             {currentPhase.events.map((ev, idx) => {
               const isUp = idx % 2 === 0;
@@ -145,7 +152,7 @@ export const TimelineSection: React.FC = () => {
               return (
                 <div
                   key={idx}
-                  className={`flex flex-col ${
+                  className={`w-[78vw] sm:w-auto shrink-0 snap-center flex flex-col ${
                     isUp ? 'lg:flex-col lg:justify-start' : 'lg:flex-col lg:justify-end lg:pt-16'
                   }`}
                 >

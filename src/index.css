@@ -41,7 +41,7 @@
 .float-gentle    { animation: float-gentle var(--dur, 6s) ease-in-out infinite var(--delay, 0s); will-change: transform; }
 .spin-slow       { animation: spin-slow 40s linear infinite; }
 
-/* ── RADIANT DEEP GOLD SHIMMER TEXT (Rich contrast, readable on parchment) ── */
+/* ── RADIANT DEEP GOLD SHIMMER TEXT ── */
 .shimmer-text {
   background: linear-gradient(
     115deg,
@@ -62,9 +62,17 @@
   filter: drop-shadow(0 1.5px 2px rgba(70, 36, 10, 0.25));
 }
 
+/* ── SMOOTH SCROLL SNAP & NO SCROLLBAR ── */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* ── OVERSCROLL LOCK & CURSOR CONTROLS ── */
 html, body {
-  /* Prevent pull-to-refresh / rubber-band elastic bouncing at top or bottom */
   overscroll-behavior: none !important;
   overscroll-behavior-y: none !important;
   overscroll-behavior-x: none !important;
@@ -79,18 +87,15 @@ html, body {
   caret-color: transparent !important;
 }
 
-/* Eliminate typing I-beam caret cursor across all elements by default */
 *, *::before, *::after {
   cursor: default !important;
   caret-color: transparent !important;
 }
 
-/* Show pointer hand on interactive items */
 button, a, select, [role="button"], label[for], [tabindex="0"] {
   cursor: pointer !important;
 }
 
-/* Show text cursor and blinking caret ONLY inside actual form input fields */
 input, textarea, [contenteditable="true"] {
   cursor: text !important;
   user-select: text !important;

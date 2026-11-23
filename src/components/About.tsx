@@ -20,9 +20,9 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-10 lg:gap-14 items-center mb-6 sm:mb-12 md:mb-16">
           
           {/* Left: Title + Narrative */}
-          <div className="lg:col-span-7 space-y-3.5 sm:space-y-5">
+          <div className="lg:col-span-7 space-y-3 sm:space-y-5">
             <div>
-              <p className="font-cinzel text-[10px] sm:text-xs tracking-widest text-[#7a5530] font-medium mb-1.5 sm:mb-2">
+              <p className="font-cinzel text-[10px] sm:text-xs tracking-widest text-[#7a5530] font-medium mb-1 sm:mb-2">
                 Tentang Acara
               </p>
               <h2 className="font-cormorant font-normal text-2xl sm:text-3xl md:text-4xl lg:text-[2.85rem] text-[#241308] tracking-tight leading-[1.15]">
@@ -44,7 +44,7 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
             <div className="pt-1 sm:pt-2">
               <button
                 onClick={onExploreComps}
-                className="inline-flex items-center gap-2 px-4.5 sm:px-6 py-2 sm:py-2.5 rounded-full bg-gradient-to-r from-[#ba883a] to-[#d8a85a] hover:from-[#c9954a] hover:to-[#e0b56b] text-white font-cinzel text-[10px] sm:text-xs font-medium tracking-[0.16em] sm:tracking-[0.18em] shadow-xs hover:shadow transition-all active:scale-95"
+                className="inline-flex items-center gap-2 px-4.5 sm:px-6 py-2 sm:py-2.5 rounded-full bg-gradient-to-r from-[#ba883a] to-[#d8a85a] hover:from-[#c9954a] hover:to-[#e0b56b] text-white font-cinzel text-[10px] sm:text-xs font-medium tracking-[0.16em] sm:tracking-[0.18em] shadow-xs hover:shadow transition-all duration-300 ease-out active:scale-95"
               >
                 <span>LIHAT CABANG LOMBA</span>
                 <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
@@ -86,23 +86,23 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
         </div>
 
         {/* ── MIDDLE: TEMA RESMI (Compact & Balanced on mobile) ── */}
-        <div className="my-6 sm:my-10 md:my-14 text-center">
+        <div className="my-5 sm:my-10 md:my-14 text-center">
           <div
-            className="p-4 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl border border-[#ebdcc8] shadow-xs max-w-4xl mx-auto relative overflow-hidden"
+            className="p-3.5 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl border border-[#ebdcc8] shadow-xs max-w-4xl mx-auto relative overflow-hidden"
             style={{
               background: 'radial-gradient(circle at 50% 30%, #ffffff 0%, #faf4e8 70%, #f4e8d2 100%)',
             }}
           >
             <div className="absolute inset-1.5 sm:inset-2 rounded-xl sm:rounded-2xl border border-dashed border-[#caa152]/30 pointer-events-none" />
-            <span className="inline-block px-3.5 py-0.5 sm:px-5 sm:py-1 rounded-full bg-[#f0e3cc] text-[#7d4f2b] font-cinzel text-[9px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.25em] uppercase font-medium mb-2 sm:mb-3">
+            <span className="inline-block px-3 py-0.5 sm:px-5 sm:py-1 rounded-full bg-[#f0e3cc] text-[#7d4f2b] font-cinzel text-[8.5px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.25em] uppercase font-medium mb-1.5 sm:mb-3">
               TEMA UTAMA ACARA
             </span>
 
-            <blockquote className="font-cormorant font-normal italic text-sm sm:text-xl lg:text-2xl text-[#2a170b] leading-snug sm:leading-snug max-w-3xl mx-auto px-2">
+            <blockquote className="font-cormorant font-normal italic text-xs sm:text-xl lg:text-2xl text-[#2a170b] leading-snug sm:leading-snug max-w-3xl mx-auto px-2">
               “Ekosistem UMKM di Negara Emerging Market: Mengakselerasi Potensi Lokal yang Berdaya Saing Global untuk Mewujudkan Pertumbuhan Berkelanjutan”
             </blockquote>
 
-            <div className="mt-3.5 sm:mt-5 flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-[9px] sm:text-[10px] font-cinzel text-[#8a5e38] tracking-[0.15em] sm:tracking-[0.2em] uppercase font-medium">
+            <div className="mt-2.5 sm:mt-5 flex flex-wrap items-center justify-center gap-2.5 sm:gap-6 text-[8.5px] sm:text-[10px] font-cinzel text-[#8a5e38] tracking-[0.15em] sm:tracking-[0.2em] uppercase font-medium">
               <span>✦ Divisi Pendidikan</span>
               <span>✦ Bank Indonesia</span>
               <span>✦ Divisi Kewirausahaan</span>
@@ -110,18 +110,24 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
           </div>
         </div>
 
-        {/* ── BOTTOM: LATAR BELAKANG & URGENSI (Compact Cards on mobile) ── */}
-        <div className="mt-6 sm:mt-10 md:mt-14">
-          <div className="text-center max-w-lg mx-auto mb-5 sm:mb-8 md:mb-10">
-            <p className="font-cinzel text-[10px] sm:text-xs text-[#7a5530] font-medium tracking-widest mb-1">
-              Latar Belakang Acara
-            </p>
-            <h3 className="font-cormorant font-normal text-xl sm:text-2xl md:text-3xl text-[#241308]">
-              Latar Belakang & Urgensi
-            </h3>
+        {/* ── BOTTOM: LATAR BELAKANG & URGENSI (Horizontal Snap Carousel on mobile, Grid on desktop) ── */}
+        <div className="mt-5 sm:mt-10 md:mt-14">
+          <div className="flex items-center justify-between mb-3 sm:mb-8 md:mb-10 px-1">
+            <div className="text-left sm:text-center sm:mx-auto">
+              <p className="font-cinzel text-[10px] sm:text-xs text-[#7a5530] font-medium tracking-widest mb-0.5 sm:mb-1">
+                Latar Belakang Acara
+              </p>
+              <h3 className="font-cormorant font-normal text-xl sm:text-2xl md:text-3xl text-[#241308]">
+                Latar Belakang & Urgensi
+              </h3>
+            </div>
+            {/* Mobile swipe hint */}
+            <span className="sm:hidden text-[9px] font-cinzel text-[#8a5e38] tracking-wider uppercase bg-[#f5ede0] px-2 py-0.5 rounded-full border border-[#ebdcc8] shrink-0">
+              Geser ➔
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-5 md:gap-6">
+          <div className="flex sm:grid sm:grid-cols-3 overflow-x-auto sm:overflow-visible snap-x snap-mandatory no-scrollbar gap-3 pb-2 -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
             {[
               {
                 no: '01',
@@ -141,12 +147,12 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
             ].map((item, idx) => (
               <div
                 key={idx}
-                className="group p-3.5 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl md:rounded-3xl border border-[#ebdcc8] shadow-xs hover:shadow-lg hover:-translate-y-1 transition-all duration-300 relative flex flex-col justify-start"
-                style={{ background: 'rgba(255, 253, 248, 0.92)' }}
+                className="w-[80vw] sm:w-auto shrink-0 snap-center group p-3.5 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl md:rounded-3xl border border-[#ebdcc8] shadow-xs hover:shadow-lg transition-all duration-300 relative flex flex-col justify-start"
+                style={{ background: 'rgba(255, 253, 248, 0.94)' }}
               >
-                <div className="absolute inset-1.5 sm:inset-2 rounded-lg sm:rounded-xl md:rounded-2xl border border-dashed border-[#caa152]/20 pointer-events-none group-hover:border-[#caa152]/60 transition-colors" />
-                <div className="flex items-center gap-2.5 mb-1.5 sm:mb-3 relative z-10">
-                  <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-cinzel text-[11px] sm:text-xs font-semibold text-white bg-gradient-to-r from-[#ba883a] to-[#caa152] shadow-2xs shrink-0">
+                <div className="absolute inset-1.5 sm:inset-2 rounded-lg sm:rounded-xl md:rounded-2xl border border-dashed border-[#caa152]/20 pointer-events-none group-hover:border-[#caa152]/60 transition-colors duration-300" />
+                <div className="flex items-center gap-2 mb-1.5 sm:mb-3 relative z-10">
+                  <div className="w-6.5 h-6.5 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-cinzel text-[10px] sm:text-xs font-semibold text-white bg-gradient-to-r from-[#ba883a] to-[#caa152] shadow-2xs shrink-0">
                     {item.no}
                   </div>
                   <h4 className="font-cormorant font-normal text-base sm:text-xl text-[#2a170b] group-hover:text-[#ba883a] transition-colors leading-tight">

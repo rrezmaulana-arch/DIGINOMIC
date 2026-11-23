@@ -52,21 +52,21 @@ export const LogoMeaning: React.FC = () => {
     {
       title: 'Emas Mulia',
       code: '#CAA152',
-      meaning: 'Melambangkan kejayaan, kemakmuran ekonomi UMKM, serta prestise pencapaian juara pada kompetisi tingkat nasional.',
+      meaning: 'Melambangkan kejayaan, kemakmuran ekonomi UMKM, dan supremasi prestasi juara.',
       previewBg: 'bg-[#caa152]',
       borderAccent: 'border-[#caa152]/70',
     },
     {
       title: 'Espresso Gelap',
       code: '#2F1E10',
-      meaning: 'Melambangkan ketegasan fondasi, kedalaman riset analitis, integritas ilmiah, serta stabilitas perekonomian bangsa.',
+      meaning: 'Melambangkan ketegasan fondasi, integritas ilmiah, serta stabilitas perekonomian bangsa.',
       previewBg: 'bg-[#2f1e10]',
       borderAccent: 'border-[#7a5530]/50',
     },
     {
       title: 'Linen & Gading',
       code: '#FAF4E8',
-      meaning: 'Melambangkan kanvas keterbukaan ide kreatif, ketulusan pengabdian mahasiswa, dan sinergi inklusif tanpa batas.',
+      meaning: 'Melambangkan kanvas keterbukaan ide kreatif dan sinergi inklusif tanpa batas.',
       previewBg: 'bg-[#faf4e8]',
       borderAccent: 'border-[#ebdcc8]',
     },
@@ -75,13 +75,13 @@ export const LogoMeaning: React.FC = () => {
   return (
     <section
       id="makna-logo"
-      className="relative w-full py-10 sm:py-16 lg:py-24 px-3.5 sm:px-8 lg:px-16 overflow-hidden bg-gradient-to-b from-[#f7efe0] via-[#faf4e8] to-[#fdf8ef]"
+      className="relative w-full py-8 sm:py-16 lg:py-24 px-3.5 sm:px-8 lg:px-16 overflow-hidden bg-gradient-to-b from-[#f7efe0] via-[#faf4e8] to-[#fdf8ef]"
     >
       <div className="max-w-6xl mx-auto relative z-10">
         
         {/* ── SECTION HEADER ── */}
-        <div className="text-center max-w-2xl mx-auto mb-6 sm:mb-12 px-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 sm:px-3.5 sm:py-1 rounded-full bg-[#f0e3cc] border border-[#d8be99] text-[#7a5530] font-cinzel text-[9px] sm:text-[11px] tracking-widest uppercase font-semibold mb-2 sm:mb-3">
+        <div className="text-center max-w-2xl mx-auto mb-5 sm:mb-12 px-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 sm:px-3.5 sm:py-1 rounded-full bg-[#f0e3cc] border border-[#d8be99] text-[#7a5530] font-cinzel text-[8.5px] sm:text-[11px] tracking-widest uppercase font-semibold mb-1.5 sm:mb-3">
             <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#caa152]" />
             <span>Identitas & Filosofi Visual</span>
           </div>
@@ -90,11 +90,11 @@ export const LogoMeaning: React.FC = () => {
             Makna di Balik <span className="shimmer-text">Simbol & Rona Logo</span>
           </h2>
 
-          <div className="flex items-center justify-center gap-3 my-2 sm:my-3 text-[#caa152] opacity-80">
+          <div className="flex items-center justify-center gap-2.5 my-1.5 sm:my-3 text-[#caa152] opacity-80">
             <span className="w-8 sm:w-14 h-px bg-gradient-to-r from-transparent to-[#caa152]" />
-            <span className="text-[9px]">✦</span>
+            <span className="text-[8px] sm:text-[9px]">✦</span>
             <span className="text-xs">✦</span>
-            <span className="text-[9px]">✦</span>
+            <span className="text-[8px] sm:text-[9px]">✦</span>
             <span className="w-8 sm:w-14 h-px bg-gradient-to-l from-transparent to-[#caa152]" />
           </div>
 
@@ -103,179 +103,161 @@ export const LogoMeaning: React.FC = () => {
           </p>
         </div>
 
-        {/* ── RESPONSIVE 3-COLUMN SHOWCASE ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-6 lg:gap-10 items-center">
-          
+        {/* ── MEDALLION (Tampil di atas pada mobile secara compact) ── */}
+        <div className="flex items-center justify-center py-2 sm:py-4 lg:hidden">
+          <div className="relative flex items-center justify-center">
+            <div className="w-28 h-28 rounded-full flex items-center justify-center p-2.5 border-2 border-[#caa152] shadow-[0_6px_18px_rgba(202,161,82,0.22)] bg-gradient-to-b from-[#ffffff] via-[#faf4e8] to-[#ebdcc8]">
+              <div className="absolute inset-1 rounded-full border border-dashed border-[#caa152]/50 pointer-events-none" />
+              <img
+                src="/Logo/00-logo-gabungan.svg"
+                alt="Logo Resmi Digiconomic Fest 2027"
+                className="w-16 h-16 object-contain filter drop-shadow(0 3px 8px rgba(70,36,10,0.18))"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* ── RESPONSIVE SHOWCASE: 2x2 Grid on Mobile (<lg), 3-Column on Desktop (>=lg) ── */}
+        <div className="hidden lg:grid grid-cols-12 gap-6 lg:gap-10 items-center">
           {/* Left Cards: Filosofi 01 & 02 */}
-          <div className="lg:col-span-4 space-y-3 sm:space-y-4 order-2 lg:order-1">
-            {elements.slice(0, 2).map((item) => {
-              const isActive = activeElement === item.id;
-              return (
-                <div
-                  key={item.id}
-                  onMouseEnter={() => setActiveElement(item.id)}
-                  onMouseLeave={() => setActiveElement(null)}
-                  className={`p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border transition-all duration-300 relative cursor-pointer group ${
-                    isActive
-                      ? 'bg-[#fffdf9] border-[#caa152] shadow-md -translate-y-0.5 ring-1 ring-[#caa152]/60'
-                      : 'bg-white/85 border-[#ebdcc8] shadow-2xs hover:shadow-xs hover:border-[#caa152]/60'
-                  }`}
-                >
-                  <div className="absolute inset-1 sm:inset-2 rounded-lg sm:rounded-xl border border-dashed border-[#caa152]/20 pointer-events-none group-hover:border-[#caa152]/50 transition-colors" />
-
-                  <div className="flex items-center justify-between gap-2 mb-1 relative z-10">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-cinzel text-[10px] sm:text-[11px] font-semibold text-[#7a5530]">
-                        {item.code}
-                      </span>
-                      <span className="text-[#caa152] text-[10px]">•</span>
-                      <span className="text-[10px] text-[#7a5530] font-medium font-sans">
-                        {item.subtitle}
-                      </span>
-                    </div>
-                    <div className="w-5.5 h-5.5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-[#faf4e8] border border-[#ebdcc8] flex items-center justify-center shadow-2xs shrink-0">
-                      {item.icon}
-                    </div>
+          <div className="lg:col-span-4 space-y-4">
+            {elements.slice(0, 2).map((item) => (
+              <div
+                key={item.id}
+                onMouseEnter={() => setActiveElement(item.id)}
+                onMouseLeave={() => setActiveElement(null)}
+                className={`p-5 rounded-2xl border transition-all duration-300 relative cursor-pointer group ${
+                  activeElement === item.id
+                    ? 'bg-[#fffdf9] border-[#caa152] shadow-md -translate-y-0.5 ring-1 ring-[#caa152]/60'
+                    : 'bg-white/85 border-[#ebdcc8] shadow-2xs hover:shadow-xs hover:border-[#caa152]/60'
+                }`}
+              >
+                <div className="absolute inset-1.5 rounded-xl border border-dashed border-[#caa152]/20 pointer-events-none group-hover:border-[#caa152]/50 transition-colors" />
+                <div className="flex items-center justify-between gap-2 mb-1 relative z-10">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-cinzel text-[11px] font-semibold text-[#7a5530]">{item.code}</span>
+                    <span className="text-[#caa152] text-[10px]">•</span>
+                    <span className="text-[10px] text-[#7a5530] font-medium font-sans">{item.subtitle}</span>
                   </div>
-
-                  <h3 className="font-cormorant text-base sm:text-xl font-normal text-[#241308] group-hover:text-[#ba883a] transition-colors relative z-10 leading-tight mb-1">
-                    {item.title}
-                  </h3>
-
-                  <p className="font-sans text-[11px] sm:text-xs text-[#5c3e28] leading-relaxed font-normal relative z-10">
-                    {item.desc}
-                  </p>
+                  <div className="w-6 h-6 rounded-lg bg-[#faf4e8] border border-[#ebdcc8] flex items-center justify-center shadow-2xs shrink-0">
+                    {item.icon}
+                  </div>
                 </div>
-              );
-            })}
+                <h3 className="font-cormorant text-xl font-normal text-[#241308] group-hover:text-[#ba883a] transition-colors relative z-10 leading-tight mb-1">
+                  {item.title}
+                </h3>
+                <p className="font-sans text-xs text-[#5c3e28] leading-relaxed font-normal relative z-10">
+                  {item.desc}
+                </p>
+              </div>
+            ))}
           </div>
 
-          {/* Center Medallion with Surround Lighting & Orbit Effects (Compact on mobile) */}
-          <div className="lg:col-span-4 flex items-center justify-center py-2 sm:py-6 lg:py-0 order-1 lg:order-2">
+          {/* Desktop Center Medallion */}
+          <div className="lg:col-span-4 flex items-center justify-center">
             <div className="relative flex items-center justify-center">
-              
-              {/* Outer Golden Ambient Halo */}
-              <div
-                className="absolute w-40 h-40 sm:w-68 sm:h-68 lg:w-76 lg:h-76 rounded-full pointer-events-none blur-xl opacity-60 transition-opacity duration-500"
-                style={{
-                  background: 'radial-gradient(circle, rgba(202, 161, 82, 0.45) 0%, rgba(202, 161, 82, 0.15) 50%, transparent 75%)',
-                }}
-              />
-
-              {/* Slow-Rotating Outer Dashed Ring */}
-              <div className="absolute w-44 h-44 sm:w-72 sm:h-72 lg:w-80 lg:h-80 rounded-full border border-[#caa152]/40 border-dashed spin-slow pointer-events-none" />
-
-              {/* Second Pulsing Ring */}
-              <div className="absolute w-36 h-36 sm:w-64 sm:h-64 lg:w-72 lg:h-72 rounded-full border border-[#caa152]/25 pointer-events-none animate-pulse" />
-
-              {/* Cardinal Compass Stars */}
-              <div className="absolute -top-2.5 sm:-top-3 left-1/2 -translate-x-1/2 text-[#caa152] text-[10px] sm:text-xs select-none">✦</div>
-              <div className="absolute -bottom-2.5 sm:-bottom-3 left-1/2 -translate-x-1/2 text-[#caa152] text-[10px] sm:text-xs select-none">✦</div>
-              <div className="absolute top-1/2 -left-2.5 sm:-left-3 -translate-y-1/2 text-[#caa152] text-[10px] sm:text-xs select-none">✦</div>
-              <div className="absolute top-1/2 -right-2.5 sm:-right-3 -translate-y-1/2 text-[#caa152] text-[10px] sm:text-xs select-none">✦</div>
-
-              {/* Central Medallion Base */}
-              <div
-                className="w-36 h-36 sm:w-56 sm:h-56 lg:w-64 lg:h-64 rounded-full flex items-center justify-center p-3 sm:p-5 border-2 border-[#caa152] shadow-[0_8px_24px_rgba(202,161,82,0.22)] relative group transition-all duration-300"
-                style={{
-                  background: 'radial-gradient(circle, #ffffff 40%, #faf4e8 75%, #ebdcc8 100%)',
-                }}
-              >
-                <div className="absolute inset-1.5 sm:inset-2.5 rounded-full border border-dashed border-[#caa152]/50 pointer-events-none" />
-                
+              <div className="absolute w-76 h-76 rounded-full blur-xl opacity-60 pointer-events-none bg-[radial-gradient(circle,rgba(202,161,82,0.45)_0%,rgba(202,161,82,0.15)_50%,transparent_75%)]" />
+              <div className="absolute w-80 h-80 rounded-full border border-[#caa152]/40 border-dashed spin-slow pointer-events-none" />
+              <div className="w-64 h-64 rounded-full flex items-center justify-center p-5 border-2 border-[#caa152] shadow-[0_12px_40px_rgba(202,161,82,0.25)] relative group bg-gradient-to-b from-[#ffffff] via-[#faf4e8] to-[#ebdcc8]">
+                <div className="absolute inset-2.5 rounded-full border border-dashed border-[#caa152]/50 pointer-events-none" />
                 <img
                   src="/Logo/00-logo-gabungan.svg"
                   alt="Logo Resmi Digiconomic Fest 2027"
-                  className="w-20 h-20 sm:w-32 sm:h-32 lg:w-36 lg:h-36 object-contain filter drop-shadow(0 4px 10px rgba(70,36,10,0.2)) group-hover:scale-105 transition-transform duration-300 relative z-10"
+                  className="w-36 h-36 object-contain filter drop-shadow(0 6px 14px rgba(70,36,10,0.22)) group-hover:scale-105 transition-transform duration-300 relative z-10"
                 />
               </div>
             </div>
           </div>
 
           {/* Right Cards: Filosofi 03 & 04 */}
-          <div className="lg:col-span-4 space-y-3 sm:space-y-4 order-3">
-            {elements.slice(2, 4).map((item) => {
-              const isActive = activeElement === item.id;
-              return (
-                <div
-                  key={item.id}
-                  onMouseEnter={() => setActiveElement(item.id)}
-                  onMouseLeave={() => setActiveElement(null)}
-                  className={`p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border transition-all duration-300 relative cursor-pointer group ${
-                    isActive
-                      ? 'bg-[#fffdf9] border-[#caa152] shadow-md -translate-y-0.5 ring-1 ring-[#caa152]/60'
-                      : 'bg-white/85 border-[#ebdcc8] shadow-2xs hover:shadow-xs hover:border-[#caa152]/60'
-                  }`}
-                >
-                  <div className="absolute inset-1 sm:inset-2 rounded-lg sm:rounded-xl border border-dashed border-[#caa152]/20 pointer-events-none group-hover:border-[#caa152]/50 transition-colors" />
-
-                  <div className="flex items-center justify-between gap-2 mb-1 relative z-10">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-cinzel text-[10px] sm:text-[11px] font-semibold text-[#7a5530]">
-                        {item.code}
-                      </span>
-                      <span className="text-[#caa152] text-[10px]">•</span>
-                      <span className="text-[10px] text-[#7a5530] font-medium font-sans">
-                        {item.subtitle}
-                      </span>
-                    </div>
-                    <div className="w-5.5 h-5.5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-[#faf4e8] border border-[#ebdcc8] flex items-center justify-center shadow-2xs shrink-0">
-                      {item.icon}
-                    </div>
+          <div className="lg:col-span-4 space-y-4">
+            {elements.slice(2, 4).map((item) => (
+              <div
+                key={item.id}
+                onMouseEnter={() => setActiveElement(item.id)}
+                onMouseLeave={() => setActiveElement(null)}
+                className={`p-5 rounded-2xl border transition-all duration-300 relative cursor-pointer group ${
+                  activeElement === item.id
+                    ? 'bg-[#fffdf9] border-[#caa152] shadow-md -translate-y-0.5 ring-1 ring-[#caa152]/60'
+                    : 'bg-white/85 border-[#ebdcc8] shadow-2xs hover:shadow-xs hover:border-[#caa152]/60'
+                }`}
+              >
+                <div className="absolute inset-1.5 rounded-xl border border-dashed border-[#caa152]/20 pointer-events-none group-hover:border-[#caa152]/50 transition-colors" />
+                <div className="flex items-center justify-between gap-2 mb-1 relative z-10">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-cinzel text-[11px] font-semibold text-[#7a5530]">{item.code}</span>
+                    <span className="text-[#caa152] text-[10px]">•</span>
+                    <span className="text-[10px] text-[#7a5530] font-medium font-sans">{item.subtitle}</span>
                   </div>
-
-                  <h3 className="font-cormorant text-base sm:text-xl font-normal text-[#241308] group-hover:text-[#ba883a] transition-colors relative z-10 leading-tight mb-1">
-                    {item.title}
-                  </h3>
-
-                  <p className="font-sans text-[11px] sm:text-xs text-[#5c3e28] leading-relaxed font-normal relative z-10">
-                    {item.desc}
-                  </p>
+                  <div className="w-6 h-6 rounded-lg bg-[#faf4e8] border border-[#ebdcc8] flex items-center justify-center shadow-2xs shrink-0">
+                    {item.icon}
+                  </div>
                 </div>
-              );
-            })}
+                <h3 className="font-cormorant text-xl font-normal text-[#241308] group-hover:text-[#ba883a] transition-colors relative z-10 leading-tight mb-1">
+                  {item.title}
+                </h3>
+                <p className="font-sans text-xs text-[#5c3e28] leading-relaxed font-normal relative z-10">
+                  {item.desc}
+                </p>
+              </div>
+            ))}
           </div>
-
         </div>
 
-        {/* ── FILOSOFI RONA & WARNA LOGO ── */}
-        <div className="mt-8 sm:mt-16 pt-6 sm:pt-8 border-t border-[#ebdcc8]/80 relative z-10">
-          <div className="text-center mb-4 sm:mb-6">
-            <span className="font-cinzel text-[11px] sm:text-xs text-[#7a5530] font-semibold tracking-wider">
+        {/* ── MOBILE CARD LAYOUT: 2-Column Grid (Sangat ringkas, hemat 60% tinggi) ── */}
+        <div className="grid grid-cols-2 lg:hidden gap-2 sm:gap-3 mt-2 sm:mt-4">
+          {elements.map((item) => (
+            <div
+              key={item.id}
+              className="p-2.5 sm:p-4 rounded-xl border border-[#ebdcc8] bg-white/90 shadow-2xs relative flex flex-col justify-start"
+            >
+              <div className="absolute inset-1 rounded-lg border border-dashed border-[#caa152]/20 pointer-events-none" />
+              <div className="flex items-center justify-between gap-1 mb-1 relative z-10">
+                <span className="font-cinzel text-[9px] font-semibold text-[#7a5530]">{item.code}</span>
+                <div className="w-5 h-5 rounded-md bg-[#faf4e8] border border-[#ebdcc8] flex items-center justify-center shrink-0">
+                  {item.icon}
+                </div>
+              </div>
+              <h3 className="font-cormorant text-sm sm:text-base font-medium text-[#241308] leading-tight mb-0.5 relative z-10">
+                {item.title}
+              </h3>
+              <p className="font-sans text-[10px] sm:text-[11px] text-[#5c3e28] leading-snug font-normal relative z-10 line-clamp-3">
+                {item.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* ── FILOSOFI RONA & WARNA LOGO: 3 Kolom Berdampingan (1 Baris Ringkas) ── */}
+        <div className="mt-5 sm:mt-12 pt-4 sm:pt-6 border-t border-[#ebdcc8]/80 relative z-10">
+          <div className="text-center mb-2.5 sm:mb-5">
+            <span className="font-cinzel text-[10px] sm:text-xs text-[#7a5530] font-semibold tracking-wider">
               Filosofi Rona & Gradasi Logo
             </span>
-            <p className="text-[11px] sm:text-xs text-[#5c3e28] mt-0.5 sm:mt-1 font-sans">
-              Tiga warna inti yang menyusun identitas visual resmi Digiconomic Fest 2027
-            </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-4">
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-3">
             {logoColorPalette.map((color, idx) => (
               <div
                 key={idx}
-                className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white/80 border border-[#ebdcc8] shadow-2xs hover:shadow-xs transition-all flex items-start gap-2.5 sm:gap-3.5"
+                className="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-white/85 border border-[#ebdcc8] shadow-2xs flex flex-col items-center text-center"
               >
                 {/* Color Swatch Dot */}
                 <div
-                  className={`w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl ${color.previewBg} border ${color.borderAccent} shadow-xs shrink-0 flex items-center justify-center mt-0.5`}
+                  className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg ${color.previewBg} border ${color.borderAccent} shadow-2xs flex items-center justify-center mb-1`}
                 >
-                  <span className="text-[8px] sm:text-[10px] text-[#caa152] select-none">✦</span>
+                  <span className="text-[7px] sm:text-[9px] text-[#caa152] select-none">✦</span>
                 </div>
 
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-1">
-                    <h4 className="font-cormorant font-normal text-sm sm:text-base text-[#241308]">
-                      {color.title}
-                    </h4>
-                    <span className="text-[9px] sm:text-[10px] font-mono text-[#7a5530] font-semibold bg-[#faf4e8] px-1.5 py-0.5 rounded border border-[#ebdcc8]">
-                      {color.code}
-                    </span>
-                  </div>
-                  <p className="text-[11px] sm:text-xs text-[#5c3e28] leading-relaxed mt-0.5 sm:mt-1 font-sans font-normal">
-                    {color.meaning}
-                  </p>
-                </div>
+                <h4 className="font-cormorant font-normal text-xs sm:text-sm text-[#241308] leading-tight">
+                  {color.title}
+                </h4>
+                <span className="text-[8px] sm:text-[9px] font-mono text-[#7a5530] font-semibold bg-[#faf4e8] px-1 py-0.2 rounded border border-[#ebdcc8] mt-0.5">
+                  {color.code}
+                </span>
+                <p className="text-[9.5px] sm:text-xs text-[#5c3e28] leading-tight mt-1 font-sans hidden sm:block">
+                  {color.meaning}
+                </p>
               </div>
             ))}
           </div>

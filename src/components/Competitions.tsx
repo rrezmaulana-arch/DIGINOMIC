@@ -59,6 +59,9 @@ export const Competitions: React.FC<CompetitionsProps> = ({ onSelectCompetition 
             </div>
             
             <div className="flex items-center gap-3 shrink-0">
+              <span className="md:hidden text-[9px] font-cinzel text-[#e4ceaa] tracking-wider uppercase bg-[#462d1a] px-2.5 py-1 rounded-full border border-[#caa152]/60 shrink-0">
+                Geser ➔
+              </span>
               <button
                 onClick={() => setModal(COMPETITIONS_DATA[0])}
                 className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-[#462d1a] hover:bg-[#583921] border border-[#caa152] text-[#fcedb8] font-cinzel text-[10px] sm:text-xs font-semibold tracking-wider transition-all flex items-center justify-center gap-2 shadow-xs hover:shadow active:scale-95"
@@ -69,13 +72,13 @@ export const Competitions: React.FC<CompetitionsProps> = ({ onSelectCompetition 
             </div>
           </div>
 
-          {/* ── 2 CARDS: COMPACT & COMFORTABLE ON MOBILE ── */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6 md:gap-8 relative z-10">
+          {/* ── 2 CARDS: HORIZONTAL SNAP CAROUSEL ON MOBILE, 2-COL ON DESKTOP ── */}
+          <div className="flex md:grid md:grid-cols-2 overflow-x-auto md:overflow-visible snap-x snap-mandatory no-scrollbar gap-3 pb-2 -mx-3.5 px-3.5 md:mx-0 md:px-0 relative z-10">
             {COMPETITIONS_DATA.map((comp, idx) => (
               <div
                 key={comp.id}
                 onClick={() => onSelectCompetition(comp)}
-                className="group cursor-pointer rounded-xl sm:rounded-[22px] md:rounded-[28px] border-2 border-[#caa152]/70 shadow-[0_6px_20px_rgba(0,0,0,0.22)] hover:shadow-[0_16px_36px_rgba(202,161,82,0.22)] hover:-translate-y-1 transition-all duration-300 relative p-3 sm:p-6 md:p-8 flex flex-col justify-between"
+                className="w-[84vw] md:w-auto shrink-0 snap-center group cursor-pointer rounded-xl sm:rounded-[22px] md:rounded-[28px] border-2 border-[#caa152]/70 shadow-[0_6px_20px_rgba(0,0,0,0.22)] hover:shadow-[0_16px_36px_rgba(202,161,82,0.22)] hover:-translate-y-1 transition-all duration-300 relative p-3 sm:p-6 md:p-8 flex flex-col justify-between"
                 style={{
                   background: 'linear-gradient(180deg, #fffdfa 0%, #faf4e8 100%)',
                 }}
