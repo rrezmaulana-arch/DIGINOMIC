@@ -269,8 +269,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           </>
         )}
 
-        {/* Content Area */}
-        <main className="flex-1 w-full min-w-0 p-4 sm:p-6 lg:p-8">
+        {/* Content Area - Fluid responsive padding & max width */}
+        <main className="flex-1 w-full min-w-0 p-3 sm:p-5 md:p-6 lg:p-8">
           {children}
         </main>
 

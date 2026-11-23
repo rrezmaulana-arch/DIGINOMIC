@@ -9,7 +9,7 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
   return (
     <section
       id="tentang"
-      className="relative w-full py-16 sm:py-20 px-6 sm:px-10 lg:px-16 overflow-hidden"
+      className="relative w-full py-10 sm:py-16 md:py-20 px-4 sm:px-8 md:px-12 overflow-hidden"
       style={{
         background: 'linear-gradient(180deg, #fdf8ef 0%, #faf3e5 50%, #f7efe0 100%)',
       }}
@@ -17,7 +17,7 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
       <div className="max-w-6xl mx-auto relative z-10">
         
         {/* ── TOP SECTION: APA ITU DIGICONOMIC FEST? ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-10 lg:gap-14 items-center mb-10 sm:mb-16">
           
           {/* Left: Title + Narrative */}
           <div className="lg:col-span-7 space-y-5">
@@ -25,7 +25,7 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
               <p className="font-cinzel text-xs tracking-widest text-[#7a5530] font-medium mb-2">
                 Tentang Acara
               </p>
-              <h2 className="font-cormorant font-normal text-3xl sm:text-4xl lg:text-[2.85rem] text-[#241308] tracking-tight leading-[1.15]">
+              <h2 className="font-cormorant font-normal text-2xl sm:text-3xl md:text-4xl lg:text-[2.85rem] text-[#241308] tracking-tight leading-[1.15]">
                 Mengenal <br />
                 <span className="shimmer-text font-normal">
                   Digiconomic Fest

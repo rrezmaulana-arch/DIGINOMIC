@@ -13,19 +13,19 @@ export const Competitions: React.FC<CompetitionsProps> = ({ onSelectCompetition 
   return (
     <section
       id="kompetisi"
-      className="relative w-full py-14 sm:py-20 px-4 sm:px-8 lg:px-12 overflow-hidden bg-[#fdf8ef]"
+      className="relative w-full py-10 sm:py-16 md:py-20 px-3 sm:px-6 md:px-8 lg:px-12 overflow-hidden bg-[#fdf8ef]"
     >
       <div className="max-w-6xl mx-auto relative z-10">
         
         {/* ── ROYAL PAVILION CARD (Non-Boxy: Curved & Scalloped Royal Stage) ── */}
         <div
-          className="relative rounded-[32px] sm:rounded-[48px] lg:rounded-[56px] border-2 border-[#caa152]/70 shadow-[0_20px_60px_-15px_rgba(47,30,16,0.32)] p-7 sm:p-11 lg:p-14 overflow-hidden transition-all duration-300"
+          className="relative rounded-2xl sm:rounded-[36px] md:rounded-[48px] lg:rounded-[56px] border-2 border-[#caa152]/70 shadow-[0_12px_40px_-10px_rgba(47,30,16,0.32)] p-4 sm:p-7 md:p-10 lg:p-14 overflow-hidden transition-all duration-300"
           style={{
             background: 'radial-gradient(ellipse 90% 80% at 50% 30%, #3a2415 0%, #2b1a0e 65%, #20130a 100%)',
           }}
         >
           {/* Inner Dashed Border matching the official royal certificate motif */}
-          <div className="absolute inset-2 sm:inset-3.5 rounded-[24px] sm:rounded-[40px] lg:rounded-[48px] border border-dashed border-[#caa152]/35 pointer-events-none" />
+          <div className="absolute inset-1.5 sm:inset-3 rounded-xl sm:rounded-[28px] md:rounded-[40px] lg:rounded-[48px] border border-dashed border-[#caa152]/35 pointer-events-none" />
 
           {/* Ambient Warm Golden Stardust inside the pavilion */}
           <div
@@ -49,11 +49,11 @@ export const Competitions: React.FC<CompetitionsProps> = ({ onSelectCompetition 
                 <span>Kompetisi Tingkat Nasional 2027</span>
               </div>
 
-              <h2 className="font-cormorant font-normal text-3xl sm:text-4xl lg:text-[2.75rem] text-[#fffdfa] tracking-tight leading-[1.12]">
+              <h2 className="font-cormorant font-normal text-2xl sm:text-3xl md:text-4xl lg:text-[2.75rem] text-[#fffdfa] tracking-tight leading-[1.14]">
                 Cabang <span className="shimmer-text">Kompetisi Resmi</span>
               </h2>
 
-              <p className="font-sans text-xs sm:text-sm text-[#e4ceaa] leading-relaxed font-normal">
+              <p className="font-sans text-[11px] sm:text-xs md:text-sm text-[#e4ceaa] leading-relaxed font-normal">
                 Wadah unjuk inovasi dan gagasan nyata bagi pemulihan serta kemajuan UMKM Indonesia. Rebut total hadiah pembinaan <strong>Rp 26.000.000</strong> serta sertifikat nasional Bank Indonesia.
               </p>
             </div>
@@ -70,12 +70,12 @@ export const Competitions: React.FC<CompetitionsProps> = ({ onSelectCompetition 
           </div>
 
           {/* ── 2 CARDS (Harmonious Warm Ivory Certificates) ── */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 relative z-10">
             {COMPETITIONS_DATA.map((comp, idx) => (
               <div
                 key={comp.id}
                 onClick={() => onSelectCompetition(comp)}
-                className="group cursor-pointer rounded-[24px] sm:rounded-[28px] border-2 border-[#caa152]/70 shadow-[0_8px_25px_rgba(0,0,0,0.28)] hover:shadow-[0_16px_36px_rgba(202,161,82,0.22)] hover:-translate-y-1.5 transition-all duration-300 relative p-6 sm:p-8 flex flex-col justify-between"
+                className="group cursor-pointer rounded-xl sm:rounded-[22px] md:rounded-[28px] border-2 border-[#caa152]/70 shadow-[0_6px_20px_rgba(0,0,0,0.22)] hover:shadow-[0_16px_36px_rgba(202,161,82,0.22)] hover:-translate-y-1 transition-all duration-300 relative p-4 sm:p-6 md:p-8 flex flex-col justify-between"
                 style={{
                   background: 'linear-gradient(180deg, #fffdfa 0%, #faf4e8 100%)',
                 }}
@@ -97,12 +97,12 @@ export const Competitions: React.FC<CompetitionsProps> = ({ onSelectCompetition 
                   </div>
 
                   {/* Title in Cormorant Garamond */}
-                  <h3 className="font-cormorant font-normal text-2xl sm:text-[1.85rem] text-[#241308] group-hover:text-[#ba883a] transition-colors leading-snug pt-0.5">
+                  <h3 className="font-cormorant font-normal text-xl sm:text-2xl md:text-[1.8rem] text-[#241308] group-hover:text-[#ba883a] transition-colors leading-snug pt-0.5">
                     {comp.title}
                   </h3>
 
                   {/* Subtitle description */}
-                  <p className="font-sans text-xs sm:text-[13px] text-[#5c3e28] leading-relaxed font-normal">
+                  <p className="font-sans text-[11px] sm:text-xs md:text-[13px] text-[#5c3e28] leading-relaxed font-normal">
                     {comp.id === 'comp-1'
                       ? 'Tuliskan mantra gagasanmu untuk mengakselerasi ekosistem UMKM Indonesia.'
                       : 'Pecahkan teka-teki studi kasus bisnis riil UMKM bersama tim hebatmu.'}

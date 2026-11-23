@@ -115,7 +115,7 @@ export const LogoMeaning: React.FC = () => {
                   key={item.id}
                   onMouseEnter={() => setActiveElement(item.id)}
                   onMouseLeave={() => setActiveElement(null)}
-                  className={`p-5 sm:p-6 rounded-2xl border transition-all duration-300 relative cursor-pointer group ${
+                  className={`p-5 sm:p-3.5 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl border transition-all duration-300 relative cursor-pointer group ${
                     isActive
                       ? 'bg-[#fffdf9] border-[#caa152] shadow-md -translate-y-0.5 ring-1 ring-[#caa152]/60'
                       : 'bg-white/85 border-[#ebdcc8] shadow-2xs hover:shadow-xs hover:border-[#caa152]/60'
@@ -199,7 +199,7 @@ export const LogoMeaning: React.FC = () => {
                   key={item.id}
                   onMouseEnter={() => setActiveElement(item.id)}
                   onMouseLeave={() => setActiveElement(null)}
-                  className={`p-5 sm:p-6 rounded-2xl border transition-all duration-300 relative cursor-pointer group ${
+                  className={`p-5 sm:p-3.5 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl border transition-all duration-300 relative cursor-pointer group ${
                     isActive
                       ? 'bg-[#fffdf9] border-[#caa152] shadow-md -translate-y-0.5 ring-1 ring-[#caa152]/60'
                       : 'bg-white/85 border-[#ebdcc8] shadow-2xs hover:shadow-xs hover:border-[#caa152]/60'
