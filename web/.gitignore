@@ -1,0 +1,21 @@
+node_modules/
+dist/
+.vercel/
+.env
+.env.*
+!.env.example
+*.log
+Thumbs.db
+.DS_Store
+
+# Exclude heavy raw PNG/JPG/images not used in build
+*.png
+*.jpg
+*.jpeg
+
+Logo/
+!/public/Logo/
+/public/Logo/*
+!/public/Logo/*.svg
+*.py
+

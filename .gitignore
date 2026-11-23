@@ -1,18 +1,10 @@
 node_modules/
-dist/
-.vercel/
+web/dist/
 .env
 .env.*
 !.env.example
+deploy/data/
+deploy/nginx/certs/
+api/uploads/
 *.log
-Thumbs.db
 .DS_Store
-
-# Exclude heavy raw PNG/JPG/images not used in build
-*.png
-*.jpg
-*.jpeg
-
-Logo/
-*.py
-
