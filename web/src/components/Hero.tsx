@@ -34,7 +34,7 @@ export const Hero: React.FC<HeroProps> = ({ onExplore, onViewCompetitions }) => 
   return (
     <section
       id="hero"
-      className="relative w-full overflow-hidden flex flex-col items-center justify-center text-center px-4 sm:px-6 md:px-10 lg:px-16 pt-10 pb-14 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24"
+      className="relative w-full overflow-hidden flex flex-col items-center justify-center text-center px-4 sm:px-6 md:px-10 lg:px-16 pt-28 pb-16 sm:pt-32 sm:pb-20 lg:pt-36 lg:pb-24"
       style={{ minHeight: '85vh' }}
     >
       {/* ── RESPONSIVE BACKGROUND IMAGE: Mobile, iPad/Tablet, Desktop (Ultra-Fast WebP < 180KB) ── */}
@@ -112,7 +112,7 @@ export const Hero: React.FC<HeroProps> = ({ onExplore, onViewCompetitions }) => 
           </div>
 
           {/* Poetic Subtitle */}
-          <p className="font-sans text-[11px] sm:text-xs md:text-sm lg:text-base text-[#4a2e18] max-w-xs sm:max-w-md md:max-w-xl px-2 leading-relaxed font-normal text-center">
+          <p className="font-edwardian text-2xl sm:text-3xl md:text-4xl text-[#4a2e18] max-w-xs sm:max-w-lg md:max-w-2xl px-2 leading-snug font-normal text-center">
             Sebuah festival tempat gagasan muda berubah menjadi keajaiban nyata bagi UMKM lokal.
           </p>
 

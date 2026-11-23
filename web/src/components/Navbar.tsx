@@ -54,6 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'tentang', label: 'EVENT' },
     { id: 'kompetisi', label: 'KOMPETISI' },
     { id: 'linimasa', label: 'LINIMASA' },
+    { id: 'galeri', label: 'GALERI' },
     { id: 'faq', label: 'FAQ' },
   ];
 
@@ -66,14 +67,14 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <>
-      <header
-        className={`sticky top-0 z-50 w-full transition-all duration-300 ease-out ${
-          isScrolled
-            ? 'bg-[#fcf9f2]/94 backdrop-blur-md border-b border-[#ebdcc8]/60 shadow-xs py-2 px-4 sm:px-8 lg:px-16'
-            : 'bg-transparent py-3 sm:py-4 px-4 sm:px-8 lg:px-16'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
+      <header className="fixed top-0 left-0 right-0 z-50 px-3 sm:px-6 lg:px-10 pt-3 sm:pt-4 pointer-events-none">
+        <div
+          className={`pointer-events-auto max-w-6xl mx-auto flex items-center justify-between gap-2 rounded-full transition-all duration-300 ease-out px-4 sm:px-6 ${
+            isScrolled
+              ? 'bg-[#fffdf9]/88 backdrop-blur-xl border border-[#caa152]/45 shadow-[0_12px_36px_-12px_rgba(47,30,16,0.22)] py-2'
+              : 'bg-[#fffdf9]/72 backdrop-blur-md border border-[#d8be99]/50 shadow-[0_6px_24px_-10px_rgba(47,30,16,0.12)] py-2.5'
+          }`}
+        >
 
           {/* LOGO & BRAND LOCKUP */}
           <button
@@ -86,7 +87,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="h-6.5 sm:h-8 w-auto object-contain filter drop-shadow-2xs"
             />
             <div className="flex flex-col">
-              <span className="font-serif-disp text-sm sm:text-lg text-[#2a170b] tracking-tight leading-none font-normal">
+              <span className="font-poppins font-semibold text-sm sm:text-lg text-[#2a170b] tracking-tight leading-none font-normal">
                 Digiconomic
               </span>
               <span className="font-cinzel text-[7px] sm:text-[9px] text-[#9b6e38] tracking-[0.26em] uppercase mt-0.5 font-normal">
@@ -95,26 +96,21 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </button>
 
-          {/* MIDDLE NAVIGATION LINKS — Desktop only */}
-          <nav className="hidden md:flex items-center gap-6 lg:gap-9">
+          {/* MIDDLE NAVIGATION LINKS — Modern Floating Pill Nav */}
+          <nav className="hidden md:flex items-center gap-1 lg:gap-1.5 bg-[#f4ead9]/75 p-1 rounded-full border border-[#e3d1b7]/80">
             {links.map((l) => {
               const isActive = activeTab === l.id;
               return (
                 <button
                   key={l.id}
                   onClick={() => go(l.id)}
-                  className={`relative py-1 font-cinzel text-[10px] sm:text-[11px] tracking-[0.22em] transition-colors duration-200 ${
+                  className={`relative px-3.5 py-1.5 rounded-full font-cinzel text-[10px] sm:text-[11px] tracking-[0.18em] transition-all duration-250 ${
                     isActive
-                      ? 'text-[#2a170b] font-medium'
-                      : 'text-[#6e4e32] hover:text-[#2a170b] font-normal'
+                      ? 'bg-[#3b2412] text-[#faf4e8] font-semibold shadow-xs'
+                      : 'text-[#5c3e28] hover:text-[#241308] hover:bg-[#fffdf9]/85 font-medium'
                   }`}
                 >
                   <span>{l.label}</span>
-                  {isActive && (
-                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[7px] text-[#caa152] leading-none">
-                      ✦
-                    </span>
-                  )}
                 </button>
               );
             })}
@@ -246,7 +242,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <div className="flex items-center gap-2">
                 <img src="/Logo/00-logo-gabungan.svg" alt="Logo" className="h-7 w-auto" />
                 <div>
-                  <span className="font-serif-disp text-sm text-[#2a170b] leading-none block">Digiconomic</span>
+                  <span className="font-poppins font-semibold text-sm text-[#2a170b] leading-none block">Digiconomic</span>
                   <span className="font-cinzel text-[7px] text-[#9b6e38] tracking-[0.24em] uppercase">FEST 2027</span>
                 </div>
               </div>

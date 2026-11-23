@@ -1,11 +1,55 @@
 @import "tailwindcss";
 
-/* ── FONTS ── */
-.font-cinzel     { font-family: 'Cinzel', serif; }
-.font-script     { font-family: 'Great Vibes', cursive; }
-.font-serif-disp { font-family: 'Cormorant Garamond', Georgia, serif; }
-.font-cormorant  { font-family: 'Cormorant Garamond', Georgia, serif; }
-.font-marcellus  { font-family: 'Marcellus', serif; }
+/* ── CUSTOM LOCAL FONTS ── */
+@font-face {
+  font-family: 'Abang';
+  src: url('/fonts/Abang.woff2') format('woff2'),
+       url('/fonts/Abang.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'ITC Edwardian Script';
+  src: url('/fonts/ITCEdwardianScript.woff2') format('woff2'),
+       url('/fonts/ITCEdwardianScript.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── TAILWIND V4 FONT TOKENS ── */
+@theme {
+  --font-sans: 'Open Sans', system-ui, sans-serif;
+  --font-display: 'Abang', Georgia, serif;
+  --font-script: 'ITC Edwardian Script', 'Edwardian Script ITC', cursive;
+  --font-ui: 'Poppins', system-ui, sans-serif;
+}
+
+/* ── UTILITY CLASSES (4 FONT RESMI) ── */
+.font-abang,
+.font-cormorant,
+.font-serif-disp {
+  font-family: 'Abang', Georgia, serif;
+}
+
+.font-edwardian,
+.font-script {
+  font-family: 'ITC Edwardian Script', 'Edwardian Script ITC', cursive;
+}
+
+.font-poppins,
+.font-cinzel,
+.font-marcellus,
+.font-serif-title {
+  font-family: 'Poppins', system-ui, sans-serif;
+}
+
+.font-open-sans,
+.font-sans-body {
+  font-family: 'Open Sans', system-ui, sans-serif;
+}
 
 /* ── HARDWARE-ACCELERATED MAGIC ANIMATIONS ── */
 @keyframes sparkle-float {
@@ -78,7 +122,7 @@ html, body {
   overscroll-behavior-x: none !important;
   margin: 0;
   background: #fdf8ef;
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-family: 'Open Sans', system-ui, sans-serif;
   color: #2a1a0e;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -101,4 +145,36 @@ input, textarea, [contenteditable="true"] {
   user-select: text !important;
   -webkit-user-select: text !important;
   caret-color: #2a1a0e !important;
+}
+
+/* ── MODERN MICRO-INTERACTIONS & HOVER ── */
+.card-modern-hover {
+  will-change: transform, box-shadow;
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.25s ease;
+}
+.card-modern-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 36px -14px rgba(47, 30, 16, 0.20), 0 0 0 1px rgba(202, 161, 82, 0.55);
+}
+
+.btn-modern-shine {
+  position: relative;
+  overflow: hidden;
+}
+.btn-modern-shine::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent 0%, rgba(255, 250, 235, 0.28) 50%, transparent 100%);
+  transform: skewX(-20deg);
+  transition: left 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+.btn-modern-shine:hover::after {
+  left: 140%;
 }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Compass, TrendingUp, Cpu, RefreshCw, Sparkles } from 'lucide-react';
+import { SectionDivider, CompassWatermark, BatikKawungPattern, MegaMendungClouds } from './Ornaments';
 
 interface LogoElement {
   id: number;
@@ -75,18 +76,22 @@ export const LogoMeaning: React.FC = () => {
   return (
     <section
       id="makna-logo"
-      className="relative w-full py-8 sm:py-16 lg:py-24 px-3.5 sm:px-8 lg:px-16 overflow-hidden bg-gradient-to-b from-[#f7efe0] via-[#faf4e8] to-[#fdf8ef]"
+      className="relative w-full py-8 sm:py-16 lg:py-24 px-3.5 sm:px-8 lg:px-16 overflow-hidden bg-gradient-to-b from-[#2f1d10] via-[#26160c] to-[#1f1209] text-[#faf4e8]"
     >
+      <CompassWatermark color="#caa152" className="absolute -bottom-24 -left-24 w-80 h-80 opacity-[0.06]" />
+      <BatikKawungPattern color="#caa152" opacity={0.06} id="kawung-logo" />
+      <MegaMendungClouds color="#caa152" className="absolute top-6 -right-14 w-64 sm:w-80 opacity-50" />
+      <MegaMendungClouds color="#caa152" flip className="absolute bottom-6 -left-14 w-64 sm:w-80 opacity-45" />
       <div className="max-w-6xl mx-auto relative z-10">
         
         {/* ── SECTION HEADER ── */}
         <div className="text-center max-w-2xl mx-auto mb-5 sm:mb-12 px-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 sm:px-3.5 sm:py-1 rounded-full bg-[#f0e3cc] border border-[#d8be99] text-[#7a5530] font-cinzel text-[8.5px] sm:text-[11px] tracking-widest uppercase font-semibold mb-1.5 sm:mb-3">
+          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 sm:px-3.5 sm:py-1 rounded-full bg-[#3f2818] border border-[#caa152]/50 text-[#f3d48c] font-cinzel text-[8.5px] sm:text-[11px] tracking-widest uppercase font-semibold mb-1.5 sm:mb-3">
             <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#caa152]" />
             <span>Identitas & Filosofi Visual</span>
           </div>
 
-          <h2 className="font-cormorant font-normal text-2xl sm:text-4xl lg:text-[2.75rem] text-[#241308] tracking-tight leading-snug">
+          <h2 className="font-cormorant font-normal text-2xl sm:text-4xl lg:text-[2.75rem] text-[#fffdf9] tracking-tight leading-snug">
             Makna di Balik <span className="shimmer-text">Simbol & Rona Logo</span>
           </h2>
 
@@ -98,7 +103,7 @@ export const LogoMeaning: React.FC = () => {
             <span className="w-8 sm:w-14 h-px bg-gradient-to-l from-transparent to-[#caa152]" />
           </div>
 
-          <p className="font-sans text-[11px] sm:text-sm text-[#5c3e28] leading-relaxed font-normal">
+          <p className="font-sans text-[11px] sm:text-sm text-[#dec9ad] leading-relaxed font-normal">
             Setiap lengkungan kurva, pilar grafis, dan rona emas diciptakan dengan filosofi mendalam sebagai representasi kebangkitan ekonomi kreatif dan digitalisasi UMKM.
           </p>
         </div>
@@ -128,25 +133,25 @@ export const LogoMeaning: React.FC = () => {
                 onMouseLeave={() => setActiveElement(null)}
                 className={`p-5 rounded-2xl border transition-all duration-300 relative cursor-pointer group ${
                   activeElement === item.id
-                    ? 'bg-[#fffdf9] border-[#caa152] shadow-md -translate-y-0.5 ring-1 ring-[#caa152]/60'
-                    : 'bg-white/85 border-[#ebdcc8] shadow-2xs hover:shadow-xs hover:border-[#caa152]/60'
+                    ? 'bg-[#452b1a] border-[#caa152] shadow-md -translate-y-0.5 ring-1 ring-[#caa152]/60'
+                    : 'bg-[#382315]/90 border-[#caa152]/30 shadow-2xs hover:shadow-xs hover:border-[#caa152]/60'
                 }`}
               >
                 <div className="absolute inset-1.5 rounded-xl border border-dashed border-[#caa152]/20 pointer-events-none group-hover:border-[#caa152]/50 transition-colors" />
                 <div className="flex items-center justify-between gap-2 mb-1 relative z-10">
                   <div className="flex items-center gap-1.5">
-                    <span className="font-cinzel text-[11px] font-semibold text-[#7a5530]">{item.code}</span>
+                    <span className="font-cinzel text-[11px] font-semibold text-[#e3c47f]">{item.code}</span>
                     <span className="text-[#caa152] text-[10px]">•</span>
-                    <span className="text-[10px] text-[#7a5530] font-medium font-sans">{item.subtitle}</span>
+                    <span className="text-[10px] text-[#e3c47f] font-medium font-sans">{item.subtitle}</span>
                   </div>
                   <div className="w-6 h-6 rounded-lg bg-[#faf4e8] border border-[#ebdcc8] flex items-center justify-center shadow-2xs shrink-0">
                     {item.icon}
                   </div>
                 </div>
-                <h3 className="font-cormorant text-xl font-normal text-[#241308] group-hover:text-[#ba883a] transition-colors relative z-10 leading-tight mb-1">
+                <h3 className="font-cormorant text-xl font-normal text-[#fffdf9] group-hover:text-[#ba883a] transition-colors relative z-10 leading-tight mb-1">
                   {item.title}
                 </h3>
-                <p className="font-sans text-xs text-[#5c3e28] leading-relaxed font-normal relative z-10">
+                <p className="font-sans text-xs text-[#dec9ad] leading-relaxed font-normal relative z-10">
                   {item.desc}
                 </p>
               </div>
@@ -178,25 +183,25 @@ export const LogoMeaning: React.FC = () => {
                 onMouseLeave={() => setActiveElement(null)}
                 className={`p-5 rounded-2xl border transition-all duration-300 relative cursor-pointer group ${
                   activeElement === item.id
-                    ? 'bg-[#fffdf9] border-[#caa152] shadow-md -translate-y-0.5 ring-1 ring-[#caa152]/60'
-                    : 'bg-white/85 border-[#ebdcc8] shadow-2xs hover:shadow-xs hover:border-[#caa152]/60'
+                    ? 'bg-[#452b1a] border-[#caa152] shadow-md -translate-y-0.5 ring-1 ring-[#caa152]/60'
+                    : 'bg-[#382315]/90 border-[#caa152]/30 shadow-2xs hover:shadow-xs hover:border-[#caa152]/60'
                 }`}
               >
                 <div className="absolute inset-1.5 rounded-xl border border-dashed border-[#caa152]/20 pointer-events-none group-hover:border-[#caa152]/50 transition-colors" />
                 <div className="flex items-center justify-between gap-2 mb-1 relative z-10">
                   <div className="flex items-center gap-1.5">
-                    <span className="font-cinzel text-[11px] font-semibold text-[#7a5530]">{item.code}</span>
+                    <span className="font-cinzel text-[11px] font-semibold text-[#e3c47f]">{item.code}</span>
                     <span className="text-[#caa152] text-[10px]">•</span>
-                    <span className="text-[10px] text-[#7a5530] font-medium font-sans">{item.subtitle}</span>
+                    <span className="text-[10px] text-[#e3c47f] font-medium font-sans">{item.subtitle}</span>
                   </div>
                   <div className="w-6 h-6 rounded-lg bg-[#faf4e8] border border-[#ebdcc8] flex items-center justify-center shadow-2xs shrink-0">
                     {item.icon}
                   </div>
                 </div>
-                <h3 className="font-cormorant text-xl font-normal text-[#241308] group-hover:text-[#ba883a] transition-colors relative z-10 leading-tight mb-1">
+                <h3 className="font-cormorant text-xl font-normal text-[#fffdf9] group-hover:text-[#ba883a] transition-colors relative z-10 leading-tight mb-1">
                   {item.title}
                 </h3>
-                <p className="font-sans text-xs text-[#5c3e28] leading-relaxed font-normal relative z-10">
+                <p className="font-sans text-xs text-[#dec9ad] leading-relaxed font-normal relative z-10">
                   {item.desc}
                 </p>
               </div>
@@ -209,19 +214,19 @@ export const LogoMeaning: React.FC = () => {
           {elements.map((item) => (
             <div
               key={item.id}
-              className="p-2.5 sm:p-4 rounded-xl border border-[#ebdcc8] bg-white/90 shadow-2xs relative flex flex-col justify-start"
+              className="p-2.5 sm:p-4 rounded-xl border border-[#caa152]/35 bg-[#382315]/90 shadow-xs relative flex flex-col justify-start"
             >
               <div className="absolute inset-1 rounded-lg border border-dashed border-[#caa152]/20 pointer-events-none" />
               <div className="flex items-center justify-between gap-1 mb-1 relative z-10">
-                <span className="font-cinzel text-[9px] font-semibold text-[#7a5530]">{item.code}</span>
-                <div className="w-5 h-5 rounded-md bg-[#faf4e8] border border-[#ebdcc8] flex items-center justify-center shrink-0">
+                <span className="font-cinzel text-[9px] font-semibold text-[#e3c47f]">{item.code}</span>
+                <div className="w-5 h-5 rounded-md bg-[#24140a] border border-[#caa152]/40 flex items-center justify-center shrink-0">
                   {item.icon}
                 </div>
               </div>
-              <h3 className="font-cormorant text-sm sm:text-base font-medium text-[#241308] leading-tight mb-0.5 relative z-10">
+              <h3 className="font-cormorant text-sm sm:text-base font-medium text-[#fffdf9] leading-tight mb-0.5 relative z-10">
                 {item.title}
               </h3>
-              <p className="font-sans text-[10px] sm:text-[11px] text-[#5c3e28] leading-snug font-normal relative z-10 line-clamp-3">
+              <p className="font-sans text-[10px] sm:text-[11px] text-[#dec9ad] leading-snug font-normal relative z-10 line-clamp-3">
                 {item.desc}
               </p>
             </div>
@@ -229,18 +234,18 @@ export const LogoMeaning: React.FC = () => {
         </div>
 
         {/* ── FILOSOFI RONA & WARNA LOGO: 3 Kolom Berdampingan (1 Baris Ringkas) ── */}
-        <div className="mt-5 sm:mt-12 pt-4 sm:pt-6 border-t border-[#ebdcc8]/80 relative z-10">
+        <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-[#caa152]/30 relative z-10">
           <div className="text-center mb-2.5 sm:mb-5">
-            <span className="font-cinzel text-[10px] sm:text-xs text-[#7a5530] font-semibold tracking-wider">
+            <span className="font-cinzel text-[10px] sm:text-xs text-[#e3c47f] font-semibold tracking-wider">
               Filosofi Rona & Gradasi Logo
             </span>
           </div>
 
-          <div className="grid grid-cols-3 gap-1.5 sm:gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             {logoColorPalette.map((color, idx) => (
               <div
                 key={idx}
-                className="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-white/85 border border-[#ebdcc8] shadow-2xs flex flex-col items-center text-center"
+                className="card-modern-hover p-4 sm:p-5 rounded-2xl bg-[#382315]/90 border border-[#caa152]/35 hover:border-[#caa152]/75 shadow-md flex flex-col items-center text-center"
               >
                 {/* Color Swatch Dot */}
                 <div
@@ -249,13 +254,13 @@ export const LogoMeaning: React.FC = () => {
                   <span className="text-[7px] sm:text-[9px] text-[#caa152] select-none">✦</span>
                 </div>
 
-                <h4 className="font-cormorant font-normal text-xs sm:text-sm text-[#241308] leading-tight">
+                <h4 className="font-cormorant font-normal text-xs sm:text-sm text-[#fffdf9] leading-tight">
                   {color.title}
                 </h4>
-                <span className="text-[8px] sm:text-[9px] font-mono text-[#7a5530] font-semibold bg-[#faf4e8] px-1 py-0.2 rounded border border-[#ebdcc8] mt-0.5">
+                <span className="text-[10px] font-mono text-[#f3d48c] font-semibold bg-[#24140a] px-2.5 py-0.5 rounded-full border border-[#caa152]/40 mt-1.5">
                   {color.code}
                 </span>
-                <p className="text-[9.5px] sm:text-xs text-[#5c3e28] leading-tight mt-1 font-sans hidden sm:block">
+                <p className="text-xs text-[#e3d0b5] leading-relaxed mt-2 font-sans">
                   {color.meaning}
                 </p>
               </div>

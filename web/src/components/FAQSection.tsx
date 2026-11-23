@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FAQ_DATA } from '../data/competitions';
 import { ChevronDown, MessageSquare } from 'lucide-react';
+import { SectionDivider, BatikKawungPattern, MegaMendungClouds } from './Ornaments';
 
 interface FAQProps {
   onOpenWhatsAppHelp: () => void;
@@ -15,9 +16,12 @@ export const FAQSection: React.FC<FAQProps> = ({ onOpenWhatsAppHelp }) => {
       id="faq"
       className="relative w-full py-10 sm:py-16 md:py-20 px-3.5 sm:px-8 lg:px-16 overflow-hidden"
       style={{
-        background: 'linear-gradient(180deg, #f7efe0 0%, #faf4e8 50%, #fdf8ef 100%)',
+        background: 'linear-gradient(180deg, #efe3d0 0%, #eadbc4 60%, #e4d2b7 100%)',
       }}
     >
+      <BatikKawungPattern color="#7a5530" opacity={0.045} id="kawung-faq" />
+      <MegaMendungClouds color="#8c6239" className="absolute top-6 -right-14 w-64 sm:w-80 opacity-50" />
+      <MegaMendungClouds color="#8c6239" flip className="absolute bottom-6 -left-14 w-64 sm:w-80 opacity-45" />
       <div className="max-w-4xl mx-auto relative z-10">
 
         {/* Section Header */}
@@ -47,37 +51,48 @@ export const FAQSection: React.FC<FAQProps> = ({ onOpenWhatsAppHelp }) => {
             return (
               <div
                 key={index}
-                className="rounded-xl sm:rounded-2xl border border-[#ebdcc8] overflow-hidden transition-all duration-300 relative"
-                style={{
-                  background: 'rgba(255, 253, 248, 0.96)',
-                }}
+                className={`rounded-xl sm:rounded-2xl border overflow-hidden transition-all duration-300 ease-out relative ${
+                  isOpen
+                    ? 'border-[#caa152] bg-[#fffdf9] shadow-[0_10px_28px_-12px_rgba(47,30,16,0.18)]'
+                    : 'border-[#dfd0ba] bg-[#fffdf9]/92 hover:border-[#caa152]/70 hover:bg-[#fffdf9] hover:-translate-y-0.5 hover:shadow-xs'
+                }`}
               >
-                <div className="absolute inset-1 sm:inset-1.5 rounded-lg sm:rounded-xl border border-dashed border-[#caa152]/20 pointer-events-none" />
-
                 <button
+                  type="button"
                   onClick={() => toggle(index)}
-                  className="w-full text-left p-3.5 sm:p-5.5 flex items-center justify-between gap-3 font-sans text-xs sm:text-sm text-[#2f1e10] hover:text-[#7a5530] transition-colors relative z-10"
+                  aria-expanded={isOpen}
+                  className="w-full text-left p-4 sm:p-5 flex items-center justify-between gap-3 font-sans text-xs sm:text-sm text-[#2f1e10] hover:text-[#7a5530] transition-colors relative z-10"
                 >
-                  <span className="flex items-center gap-2.5 sm:gap-3.5 font-normal">
-                    <span className="shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center font-cinzel text-[9px] sm:text-[10px] text-white bg-gradient-to-r from-[#ba883a] to-[#7a5530] shadow-2xs font-semibold">
+                  <span className="flex items-center gap-3 font-normal">
+                    <span className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center font-poppins text-[10px] font-semibold transition-colors duration-300 ${
+                      isOpen
+                        ? 'bg-[#3b2412] text-[#f3d48c]'
+                        : 'bg-[#efe1cb] text-[#6b4725]'
+                    }`}>
                       {String(index + 1).padStart(2, '0')}
                     </span>
-                    <span className="font-medium text-[#2f1e10] leading-snug text-[11.5px] sm:text-sm">
+                    <span className="font-poppins font-medium text-[#2f1e10] leading-snug text-xs sm:text-sm">
                       {item.q}
                     </span>
                   </span>
                   <ChevronDown
-                    className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#7a5530] transition-transform duration-300 shrink-0 ${
-                      isOpen ? 'rotate-180 text-[#caa152]' : ''
+                    className={`w-4 h-4 text-[#7a5530] transition-transform duration-300 ease-out shrink-0 ${
+                      isOpen ? 'rotate-180 text-[#a87226]' : ''
                     }`}
                   />
                 </button>
 
-                {isOpen && (
-                  <div className="px-3.5 sm:px-6 pb-3.5 sm:pb-5 pt-1 text-[11px] sm:text-[13px] text-[#5c3820] leading-relaxed border-t border-[#ebdcc8]/70 font-normal relative z-10">
-                    <p className="pt-1.5 sm:pt-2">{item.a}</p>
+                <div
+                  className={`grid transition-all duration-300 ease-out ${
+                    isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                  }`}
+                >
+                  <div className="overflow-hidden">
+                    <div className="px-4 sm:px-6 pb-4 sm:pb-5 pt-2 text-xs sm:text-[13px] text-[#5c3820] leading-relaxed border-t border-[#ebdcc8]/70 font-sans">
+                      {item.a}
+                    </div>
                   </div>
-                )}
+                </div>
               </div>
             );
           })}
@@ -93,7 +108,7 @@ export const FAQSection: React.FC<FAQProps> = ({ onOpenWhatsAppHelp }) => {
           <div className="absolute inset-1 sm:inset-1.5 rounded-xl sm:rounded-2xl border border-dashed border-[#caa152]/30 pointer-events-none" />
 
           <div className="space-y-1 text-center sm:text-left relative z-10">
-            <h4 className="font-cormorant font-normal text-lg sm:text-2xl text-[#2f1e10]">
+            <h4 className="font-poppins font-semibold text-base sm:text-lg text-[#2f1e10]">
               Punya pertanyaan yang belum terjawab?
             </h4>
             <p className="font-sans text-[11px] sm:text-xs text-[#7a5530] font-normal">

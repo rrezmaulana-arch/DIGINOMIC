@@ -1,158 +1,164 @@
 import React, { useState } from 'react';
 import { Competition } from '../types';
 import { COMPETITIONS_DATA } from '../data/competitions';
-import { ArrowRight, BookOpen, Trophy, Sparkles, Award } from 'lucide-react';
+import { ArrowRight, BookOpen, Briefcase, FileText, Trophy } from 'lucide-react';
+import {
+  BatikKawungPattern,
+  CompassWatermark,
+  CornerFiligree,
+  MegaMendungClouds,
+} from './Ornaments';
 
 interface CompetitionsProps {
   onSelectCompetition: (comp: Competition) => void;
+  onExploreDetail?: (comp: Competition) => void;
 }
 
-export const Competitions: React.FC<CompetitionsProps> = ({ onSelectCompetition }) => {
+export const Competitions: React.FC<CompetitionsProps> = ({
+  onSelectCompetition,
+  onExploreDetail,
+}) => {
   const [modal, setModal] = useState<Competition | null>(null);
 
   return (
     <section
       id="kompetisi"
-      className="relative w-full py-8 sm:py-14 md:py-20 px-3 sm:px-6 md:px-8 lg:px-12 overflow-hidden bg-[#fdf8ef]"
+      className="relative w-full py-12 sm:py-16 md:py-24 px-3.5 sm:px-6 md:px-10 lg:px-12 overflow-hidden"
+      style={{
+        background: 'linear-gradient(180deg, #efe2ce 0%, #f5ead9 50%, #ebdcc5 100%)',
+      }}
     >
+      <BatikKawungPattern color="#7a5530" opacity={0.055} id="kawung-comp-outer" />
+      <MegaMendungClouds color="#8c6239" className="absolute top-6 -right-14 w-72 sm:w-96 opacity-55" />
+      <MegaMendungClouds color="#8c6239" flip className="absolute bottom-6 -left-14 w-72 sm:w-96 opacity-50" />
+
       <div className="max-w-6xl mx-auto relative z-10">
-        
-        {/* ── ROYAL PAVILION CARD ── */}
+        {/* ── ROYAL PAVILION CARD (MODERNIZED) ── */}
         <div
-          className="relative rounded-2xl sm:rounded-[36px] md:rounded-[48px] lg:rounded-[56px] border-2 border-[#caa152]/70 shadow-[0_12px_40px_-10px_rgba(47,30,16,0.32)] p-3.5 sm:p-7 md:p-10 lg:p-14 overflow-hidden transition-all duration-300"
+          className="relative rounded-3xl sm:rounded-[40px] border border-[#caa152]/65 shadow-[0_24px_60px_-16px_rgba(32,19,10,0.45)] p-5 sm:p-8 md:p-12 overflow-hidden"
           style={{
-            background: 'radial-gradient(ellipse 90% 80% at 50% 30%, #3a2415 0%, #2b1a0e 65%, #20130a 100%)',
+            background: 'radial-gradient(ellipse 90% 80% at 50% 20%, #3d2616 0%, #2b1a0e 65%, #1e1108 100%)',
           }}
         >
-          {/* Inner Dashed Border */}
-          <div className="absolute inset-1 sm:inset-3 rounded-xl sm:rounded-[28px] md:rounded-[40px] lg:rounded-[48px] border border-dashed border-[#caa152]/35 pointer-events-none" />
+          <BatikKawungPattern color="#caa152" opacity={0.05} id="kawung-pavilion" />
+          <CornerFiligree color="#caa152" />
+          <CompassWatermark color="#caa152" className="absolute -bottom-24 -right-24 w-80 h-80 opacity-[0.07]" />
 
-          {/* Ambient Warm Golden Stardust inside pavilion */}
-          <div
-            className="absolute inset-0 pointer-events-none select-none z-0 opacity-40"
-            style={{
-              backgroundImage: 'radial-gradient(circle at 50% 15%, rgba(202, 161, 82, 0.28) 0%, transparent 65%)',
-            }}
-          />
-
-          {/* Decorative Corner Stars */}
-          <span className="absolute top-2.5 left-3.5 text-[#caa152]/40 text-xs sm:text-sm select-none pointer-events-none">✦</span>
-          <span className="absolute top-2.5 right-3.5 text-[#caa152]/40 text-xs sm:text-sm select-none pointer-events-none">✦</span>
-          <span className="absolute bottom-2.5 left-3.5 text-[#caa152]/40 text-xs sm:text-sm select-none pointer-events-none">✦</span>
-          <span className="absolute bottom-2.5 right-3.5 text-[#caa152]/40 text-xs sm:text-sm select-none pointer-events-none">✦</span>
-
-          {/* ── SECTION HEADER ── */}
-          <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between mb-4 sm:mb-8 md:mb-12 gap-3 sm:gap-6 pb-4 sm:pb-6 border-b border-[#caa152]/30">
-            <div className="space-y-1.5 sm:space-y-3 max-w-2xl">
-              <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3.5 py-0.5 sm:py-1 rounded-full bg-[#462d1a] border border-[#caa152]/60 text-[#fcedb8] font-cinzel text-[9px] sm:text-xs tracking-wider font-semibold shadow-xs">
-                <Trophy className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#caa152]" />
+          {/* Header */}
+          <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between mb-7 sm:mb-10 gap-4 pb-6 border-b border-[#caa152]/25">
+            <div className="space-y-2 max-w-2xl">
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#462d1a]/90 border border-[#caa152]/55 text-[#fcedb8] font-poppins text-[10px] sm:text-xs tracking-wider font-semibold">
+                <Trophy className="w-3.5 h-3.5 text-[#caa152]" />
                 <span>Kompetisi Nasional 2027</span>
               </div>
 
-              <h2 className="font-cormorant font-normal text-xl sm:text-3xl md:text-4xl lg:text-[2.75rem] text-[#fffdfa] tracking-tight leading-[1.14]">
+              <h2 className="font-abang font-normal text-2xl sm:text-4xl lg:text-[2.85rem] text-[#fffdfa] tracking-tight leading-[1.12]">
                 Cabang <span className="shimmer-text">Kompetisi Resmi</span>
               </h2>
 
-              <p className="font-sans text-[11px] sm:text-xs md:text-sm text-[#e4ceaa] leading-relaxed font-normal">
-                Wadah unjuk inovasi bagi UMKM Indonesia. Rebut total hadiah pembinaan <strong>Rp 26.000.000</strong> serta sertifikat nasional Bank Indonesia.
+              <p className="font-sans text-xs sm:text-sm text-[#e4ceaa] leading-relaxed">
+                Wadah unjuk inovasi bagi UMKM Indonesia. Rebut total hadiah pembinaan{' '}
+                <strong className="text-[#fffdf9]">Rp 26.000.000</strong> serta sertifikat nasional Bank Indonesia.
               </p>
             </div>
-            
-            <div className="flex items-center gap-3 shrink-0">
-              <span className="md:hidden text-[9px] font-cinzel text-[#e4ceaa] tracking-wider uppercase bg-[#462d1a] px-2.5 py-1 rounded-full border border-[#caa152]/60 shrink-0">
-                Geser ➔
-              </span>
-              <button
-                onClick={() => setModal(COMPETITIONS_DATA[0])}
-                className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-[#462d1a] hover:bg-[#583921] border border-[#caa152] text-[#fcedb8] font-cinzel text-[10px] sm:text-xs font-semibold tracking-wider transition-all flex items-center justify-center gap-2 shadow-xs hover:shadow active:scale-95"
-              >
-                <BookOpen className="w-3.5 h-3.5 text-[#caa152]" />
-                <span>BUKU PANDUAN</span>
-              </button>
-            </div>
+
+            <button
+              onClick={() => setModal(COMPETITIONS_DATA[0])}
+              className="btn-modern-shine w-full sm:w-auto px-5 py-2.5 rounded-full bg-[#462d1a] hover:bg-[#583921] border border-[#caa152]/80 text-[#fcedb8] font-poppins text-xs font-semibold tracking-wider transition-all flex items-center justify-center gap-2 shrink-0"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-[#caa152]" />
+              <span>BUKU PANDUAN</span>
+            </button>
           </div>
 
-          {/* ── 2 CARDS: HORIZONTAL SNAP CAROUSEL ON MOBILE, 2-COL ON DESKTOP ── */}
-          <div className="flex md:grid md:grid-cols-2 overflow-x-auto md:overflow-visible snap-x snap-mandatory no-scrollbar gap-3 pb-2 -mx-3.5 px-3.5 md:mx-0 md:px-0 relative z-10">
-            {COMPETITIONS_DATA.map((comp, idx) => (
-              <div
-                key={comp.id}
-                onClick={() => onSelectCompetition(comp)}
-                className="w-[84vw] md:w-auto shrink-0 snap-center group cursor-pointer rounded-xl sm:rounded-[22px] md:rounded-[28px] border-2 border-[#caa152]/70 shadow-[0_6px_20px_rgba(0,0,0,0.22)] hover:shadow-[0_16px_36px_rgba(202,161,82,0.22)] hover:-translate-y-1 transition-all duration-300 relative p-3 sm:p-6 md:p-8 flex flex-col justify-between"
-                style={{
-                  background: 'linear-gradient(180deg, #fffdfa 0%, #faf4e8 100%)',
-                }}
-              >
-                {/* Inner Dashed Gold Border */}
-                <div className="absolute inset-1 sm:inset-2.5 rounded-lg sm:rounded-[18px] md:rounded-[22px] border border-dashed border-[#caa152]/40 pointer-events-none group-hover:border-[#caa152] transition-colors" />
+          {/* 2-Column Modern Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-7 relative z-10">
+            {COMPETITIONS_DATA.map((comp, idx) => {
+              const isEsai = comp.id === 'comp-1';
+              return (
+                <div
+                  key={comp.id}
+                  onClick={() => (onExploreDetail ? onExploreDetail(comp) : onSelectCompetition(comp))}
+                  className="card-modern-hover group cursor-pointer rounded-2xl sm:rounded-3xl border border-[#caa152]/60 p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden"
+                  style={{
+                    background: 'linear-gradient(165deg, #fffdfa 0%, #f8efe0 100%)',
+                  }}
+                >
+                  <CornerFiligree color="#b88c52" className="w-6 h-6 opacity-45" />
+                  <CompassWatermark
+                    color="#7a5530"
+                    className="absolute -bottom-12 -right-12 w-40 h-40 opacity-[0.06] transition-transform duration-500 group-hover:rotate-12"
+                  />
 
-                <div className="relative z-10 space-y-1.5 sm:space-y-3.5">
-                  {/* Top Row: Category tag and Star */}
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#f3e7d3] text-[#7a5530] font-cinzel text-[9px] sm:text-[10px] tracking-[0.15em] sm:tracking-[0.25em] uppercase font-semibold border border-[#d8be99]">
-                      <span>CABANG 0{idx + 1}</span>
-                      <span>•</span>
-                      <span>{comp.category}</span>
-                    </span>
-                    <span className="text-[#caa152] text-xs sm:text-sm select-none">
-                      ✦
-                    </span>
+                  <div className="relative z-10 space-y-3.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#efe1cb] text-[#6b4725] font-poppins text-[10px] tracking-[0.16em] uppercase font-semibold border border-[#d8be99]">
+                        <span>Cabang 0{idx + 1}</span>
+                        <span>·</span>
+                        <span>{comp.category}</span>
+                      </span>
+                      <div className="w-9 h-9 rounded-xl bg-[#3b2412] text-[#caa152] flex items-center justify-center shadow-xs transition-transform duration-300 group-hover:scale-105">
+                        {isEsai ? <FileText className="w-4 h-4" /> : <Briefcase className="w-4 h-4" />}
+                      </div>
+                    </div>
+
+                    <h3 className="font-poppins font-semibold text-xl sm:text-2xl text-[#241308] group-hover:text-[#8c5a24] transition-colors leading-snug">
+                      {comp.title}
+                    </h3>
+
+                    <p className="font-sans text-xs sm:text-sm text-[#5c3e28] leading-relaxed">
+                      {isEsai
+                        ? 'Tuliskan gagasan kritis dan solusi digital untuk mengakselerasi ekosistem UMKM Indonesia.'
+                        : 'Pecahkan studi kasus bisnis riil UMKM bersama tim terbaikmu hingga panggung final pitching.'}
+                    </p>
+
+                    <div className="pt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[#e5d4bc]">
+                      <span className="font-poppins font-semibold text-xs text-[#2f1e10] bg-[#efe1cb] px-3 py-1 rounded-full border border-[#caa152]/50">
+                        {comp.feeFormatted}
+                      </span>
+                      <span className="font-poppins text-xs font-semibold text-[#7a5530] flex items-center gap-1.5">
+                        <Trophy className="w-3.5 h-3.5 text-[#caa152]" />
+                        <span>{comp.prizes.split('+')[0]}</span>
+                      </span>
+                    </div>
                   </div>
 
-                  {/* Title in Cormorant Garamond */}
-                  <h3 className="font-cormorant font-normal text-lg sm:text-2xl md:text-[1.8rem] text-[#241308] group-hover:text-[#ba883a] transition-colors leading-snug pt-0.5">
-                    {comp.title}
-                  </h3>
-
-                  {/* Subtitle description */}
-                  <p className="font-sans text-[11px] sm:text-xs md:text-[13px] text-[#5c3e28] leading-snug sm:leading-relaxed font-normal">
-                    {comp.id === 'comp-1'
-                      ? 'Tuliskan mantra gagasanmu untuk mengakselerasi ekosistem UMKM Indonesia.'
-                      : 'Pecahkan teka-teki studi kasus bisnis riil UMKM bersama tim hebatmu.'}
-                  </p>
-
-                  {/* Fee & Prize strip - Compact row on mobile */}
-                  <div className="pt-2 sm:pt-3 flex items-center justify-between text-xs text-[#7d4f2b] border-t border-[#ebdcc8]">
-                    <span className="font-semibold text-[#2f1e10] bg-[#f0e3cc] px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full border border-[#caa152]/50 font-cinzel text-[10px] sm:text-[11px]">
-                      {comp.feeFormatted}
+                  {/* Action Bar */}
+                  <div className="relative z-10 pt-4 mt-5 border-t border-[#e5d4bc] flex items-center justify-between gap-3">
+                    <span className="font-poppins text-xs tracking-wider uppercase font-semibold text-[#6b4725] group-hover:text-[#241308] transition-colors flex items-center gap-1.5">
+                      <span>Detail Lomba</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-[#caa152] transition-transform duration-300 group-hover:translate-x-1.5" />
                     </span>
-                    <span className="text-[10px] sm:text-[11px] font-cinzel font-semibold text-[#8a5e38] flex items-center gap-1">
-                      <Trophy className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#caa152]" />
-                      <span>{comp.prizes.split('+')[0]}</span>
-                    </span>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectCompetition(comp);
+                      }}
+                      className="btn-modern-shine font-poppins text-xs text-[#faf4e8] bg-[#3b2412] hover:bg-[#241308] tracking-wider uppercase font-semibold px-5 py-2 rounded-full shadow-xs transition-all"
+                    >
+                      Daftar
+                    </button>
                   </div>
                 </div>
-
-                {/* Bottom Action: Compact bar on mobile */}
-                <div className="relative z-10 pt-2.5 sm:pt-4 mt-2 sm:mt-5 border-t border-[#ede0ce] flex items-center justify-between">
-                  <span className="font-cinzel text-[10px] sm:text-[11px] tracking-[0.15em] sm:tracking-[0.2em] font-semibold text-[#7a5530] group-hover:text-[#2f1e10] transition-colors flex items-center gap-1 sm:gap-1.5">
-                    <span>DETAIL LOMBA</span>
-                    <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:translate-x-1 transition-transform" />
-                  </span>
-                  <span className="text-[10px] sm:text-[11px] font-cinzel text-white bg-gradient-to-r from-[#ba883a] via-[#caa152] to-[#7a5530] tracking-wider uppercase font-semibold px-3 sm:px-5 py-1 sm:py-2 rounded-full shadow-xs group-hover:shadow transition-all">
-                    Daftar
-                  </span>
-                </div>
-
-              </div>
-            ))}
+              );
+            })}
           </div>
-
         </div>
-
       </div>
 
       {/* Guidebook Modal */}
       {modal && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4"
           onClick={() => setModal(null)}
         >
-          <div 
+          <div
             className="bg-[#fffdfa] rounded-2xl sm:rounded-3xl border-2 border-[#caa152] p-6 max-w-lg w-full relative shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="font-cormorant text-2xl font-bold text-[#241308] mb-2">
+            <h3 className="font-poppins text-xl font-semibold text-[#241308] mb-2">
               Panduan Resmi Kompetisi
             </h3>
             <p className="font-sans text-xs text-[#5c3e28] mb-4">
@@ -171,7 +177,7 @@ export const Competitions: React.FC<CompetitionsProps> = ({ onSelectCompetition 
             </div>
             <button
               onClick={() => setModal(null)}
-              className="w-full py-2.5 rounded-full bg-[#2f1e10] text-[#f5eee2] font-cinzel text-xs font-semibold"
+              className="w-full py-2.5 rounded-full bg-[#2f1e10] text-[#f5eee2] font-poppins text-xs font-semibold"
             >
               TUTUP
             </button>

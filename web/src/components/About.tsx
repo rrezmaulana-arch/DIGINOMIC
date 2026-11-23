@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
+import { CompassWatermark, BatikKawungPattern, MegaMendungClouds } from './Ornaments';
 
 interface AboutProps {
   onExploreComps: () => void;
@@ -11,9 +12,13 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
       id="tentang"
       className="relative w-full py-8 sm:py-14 md:py-20 px-3.5 sm:px-8 md:px-12 overflow-hidden"
       style={{
-        background: 'linear-gradient(180deg, #fdf8ef 0%, #faf3e5 50%, #f7efe0 100%)',
+        background: 'linear-gradient(180deg, #f3e6d3 0%, #efe1cc 50%, #ebdcc5 100%)',
       }}
     >
+      <CompassWatermark color="#7a5530" className="absolute -top-20 -right-20 w-72 h-72 opacity-[0.06]" />
+      <BatikKawungPattern color="#7a5530" opacity={0.045} id="kawung-about" />
+      <MegaMendungClouds color="#8c6239" className="absolute top-6 -right-14 w-64 sm:w-80 opacity-50" />
+      <MegaMendungClouds color="#8c6239" flip className="absolute bottom-6 -left-14 w-64 sm:w-80 opacity-45" />
       <div className="max-w-6xl mx-auto relative z-10">
         
         {/* ── TOP SECTION: APA ITU DIGICONOMIC FEST? ── */}
@@ -63,7 +68,7 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
                   className="w-full h-full object-cover filter sepia-[0.2]"
                 />
               </div>
-              <p className="font-cormorant italic text-center text-xs sm:text-sm text-[#5c3e28] mt-1 sm:mt-2">
+              <p className="font-edwardian text-center text-lg sm:text-xl text-[#5c3e28] mt-1 sm:mt-2">
                 Kolaborasi Mahasiswa
               </p>
             </div>
@@ -77,7 +82,7 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
                   className="w-full h-full object-cover filter sepia-[0.15]"
                 />
               </div>
-              <p className="font-cormorant italic text-center text-xs sm:text-sm text-[#5c3e28] mt-1 sm:mt-2">
+              <p className="font-edwardian text-center text-lg sm:text-xl text-[#5c3e28] mt-1 sm:mt-2">
                 Seminar Bank Indonesia
               </p>
             </div>

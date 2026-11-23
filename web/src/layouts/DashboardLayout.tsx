@@ -121,7 +121,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                 className="h-8 w-auto object-contain filter drop-shadow-2xs"
               />
               <div className="flex flex-col">
-                <span className="font-cormorant text-lg font-normal text-[#2f1e10] leading-none">
+                <span className="font-poppins font-semibold text-lg font-normal text-[#2f1e10] leading-none">
                   Digiconomic
                 </span>
                 <span className="font-cinzel text-[8px] text-[#7a5530] tracking-[0.22em] uppercase">
