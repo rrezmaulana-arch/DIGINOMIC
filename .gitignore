@@ -7,3 +7,9 @@ dist/
 *.log
 Thumbs.db
 .DS_Store
+
+# Exclude heavy raw PNG/images not used in build
+*.png
+gambar/
+Logo/
+*.py
