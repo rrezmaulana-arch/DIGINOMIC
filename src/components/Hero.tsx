@@ -37,30 +37,30 @@ export const Hero: React.FC<HeroProps> = ({ onExplore, onViewCompetitions }) => 
       className="relative w-full overflow-hidden flex flex-col items-center justify-center text-center px-4 sm:px-6 md:px-10 lg:px-16 pt-12 pb-16 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24"
       style={{ minHeight: '85vh' }}
     >
-      {/* ── RESPONSIVE BACKGROUND IMAGE: Mobile, iPad/Tablet, Desktop ── */}
-      {/* 1. Mobile screen (< 768px): mobile-bg.svg */}
+      {/* ── RESPONSIVE BACKGROUND IMAGE: Mobile, iPad/Tablet, Desktop (Ultra-Fast WebP < 180KB) ── */}
+      {/* 1. Mobile screen (< 768px): mobile-bg.webp (100KB - instant load) */}
       <div
         className="absolute inset-0 bg-cover bg-center pointer-events-none select-none z-0 block md:hidden"
         style={{
-          backgroundImage: "url('/gambar/mobile-bg.svg')",
+          backgroundImage: "url('/gambar/mobile-bg.webp')",
           filter: 'contrast(1.02) saturate(1.04)',
         }}
       />
 
-      {/* 2. Tablet / iPad screen (768px - 1024px): ipad-bg.svg */}
+      {/* 2. Tablet / iPad screen (768px - 1024px): ipad-bg.webp (169KB) */}
       <div
         className="absolute inset-0 bg-cover bg-center pointer-events-none select-none z-0 hidden md:block lg:hidden"
         style={{
-          backgroundImage: "url('/gambar/ipad-bg.svg')",
+          backgroundImage: "url('/gambar/ipad-bg.webp')",
           filter: 'contrast(1.02) saturate(1.04)',
         }}
       />
 
-      {/* 3. Desktop screen (>= 1024px): bg-public.svg */}
+      {/* 3. Desktop screen (>= 1024px): desktop-bg.webp (177KB) */}
       <div
         className="absolute inset-0 bg-cover bg-center pointer-events-none select-none z-0 hidden lg:block"
         style={{
-          backgroundImage: "url('/gambar/bg-public.svg')",
+          backgroundImage: "url('/gambar/desktop-bg.webp')",
           filter: 'contrast(1.02) saturate(1.04)',
         }}
       />
