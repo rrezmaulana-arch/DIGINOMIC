@@ -38,20 +38,20 @@ export const Hero: React.FC<HeroProps> = ({ onExplore, onViewCompetitions }) => 
       style={{ minHeight: '85vh' }}
     >
       {/* ── RESPONSIVE BACKGROUND IMAGE: Mobile, iPad/Tablet, Desktop ── */}
-      {/* 1. Mobile screen (< 768px): Mobile bg.svg */}
+      {/* 1. Mobile screen (< 768px): mobile-bg.svg */}
       <div
         className="absolute inset-0 bg-cover bg-center pointer-events-none select-none z-0 block md:hidden"
         style={{
-          backgroundImage: "url('/gambar/Mobile bg.svg')",
+          backgroundImage: "url('/gambar/mobile-bg.svg')",
           filter: 'contrast(1.02) saturate(1.04)',
         }}
       />
 
-      {/* 2. Tablet / iPad screen (768px - 1024px): ipad bg.svg */}
+      {/* 2. Tablet / iPad screen (768px - 1024px): ipad-bg.svg */}
       <div
         className="absolute inset-0 bg-cover bg-center pointer-events-none select-none z-0 hidden md:block lg:hidden"
         style={{
-          backgroundImage: "url('/gambar/ipad bg.svg')",
+          backgroundImage: "url('/gambar/ipad-bg.svg')",
           filter: 'contrast(1.02) saturate(1.04)',
         }}
       />
