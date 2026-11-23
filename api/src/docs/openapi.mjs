@@ -358,6 +358,13 @@ export function renderSwaggerUiHtml() {
   </style>
 </head>
 <body>
+  <div style="background:#2f1e10;color:#faf4e8;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #caa152;font-family:sans-serif;">
+    <strong style="letter-spacing:0.06em;">Digiconomic Fest 2027 — API Documentation (44 Endpoints)</strong>
+    <div style="display:flex;gap:10px;">
+      <a href="/openapi.json" target="_blank" style="color:#f3d48c;text-decoration:none;font-size:12px;border:1px solid #caa152;padding:6px 12px;border-radius:999px;">Unduh OpenAPI JSON</a>
+      <button onclick="window.print()" style="background:#caa152;color:#241308;border:none;padding:6px 14px;border-radius:999px;font-weight:700;font-size:12px;cursor:pointer;">Cetak / Simpan PDF</button>
+    </div>
+  </div>
   <div id="swagger-ui"></div>
   <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
   <script>
