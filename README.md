@@ -26,7 +26,7 @@ npm run docker:dev
 npm run dev:web
 ```
 
-Frontend berjalan di `http://localhost:5173` dan API di `http://localhost:4000` (`GET /health`).
+Frontend berjalan di `http://localhost:5173` dan API di `http://127.0.0.1:4001` (`GET /health`).
 
 ## Deploy Produksi (VPS + Cloudflare Pages)
 - **Frontend (`web/`):** Hubungkan ke Cloudflare Pages / Vercel dengan root directory `web`, build command `npm run build`, output directory `dist`.

@@ -13,7 +13,7 @@ export function loadConfig(overrides = {}) {
   return {
     nodeEnv,
     isProd,
-    port: Number(env.PORT || 4000),
+    port: Number(env.PORT || 4001),
     databaseUrl: env.DATABASE_URL || '',
     allowedOrigins,
     sessionCookieName: env.SESSION_COOKIE_NAME || 'digi_sid',
