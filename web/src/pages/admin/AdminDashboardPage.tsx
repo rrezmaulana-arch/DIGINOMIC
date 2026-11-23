@@ -496,7 +496,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 {/* Progress bar */}
                 <div className="w-full bg-[#faf4e8] h-3 rounded-full border border-[#ebdcc8] overflow-hidden">
                   <div
-                    className="bg-gradient-to-r from-[#ba883a] to-[#caa152] h-full rounded-full transition-all duration-500"
+                    className="btn-modern-shine bg-gradient-to-r from-[#ba883a] to-[#caa152] h-full rounded-full transition-all duration-500"
                     style={{ width: `${Math.min(100, (esaiCount / settings.maxQuotaEsai) * 100)}%` }}
                   />
                 </div>
@@ -524,7 +524,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 {/* Progress bar */}
                 <div className="w-full bg-[#faf4e8] h-3 rounded-full border border-[#ebdcc8] overflow-hidden">
                   <div
-                    className="bg-gradient-to-r from-[#ba883a] to-[#caa152] h-full rounded-full transition-all duration-500"
+                    className="btn-modern-shine bg-gradient-to-r from-[#ba883a] to-[#caa152] h-full rounded-full transition-all duration-500"
                     style={{ width: `${Math.min(100, (caseCount / settings.maxQuotaCase) * 100)}%` }}
                   />
                 </div>

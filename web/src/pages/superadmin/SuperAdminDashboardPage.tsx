@@ -200,7 +200,7 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
               </div>
 
               {/* Status Overview Card */}
-              <div className="p-6 rounded-3xl bg-[#fffdf9] border border-[#ebdcc8] shadow-xs space-y-4">
+              <div className="p-6 rounded-3xl bg-[#fffdf9]/96 backdrop-blur-xs border border-[#dfd0ba] shadow-sm shadow-xs space-y-4">
                 <h3 className="text-xl font-bold font-sans text-[#2f1e10]">
                   Distribusi Status Pendaftar
                 </h3>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { COMPETITIONS_DATA } from '../../data/competitions';
+import { BatikKawungPattern, CornerFiligree, MegaMendungClouds } from '../../components/Ornaments';
 import { Competition, Registration, TeamMember, UserProfile } from '../../types';
 import { RegistrationService } from '../../services/registrationService';
 import {
@@ -186,7 +187,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onRegisterSuccess })
   };
 
   return (
-    <div className="min-h-screen bg-[#fdf8ef] py-10 px-4 sm:px-6 lg:px-8 selection:bg-[#caa152]/30 selection:text-[#2f1e10] relative">
+    <div className="min-h-screen bg-gradient-to-b from-[#faf4e8] via-[#f5ebda] to-[#efe1cc] overflow-hidden py-10 px-4 sm:px-6 lg:px-8 selection:bg-[#caa152]/30 selection:text-[#2f1e10] relative">
       {/* Background glow */}
       <div
         className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full pointer-events-none blur-3xl opacity-30"
@@ -233,7 +234,8 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onRegisterSuccess })
         )}
 
         {/* Main Card Container */}
-        <div className="bg-[#fffdf9] rounded-3xl border-2 border-[#caa152] shadow-2xl p-6 sm:p-8 relative">
+        <div className="bg-[#fffdf9]/96 backdrop-blur-sm rounded-3xl border-2 border-[#caa152]/80 shadow-[0_24px_60px_-18px_rgba(47,30,16,0.22)] p-6 sm:p-8 relative overflow-hidden">
+          <CornerFiligree color="#caa152" />
           <div className="absolute inset-2 rounded-2xl border border-dashed border-[#caa152]/30 pointer-events-none" />
 
           {/* Form Error Notice */}
@@ -281,8 +283,8 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onRegisterSuccess })
                         className={`p-4 rounded-2xl border-2 transition-all cursor-pointer relative ${isCompFull
                             ? 'opacity-60 bg-gray-100 border-gray-300 cursor-not-allowed'
                             : isSelected
-                              ? 'bg-[#faf4e8] border-[#caa152] shadow-sm'
-                              : 'bg-white border-[#ebdcc8] hover:border-[#caa152]/50'
+                              ? 'bg-[#faf4e8] border-[#caa152] ring-2 ring-[#caa152]/30 shadow-md -translate-y-0.5'
+                              : 'card-modern-hover bg-white border-[#dfd0ba] hover:border-[#caa152]/70'
                           }`}
                       >
                         <div className="flex items-center justify-between mb-1.5">

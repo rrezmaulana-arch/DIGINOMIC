@@ -238,7 +238,7 @@ export const ParticipantDashboardPage: React.FC<ParticipantDashboardPageProps> =
 
             {/* Active Filled Progress Bar */}
             <div
-              className="absolute top-10 left-6 h-1.5 bg-gradient-to-r from-[#ba883a] to-[#caa152] rounded-full z-0 transition-all duration-500 hidden sm:block"
+              className="absolute top-10 left-6 h-1.5 btn-modern-shine bg-gradient-to-r from-[#ba883a] to-[#caa152] rounded-full z-0 transition-all duration-500 hidden sm:block"
               style={{ width: `calc(${progressPercent}% - 48px)` }}
             />
 

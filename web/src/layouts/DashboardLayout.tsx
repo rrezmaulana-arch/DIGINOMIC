@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { UserProfile } from '../types';
+import { BatikKawungPattern, CompassWatermark } from '../components/Ornaments';
 import {
   LogOut,
   Home,
@@ -65,9 +66,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       case 'ADMIN':
         return {
           label: 'PANITIA ADMIN',
-          bg: 'bg-[#7a5530]',
-          text: 'text-[#f5eee2]',
-          border: 'border-[#caa152]/60',
+          bg: 'bg-emerald-900',
+          text: 'text-emerald-100',
+          border: 'border-emerald-400/60',
           icon: <ShieldCheck className="w-3.5 h-3.5 text-[#caa152]" />
         };
       default:
@@ -84,10 +85,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const badge = getRoleBadge();
 
   return (
-    <div className="min-h-screen bg-[#fdf8ef] text-[#2f1e10] flex flex-col font-sans selection:bg-[#caa152]/30 selection:text-[#2f1e10]">
+    <div className={`min-h-screen relative overflow-x-clip text-[#2f1e10] flex flex-col font-sans selection:bg-[#caa152]/30 selection:text-[#2f1e10] ${currentUser.role === 'SUPERADMIN' ? 'bg-[#f5ecde]' : currentUser.role === 'ADMIN' ? 'bg-[#f7f1e6]' : 'bg-[#fdf8ef]'}`}>
+      <BatikKawungPattern color="#7a5530" opacity={0.04} id="kawung-dashboard" />
+      <CompassWatermark color="#7a5530" className="fixed -bottom-24 -right-24 w-80 h-80 opacity-[0.045] pointer-events-none" />
       
       {/* Top Navbar Header */}
-      <header className="sticky top-0 z-40 bg-[#fffdf9]/95 backdrop-blur-md border-b border-[#ebdcc8] shadow-2xs">
+      <header className={`sticky top-0 z-40 backdrop-blur-xl border-b shadow-xs transition-colors ${currentUser.role === 'SUPERADMIN' ? 'bg-[#24140a]/95 text-[#faf4e8] border-[#caa152]/40' : currentUser.role === 'ADMIN' ? 'bg-[#fffdf9]/95 border-emerald-700/20 border-t-4 border-t-emerald-700' : 'bg-[#fffdf9]/95 border-[#caa152]/35 border-t-4 border-t-[#caa152]'}`}>
         <div className="w-full px-4 sm:px-6 h-16 flex items-center justify-between">
 
           {/* Left: Hamburger & Brand */}

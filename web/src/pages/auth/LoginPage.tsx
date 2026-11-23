@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserProfile } from '../../types';
 import { RegistrationService } from '../../services/registrationService';
+import { BatikKawungPattern, CornerFiligree, MegaMendungClouds } from '../../components/Ornaments';
 import { 
   ArrowRight, 
   Lock, 
@@ -45,7 +46,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#fdf8ef] flex flex-col justify-center items-center p-4 sm:p-6 lg:p-8 relative selection:bg-[#caa152]/30 selection:text-[#2f1e10]">
+    <div className="min-h-screen bg-gradient-to-b from-[#faf4e8] via-[#f5ebda] to-[#efe1cc] overflow-hidden flex flex-col justify-center items-center p-4 sm:p-6 lg:p-8 relative selection:bg-[#caa152]/30 selection:text-[#2f1e10]">
       {/* Background radial glow */}
       <div 
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[650px] rounded-full pointer-events-none blur-3xl opacity-35"
@@ -54,6 +55,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         }}
       />
 
+      <BatikKawungPattern color="#7a5530" opacity={0.05} id="kawung-login" />
+      <MegaMendungClouds color="#8c6239" className="absolute top-6 -right-16 w-80 opacity-45" />
+      <MegaMendungClouds color="#8c6239" flip className="absolute bottom-6 -left-16 w-80 opacity-40" />
       {/* Top back button */}
       <div className="w-full max-w-md mb-4 flex items-center justify-between relative z-10">
         <Link 
@@ -69,7 +73,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
       </div>
 
       {/* Login Card */}
-      <div className="bg-[#fffdf9] rounded-3xl max-w-md w-full p-6 sm:p-8 border-2 border-[#caa152] shadow-2xl relative z-10">
+      <div className="bg-[#fffdf9]/96 backdrop-blur-sm rounded-3xl max-w-md w-full p-6 sm:p-8 border-2 border-[#caa152]/80 shadow-[0_24px_60px_-16px_rgba(47,30,16,0.22)] relative z-10 overflow-hidden">
+        <CornerFiligree color="#caa152" />
         <div className="absolute inset-2 rounded-2xl border border-dashed border-[#caa152]/30 pointer-events-none" />
 
         {/* Card Header */}
@@ -120,7 +125,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="email@anda.com"
-                className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-[#ebdcc8] bg-[#faf4e8]/60 text-xs text-[#2f1e10] focus:outline-none focus:border-[#caa152] focus:bg-white transition-all"
+                className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-[#ebdcc8] bg-[#faf4e8]/60 text-xs text-[#2f1e10] focus:outline-none focus:border-[#caa152] focus:ring-2 focus:ring-[#caa152]/30 focus:bg-white transition-all"
               />
             </div>
           </div>
@@ -137,7 +142,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Masukkan kata sandi..."
-                className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-[#ebdcc8] bg-[#faf4e8]/60 text-xs text-[#2f1e10] focus:outline-none focus:border-[#caa152] focus:bg-white transition-all"
+                className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-[#ebdcc8] bg-[#faf4e8]/60 text-xs text-[#2f1e10] focus:outline-none focus:border-[#caa152] focus:ring-2 focus:ring-[#caa152]/30 focus:bg-white transition-all"
               />
             </div>
           </div>
