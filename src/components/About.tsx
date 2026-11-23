@@ -9,7 +9,7 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
   return (
     <section
       id="tentang"
-      className="relative w-full py-10 sm:py-16 md:py-20 px-4 sm:px-8 md:px-12 overflow-hidden"
+      className="relative w-full py-8 sm:py-14 md:py-20 px-3.5 sm:px-8 md:px-12 overflow-hidden"
       style={{
         background: 'linear-gradient(180deg, #fdf8ef 0%, #faf3e5 50%, #f7efe0 100%)',
       }}
@@ -17,12 +17,12 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
       <div className="max-w-6xl mx-auto relative z-10">
         
         {/* ── TOP SECTION: APA ITU DIGICONOMIC FEST? ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-10 lg:gap-14 items-center mb-10 sm:mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-10 lg:gap-14 items-center mb-6 sm:mb-12 md:mb-16">
           
           {/* Left: Title + Narrative */}
-          <div className="lg:col-span-7 space-y-5">
+          <div className="lg:col-span-7 space-y-3.5 sm:space-y-5">
             <div>
-              <p className="font-cinzel text-xs tracking-widest text-[#7a5530] font-medium mb-2">
+              <p className="font-cinzel text-[10px] sm:text-xs tracking-widest text-[#7a5530] font-medium mb-1.5 sm:mb-2">
                 Tentang Acara
               </p>
               <h2 className="font-cormorant font-normal text-2xl sm:text-3xl md:text-4xl lg:text-[2.85rem] text-[#241308] tracking-tight leading-[1.15]">
@@ -33,51 +33,51 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
               </h2>
             </div>
 
-            <p className="font-sans text-xs sm:text-sm text-[#4a2e18] leading-[1.85] font-normal">
+            <p className="font-sans text-[11.5px] sm:text-sm text-[#4a2e18] leading-[1.7] sm:leading-[1.85] font-normal">
               <strong className="text-[#2a170b] font-medium">Digiconomic Fest 2027</strong> merupakan program kerja kolaboratif Divisi Pendidikan dan Divisi Kewirausahaan GenBI yang menjadi wadah edukasi, kompetisi, dan kolaborasi bagi generasi muda untuk memahami serta mengembangkan potensi UMKM di tengah dinamika <em>emerging market</em>.
             </p>
 
-            <p className="font-sans text-xs sm:text-sm text-[#4a2e18] leading-[1.85] font-normal">
+            <p className="font-sans text-[11.5px] sm:text-sm text-[#4a2e18] leading-[1.7] sm:leading-[1.85] font-normal">
               Melalui rangkaian kegiatan kompetisi dan seminar, Digiconomic Fest diharapkan mampu mendorong lahirnya ide, inovasi, dan kontribusi nyata dalam menciptakan UMKM lokal yang adaptif, berdaya saing global, dan berkelanjutan.
             </p>
 
-            <div className="pt-2">
+            <div className="pt-1 sm:pt-2">
               <button
                 onClick={onExploreComps}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-[#ba883a] to-[#d8a85a] hover:from-[#c9954a] hover:to-[#e0b56b] text-white font-cinzel text-xs font-medium tracking-[0.18em] shadow-xs hover:shadow transition-all active:scale-95"
+                className="inline-flex items-center gap-2 px-4.5 sm:px-6 py-2 sm:py-2.5 rounded-full bg-gradient-to-r from-[#ba883a] to-[#d8a85a] hover:from-[#c9954a] hover:to-[#e0b56b] text-white font-cinzel text-[10px] sm:text-xs font-medium tracking-[0.16em] sm:tracking-[0.18em] shadow-xs hover:shadow transition-all active:scale-95"
               >
                 <span>LIHAT CABANG LOMBA</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               </button>
             </div>
           </div>
 
-          {/* Right: Clean Polaroid Photo Pair */}
-          <div className="lg:col-span-5 relative flex items-center justify-center py-4">
+          {/* Right: Clean Polaroid Photo Pair (Compact on mobile) */}
+          <div className="lg:col-span-5 relative flex items-center justify-center py-2 sm:py-4">
             {/* Polaroid 1 */}
-            <div className="w-52 sm:w-60 p-2.5 rounded-2xl shadow-md -rotate-2 bg-[#fffdf9] border border-[#ebdcc8]/80 transition-all hover:rotate-0 hover:shadow-xl duration-300 relative z-10">
-              <div className="w-full h-36 sm:h-40 rounded-xl overflow-hidden bg-[#e0ceb6]">
+            <div className="w-36 sm:w-52 md:w-60 p-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl shadow-md -rotate-2 bg-[#fffdf9] border border-[#ebdcc8]/80 transition-all hover:rotate-0 hover:shadow-xl duration-300 relative z-10">
+              <div className="w-full h-24 sm:h-36 md:h-40 rounded-lg sm:rounded-xl overflow-hidden bg-[#e0ceb6]">
                 <img
                   src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&auto=format&fit=crop&q=80"
                   alt="Kolaborasi Mahasiswa"
                   className="w-full h-full object-cover filter sepia-[0.2]"
                 />
               </div>
-              <p className="font-cormorant italic text-center text-sm text-[#5c3e28] mt-2">
+              <p className="font-cormorant italic text-center text-xs sm:text-sm text-[#5c3e28] mt-1 sm:mt-2">
                 Kolaborasi Mahasiswa
               </p>
             </div>
 
             {/* Polaroid 2 */}
-            <div className="w-48 sm:w-56 p-2.5 rounded-2xl shadow-lg rotate-4 bg-[#fffdf9] border border-[#ebdcc8]/80 transition-all hover:rotate-1 hover:shadow-xl duration-300 absolute -bottom-4 -right-1 sm:right-2 z-20">
-              <div className="w-full h-32 sm:h-36 rounded-xl overflow-hidden bg-[#e0ceb6]">
+            <div className="w-32 sm:w-48 md:w-56 p-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl shadow-lg rotate-4 bg-[#fffdf9] border border-[#ebdcc8]/80 transition-all hover:rotate-1 hover:shadow-xl duration-300 absolute -bottom-2 sm:-bottom-4 -right-1 sm:right-2 z-20">
+              <div className="w-full h-20 sm:h-32 md:h-36 rounded-lg sm:rounded-xl overflow-hidden bg-[#e0ceb6]">
                 <img
                   src="https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=600&auto=format&fit=crop&q=80"
                   alt="Seminar Edukatif"
                   className="w-full h-full object-cover filter sepia-[0.15]"
                 />
               </div>
-              <p className="font-cormorant italic text-center text-sm text-[#5c3e28] mt-2">
+              <p className="font-cormorant italic text-center text-xs sm:text-sm text-[#5c3e28] mt-1 sm:mt-2">
                 Seminar Bank Indonesia
               </p>
             </div>
@@ -85,24 +85,24 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
 
         </div>
 
-        {/* ── MIDDLE: TEMA RESMI ── */}
-        <div className="my-14 text-center">
+        {/* ── MIDDLE: TEMA RESMI (Compact & Balanced on mobile) ── */}
+        <div className="my-6 sm:my-10 md:my-14 text-center">
           <div
-            className="p-8 sm:p-10 rounded-3xl border border-[#ebdcc8] shadow-xs max-w-4xl mx-auto relative overflow-hidden"
+            className="p-4 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl border border-[#ebdcc8] shadow-xs max-w-4xl mx-auto relative overflow-hidden"
             style={{
               background: 'radial-gradient(circle at 50% 30%, #ffffff 0%, #faf4e8 70%, #f4e8d2 100%)',
             }}
           >
-            <div className="absolute inset-2 rounded-2xl border border-dashed border-[#caa152]/30 pointer-events-none" />
-            <span className="inline-block px-5 py-1 rounded-full bg-[#f0e3cc] text-[#7d4f2b] font-cinzel text-[10px] tracking-[0.25em] uppercase font-medium mb-3">
+            <div className="absolute inset-1.5 sm:inset-2 rounded-xl sm:rounded-2xl border border-dashed border-[#caa152]/30 pointer-events-none" />
+            <span className="inline-block px-3.5 py-0.5 sm:px-5 sm:py-1 rounded-full bg-[#f0e3cc] text-[#7d4f2b] font-cinzel text-[9px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.25em] uppercase font-medium mb-2 sm:mb-3">
               TEMA UTAMA ACARA
             </span>
 
-            <blockquote className="font-cormorant font-normal italic text-lg sm:text-xl lg:text-2xl text-[#2a170b] leading-snug max-w-3xl mx-auto">
+            <blockquote className="font-cormorant font-normal italic text-sm sm:text-xl lg:text-2xl text-[#2a170b] leading-snug sm:leading-snug max-w-3xl mx-auto px-2">
               “Ekosistem UMKM di Negara Emerging Market: Mengakselerasi Potensi Lokal yang Berdaya Saing Global untuk Mewujudkan Pertumbuhan Berkelanjutan”
             </blockquote>
 
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-6 text-[10px] font-cinzel text-[#8a5e38] tracking-[0.2em] uppercase font-medium">
+            <div className="mt-3.5 sm:mt-5 flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-[9px] sm:text-[10px] font-cinzel text-[#8a5e38] tracking-[0.15em] sm:tracking-[0.2em] uppercase font-medium">
               <span>✦ Divisi Pendidikan</span>
               <span>✦ Bank Indonesia</span>
               <span>✦ Divisi Kewirausahaan</span>
@@ -110,18 +110,18 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
           </div>
         </div>
 
-        {/* ── BOTTOM: LATAR BELAKANG & URGENSI ── */}
-        <div className="mt-14">
-          <div className="text-center max-w-lg mx-auto mb-10">
-            <p className="font-cinzel text-xs text-[#7a5530] font-medium tracking-widest mb-1.5">
+        {/* ── BOTTOM: LATAR BELAKANG & URGENSI (Compact Cards on mobile) ── */}
+        <div className="mt-6 sm:mt-10 md:mt-14">
+          <div className="text-center max-w-lg mx-auto mb-5 sm:mb-8 md:mb-10">
+            <p className="font-cinzel text-[10px] sm:text-xs text-[#7a5530] font-medium tracking-widest mb-1">
               Latar Belakang Acara
             </p>
-            <h3 className="font-cormorant font-normal text-2xl sm:text-3xl text-[#241308]">
+            <h3 className="font-cormorant font-normal text-xl sm:text-2xl md:text-3xl text-[#241308]">
               Latar Belakang & Urgensi
             </h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-5 md:gap-6">
             {[
               {
                 no: '01',
@@ -141,17 +141,19 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
             ].map((item, idx) => (
               <div
                 key={idx}
-                className="group p-6 rounded-3xl border border-[#ebdcc8] shadow-xs hover:shadow-lg hover:-translate-y-1 transition-all duration-300 relative"
+                className="group p-3.5 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl md:rounded-3xl border border-[#ebdcc8] shadow-xs hover:shadow-lg hover:-translate-y-1 transition-all duration-300 relative flex flex-col justify-start"
                 style={{ background: 'rgba(255, 253, 248, 0.92)' }}
               >
-                <div className="absolute inset-2 rounded-2xl border border-dashed border-[#caa152]/20 pointer-events-none group-hover:border-[#caa152]/60 transition-colors" />
-                <div className="w-9 h-9 rounded-full flex items-center justify-center font-cinzel text-xs font-semibold text-white mb-4 bg-gradient-to-r from-[#ba883a] to-[#caa152] shadow-2xs">
-                  {item.no}
+                <div className="absolute inset-1.5 sm:inset-2 rounded-lg sm:rounded-xl md:rounded-2xl border border-dashed border-[#caa152]/20 pointer-events-none group-hover:border-[#caa152]/60 transition-colors" />
+                <div className="flex items-center gap-2.5 mb-1.5 sm:mb-3 relative z-10">
+                  <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-cinzel text-[11px] sm:text-xs font-semibold text-white bg-gradient-to-r from-[#ba883a] to-[#caa152] shadow-2xs shrink-0">
+                    {item.no}
+                  </div>
+                  <h4 className="font-cormorant font-normal text-base sm:text-xl text-[#2a170b] group-hover:text-[#ba883a] transition-colors leading-tight">
+                    {item.title}
+                  </h4>
                 </div>
-                <h4 className="font-cormorant font-normal text-xl text-[#2a170b] group-hover:text-[#ba883a] transition-colors mb-2">
-                  {item.title}
-                </h4>
-                <p className="font-sans text-xs text-[#5c3e28] leading-relaxed font-normal">
+                <p className="font-sans text-[11px] sm:text-xs text-[#5c3e28] leading-relaxed font-normal relative z-10">
                   {item.desc}
                 </p>
               </div>
