@@ -8,8 +8,10 @@ dist/
 Thumbs.db
 .DS_Store
 
-# Exclude heavy raw PNG/images not used in build
+# Exclude heavy raw PNG/JPG/images not used in build
 *.png
+*.jpg
+*.jpeg
 gambar/
 Logo/
 *.py
