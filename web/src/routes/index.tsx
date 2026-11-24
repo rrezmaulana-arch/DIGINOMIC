@@ -7,6 +7,9 @@ import { UserProfile, Registration } from '../types';
 
 // Lazy load pages for code splitting
 const LandingPage = React.lazy(() => import('../pages/public/LandingPage').then(m => ({ default: m.LandingPage })));
+const EventPage = React.lazy(() => import('../pages/public/EventPage').then(m => ({ default: m.EventPage })));
+const CompetitionsPage = React.lazy(() => import('../pages/public/CompetitionsPage').then(m => ({ default: m.CompetitionsPage })));
+const NewsPage = React.lazy(() => import('../pages/public/NewsPage').then(m => ({ default: m.NewsPage })));
 const CompetitionDetailPage = React.lazy(() => import('../pages/public/CompetitionDetailPage').then(m => ({ default: m.CompetitionDetailPage })));
 const JuklakJuknisPage = React.lazy(() => import('../pages/public/JuklakJuknisPage').then(m => ({ default: m.JuklakJuknisPage })));
 const LoginPage = React.lazy(() => import('../pages/auth/LoginPage').then(m => ({ default: m.LoginPage })));
@@ -47,7 +50,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
         }
       >
         <Routes>
-          {/* 1. PUBLIC LANDING PAGE (With Navbar & Footer) */}
+          {/* 1. PUBLIC LANDING PAGE */}
           <Route
             path="/"
             element={
@@ -61,7 +64,49 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
             }
           />
 
-          {/* 1B. DEDICATED COMPETITION DETAIL PAGE */}
+          {/* 1A. EVENT & TECHNICAL MEETING PAGE */}
+          <Route
+            path="/event"
+            element={
+              <PublicLayout
+                currentUser={currentUser}
+                onLogout={onLogout}
+                onSwitchRole={onSwitchRole}
+              >
+                <EventPage />
+              </PublicLayout>
+            }
+          />
+
+          {/* 1B. COMPETITIONS INDEX PAGE */}
+          <Route
+            path="/kompetisi"
+            element={
+              <PublicLayout
+                currentUser={currentUser}
+                onLogout={onLogout}
+                onSwitchRole={onSwitchRole}
+              >
+                <CompetitionsPage />
+              </PublicLayout>
+            }
+          />
+
+          {/* 1C. NEWS & ANNOUNCEMENTS PAGE */}
+          <Route
+            path="/news"
+            element={
+              <PublicLayout
+                currentUser={currentUser}
+                onLogout={onLogout}
+                onSwitchRole={onSwitchRole}
+              >
+                <NewsPage />
+              </PublicLayout>
+            }
+          />
+
+          {/* 1D. COMPETITION DETAIL PAGE */}
           <Route
             path="/kompetisi/:slug"
             element={
@@ -75,7 +120,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
             }
           />
 
-          {/* 1C. DEDICATED JUKLAK & JUKNIS PAGE */}
+          {/* 1E. JUKLAK & JUKNIS PAGE */}
           <Route
             path="/juklak-juknis"
             element={
@@ -100,7 +145,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
             element={<RegisterPage onRegisterSuccess={onRegisterSuccess} />}
           />
 
-          {/* 3. DEDICATED PARTICIPANT DASHBOARD */}
+          {/* 3. PARTICIPANT DASHBOARD */}
           <Route
             path="/dashboard"
             element={
@@ -116,7 +161,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
             }
           />
 
-          {/* 4. DEDICATED PANITIA ADMIN DASHBOARD */}
+          {/* 4. PANITIA ADMIN DASHBOARD */}
           <Route
             path="/admin"
             element={
@@ -134,7 +179,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
             }
           />
 
-          {/* 5. DEDICATED SUPERADMIN CONTROL PORTAL */}
+          {/* 5. SUPERADMIN CONTROL PORTAL */}
           <Route
             path="/superadmin"
             element={

@@ -1,6 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { UserProfile } from '../types';
-import { User, LogOut, Menu, X, ShieldCheck, KeyRound } from 'lucide-react';
+import {
+  User,
+  LogOut,
+  Menu,
+  X,
+  ShieldCheck,
+  KeyRound,
+  ChevronDown,
+  FileText,
+  Briefcase,
+  BookOpen,
+} from 'lucide-react';
 
 interface NavbarProps {
   currentUser: UserProfile | null;
@@ -8,9 +20,38 @@ interface NavbarProps {
   onOpenDashboard: () => void;
   onOpenAdmin: () => void;
   onLogout: () => void;
-  onNavigate: (id: string) => void;
+  onNavigate: (target: string) => void;
   onSwitchRole?: (role: 'PESERTA' | 'ADMIN' | 'SUPERADMIN') => void;
 }
+
+interface NavLinkItem {
+  id: string;
+  label: string;
+  target: string;
+}
+
+// Pola B Ringkas — 4 menu utama murni multi-page (konsisten di semua halaman)
+const NAV_LINKS: NavLinkItem[] = [
+  { id: 'home', label: 'HOME', target: '/' },
+  { id: 'event', label: 'EVENT', target: '/event' },
+  { id: 'kompetisi', label: 'KOMPETISI', target: '/kompetisi' },
+  { id: 'news', label: 'NEWS', target: '/news' },
+];
+
+const COMPETITION_SUBMENU = [
+  {
+    title: 'Esai Nasional',
+    subtitle: 'Kategori Individu • Pelajar & Mahasiswa',
+    target: '/kompetisi/esai-nasional',
+    icon: FileText,
+  },
+  {
+    title: 'Mini Case Competition',
+    subtitle: 'Kategori Tim (2–3 Orang) • Mahasiswa',
+    target: '/kompetisi/mini-case-competition',
+    icon: Briefcase,
+  },
+];
 
 export const Navbar: React.FC<NavbarProps> = ({
   currentUser,
@@ -20,14 +61,26 @@ export const Navbar: React.FC<NavbarProps> = ({
   onLogout,
   onNavigate,
 }) => {
+  const location = useLocation();
   const [drop, setDrop] = useState(false);
+  const [compDropdownOpen, setCompDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('hero');
   const [isScrolled, setIsScrolled] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
 
+  // Tentukan tab aktif otomatis langsung dari URL aktif (100% konsisten)
+  const getActiveTab = (pathname: string): string => {
+    if (pathname.startsWith('/event')) return 'event';
+    if (pathname.startsWith('/kompetisi') || pathname.startsWith('/juklak-juknis')) return 'kompetisi';
+    if (pathname.startsWith('/news')) return 'news';
+    return 'home';
+  };
+
+  const activeTab = getActiveTab(location.pathname);
+
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -49,19 +102,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     return () => { document.body.style.overflow = ''; };
   }, [mobileMenuOpen]);
 
-  const links = [
-    { id: 'hero', label: 'HOME' },
-    { id: 'tentang', label: 'EVENT' },
-    { id: 'kompetisi', label: 'KOMPETISI' },
-    { id: 'linimasa', label: 'LINIMASA' },
-    { id: 'galeri', label: 'GALERI' },
-    { id: 'faq', label: 'FAQ' },
-  ];
-
-  const go = (id: string) => {
-    setActiveTab(id);
-    onNavigate(id);
+  const goTo = (target: string) => {
+    onNavigate(target);
     setDrop(false);
+    setCompDropdownOpen(false);
     setMobileMenuOpen(false);
   };
 
@@ -78,7 +122,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* LOGO & BRAND LOCKUP */}
           <button
-            onClick={() => go('hero')}
+            onClick={() => goTo('/')}
             className="flex items-center gap-2 select-none text-left group shrink-0"
           >
             <img
@@ -96,15 +140,102 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </button>
 
-          {/* MIDDLE NAVIGATION LINKS — Modern Floating Pill Nav */}
+          {/* MIDDLE NAVIGATION LINKS — Clean 4-Item Floating Pill Nav + Hover Dropdown Kompetisi */}
           <nav className="hidden md:flex items-center gap-1 lg:gap-1.5 bg-[#f4ead9]/75 p-1 rounded-full border border-[#e3d1b7]/80">
-            {links.map((l) => {
+            {NAV_LINKS.map((l) => {
               const isActive = activeTab === l.id;
+
+              if (l.id === 'kompetisi') {
+                return (
+                  <div
+                    key={l.id}
+                    className="relative"
+                    onMouseEnter={() => setCompDropdownOpen(true)}
+                    onMouseLeave={() => setCompDropdownOpen(false)}
+                  >
+                    <button
+                      onClick={() => goTo(l.target)}
+                      className={`relative inline-flex items-center gap-1 px-4 lg:px-5 py-1.5 rounded-full font-cinzel text-[10px] lg:text-[11px] tracking-[0.18em] transition-all duration-250 ${
+                        isActive
+                          ? 'bg-[#3b2412] text-[#faf4e8] font-semibold shadow-xs'
+                          : 'text-[#5c3e28] hover:text-[#241308] hover:bg-[#fffdf9]/85 font-medium'
+                      }`}
+                    >
+                      <span>{l.label}</span>
+                      <ChevronDown
+                        className={`w-3 h-3 transition-transform duration-200 ${
+                          compDropdownOpen ? 'rotate-180' : ''
+                        }`}
+                      />
+                    </button>
+
+                    {/* Hover Dropdown 2 Cabang Lomba (dengan bridge pt-2 agar tidak putus saat kursor turun) */}
+                    <div
+                      className={`absolute left-1/2 -translate-x-1/2 top-full pt-2.5 w-72 transition-all duration-200 origin-top ${
+                        compDropdownOpen
+                          ? 'opacity-100 scale-100 pointer-events-auto translate-y-0'
+                          : 'opacity-0 scale-95 pointer-events-none -translate-y-1'
+                      }`}
+                    >
+                      <div className="rounded-2xl bg-[#fffdf9]/98 backdrop-blur-xl border border-[#caa152]/55 shadow-[0_18px_40px_-14px_rgba(47,30,16,0.28)] p-2 space-y-1">
+                        <p className="px-3 pt-1 pb-1 font-cinzel text-[9px] tracking-[0.2em] uppercase text-[#8a5e38] font-semibold">
+                          2 Cabang Kompetisi Resmi
+                        </p>
+
+                        {COMPETITION_SUBMENU.map((item) => {
+                          const Icon = item.icon;
+                          const isSubActive = location.pathname === item.target;
+                          return (
+                            <button
+                              key={item.target}
+                              onClick={() => goTo(item.target)}
+                              className={`w-full text-left px-3 py-2.5 rounded-xl flex items-start gap-3 transition-all ${
+                                isSubActive
+                                  ? 'bg-[#f4ead9] border border-[#caa152]/50'
+                                  : 'hover:bg-[#faf4e8]'
+                              }`}
+                            >
+                              <div className="w-8 h-8 rounded-lg bg-[#2f1d10] border border-[#caa152]/50 flex items-center justify-center shrink-0 mt-0.5">
+                                <Icon className="w-4 h-4 text-[#f3d48c]" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-cormorant text-base text-[#241308] font-semibold leading-tight">
+                                  {item.title}
+                                </p>
+                                <p className="font-sans text-[10.5px] text-[#7a5530] mt-0.5 leading-snug">
+                                  {item.subtitle}
+                                </p>
+                              </div>
+                            </button>
+                          );
+                        })}
+
+                        <div className="border-t border-[#ebdcc8] pt-1.5 mt-1 flex items-center justify-between gap-1 px-1">
+                          <button
+                            onClick={() => goTo('/kompetisi')}
+                            className="flex-1 text-center py-1.5 rounded-lg text-[10px] font-cinzel tracking-[0.14em] uppercase text-[#5c3e28] hover:bg-[#f4ead9] font-semibold transition-colors"
+                          >
+                            Semua Lomba
+                          </button>
+                          <button
+                            onClick={() => goTo('/juklak-juknis')}
+                            className="flex-1 inline-flex items-center justify-center gap-1 py-1.5 rounded-lg text-[10px] font-cinzel tracking-[0.14em] uppercase text-[#8a5e38] hover:bg-[#f4ead9] font-semibold transition-colors"
+                          >
+                            <BookOpen className="w-3 h-3 text-[#caa152]" />
+                            <span>Juklak</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
               return (
                 <button
                   key={l.id}
-                  onClick={() => go(l.id)}
-                  className={`relative px-3.5 py-1.5 rounded-full font-cinzel text-[10px] sm:text-[11px] tracking-[0.18em] transition-all duration-250 ${
+                  onClick={() => goTo(l.target)}
+                  className={`relative px-4 lg:px-5 py-1.5 rounded-full font-cinzel text-[10px] lg:text-[11px] tracking-[0.18em] transition-all duration-250 ${
                     isActive
                       ? 'bg-[#3b2412] text-[#faf4e8] font-semibold shadow-xs'
                       : 'text-[#5c3e28] hover:text-[#241308] hover:bg-[#fffdf9]/85 font-medium'
@@ -193,7 +324,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
             ) : (
-              /* Guest buttons — compact on mobile */
               <div className="hidden sm:flex items-center gap-2">
                 <button
                   onClick={onOpenRegister}
@@ -229,15 +359,12 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* ── MOBILE FULLSCREEN DRAWER ── */}
       {mobileMenuOpen && (
         <>
-          {/* Overlay */}
           <div
             className="fixed inset-0 z-40 bg-black/30 backdrop-blur-xs md:hidden"
             onClick={() => setMobileMenuOpen(false)}
           />
 
-          {/* Drawer Panel */}
           <div className="fixed top-0 right-0 z-50 h-full w-72 max-w-[85vw] bg-[#fffdf9] border-l border-[#ebdcc8] shadow-2xl flex flex-col md:hidden">
-            {/* Drawer Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-[#ebdcc8]">
               <div className="flex items-center gap-2">
                 <img src="/Logo/00-logo-gabungan.svg" alt="Logo" className="h-7 w-auto" />
@@ -254,25 +381,44 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             </div>
 
-            {/* Nav Links */}
             <nav className="flex-1 overflow-y-auto py-4 px-4 space-y-1">
-              {links.map((l) => (
-                <button
-                  key={l.id}
-                  onClick={() => go(l.id)}
-                  className={`w-full text-left px-4 py-3 rounded-xl font-cinzel text-xs tracking-widest transition-all duration-200 flex items-center gap-3 ${
-                    activeTab === l.id
-                      ? 'bg-gradient-to-r from-[#f7ede0] to-[#faf5ec] text-[#2a170b] font-semibold border-l-2 border-[#caa152]'
-                      : 'text-[#6e4e32] font-normal hover:bg-[#faf5ec]'
-                  }`}
-                >
-                  {activeTab === l.id && <span className="text-[#caa152] text-[8px]">✦</span>}
-                  {l.label}
-                </button>
+              {NAV_LINKS.map((l) => (
+                <div key={l.id}>
+                  <button
+                    onClick={() => goTo(l.target)}
+                    className={`w-full text-left px-4 py-3 rounded-xl font-cinzel text-xs tracking-widest transition-all duration-200 flex items-center gap-3 ${
+                      activeTab === l.id
+                        ? 'bg-gradient-to-r from-[#f7ede0] to-[#faf5ec] text-[#2a170b] font-semibold border-l-2 border-[#caa152]'
+                        : 'text-[#6e4e32] font-normal hover:bg-[#faf5ec]'
+                    }`}
+                  >
+                    {activeTab === l.id && <span className="text-[#caa152] text-[8px]">✦</span>}
+                    {l.label}
+                  </button>
+
+                  {/* Submenu 2 Cabang Lomba di Mobile */}
+                  {l.id === 'kompetisi' && (
+                    <div className="pl-5 pr-2 py-1 space-y-1">
+                      {COMPETITION_SUBMENU.map((sub) => (
+                        <button
+                          key={sub.target}
+                          onClick={() => goTo(sub.target)}
+                          className={`w-full text-left px-3 py-2 rounded-lg text-xs font-sans transition-colors flex items-center justify-between ${
+                            location.pathname === sub.target
+                              ? 'bg-[#f4ead9] text-[#2a170b] font-semibold'
+                              : 'text-[#7a5530] hover:bg-[#faf5ec]'
+                          }`}
+                        >
+                          <span>{sub.title}</span>
+                          <span className="text-[10px] text-[#caa152]">→</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               ))}
             </nav>
 
-            {/* Mobile CTA Buttons (shown when guest) */}
             {!currentUser && (
               <div className="px-4 py-4 border-t border-[#ebdcc8] space-y-2.5">
                 <button
@@ -290,7 +436,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             )}
 
-            {/* Mobile user action (shown when logged in) */}
             {currentUser && (
               <div className="px-4 py-4 border-t border-[#ebdcc8]">
                 <div className="flex items-center gap-2.5 mb-3">
