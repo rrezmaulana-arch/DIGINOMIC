@@ -42,7 +42,7 @@ export const Hero: React.FC<HeroProps> = ({ onExplore, onViewCompetitions }) => 
       <div
         className="absolute inset-0 bg-cover bg-center pointer-events-none select-none z-0 block md:hidden"
         style={{
-          backgroundImage: "url('/gambar/mobile-bg.webp')",
+          backgroundImage: "url('/gambar/hero-bg-mobile.webp')",
           filter: 'contrast(1.02) saturate(1.04)',
         }}
       />
@@ -51,7 +51,7 @@ export const Hero: React.FC<HeroProps> = ({ onExplore, onViewCompetitions }) => 
       <div
         className="absolute inset-0 bg-cover bg-center pointer-events-none select-none z-0 hidden md:block lg:hidden"
         style={{
-          backgroundImage: "url('/gambar/ipad-bg.webp')",
+          backgroundImage: "url('/gambar/hero-bg-ipad.webp')",
           filter: 'contrast(1.02) saturate(1.04)',
         }}
       />
@@ -60,7 +60,7 @@ export const Hero: React.FC<HeroProps> = ({ onExplore, onViewCompetitions }) => 
       <div
         className="absolute inset-0 bg-cover bg-center pointer-events-none select-none z-0 hidden lg:block"
         style={{
-          backgroundImage: "url('/gambar/desktop-bg.webp')",
+          backgroundImage: "url('/gambar/hero-bg-desktop.webp')",
           filter: 'contrast(1.02) saturate(1.04)',
         }}
       />

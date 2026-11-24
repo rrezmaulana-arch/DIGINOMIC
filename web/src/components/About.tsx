@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { CompassWatermark, BatikKawungPattern, MegaMendungClouds } from './Ornaments';
 
@@ -7,6 +7,8 @@ interface AboutProps {
 }
 
 export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
+  const [frontCard, setFrontCard] = useState<'kolaborasi' | 'seminar'>('seminar');
+
   return (
     <section
       id="tentang"
@@ -20,10 +22,10 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
       <MegaMendungClouds color="#8c6239" className="absolute top-6 -right-14 w-64 sm:w-80 opacity-50" />
       <MegaMendungClouds color="#8c6239" flip className="absolute bottom-6 -left-14 w-64 sm:w-80 opacity-45" />
       <div className="max-w-6xl mx-auto relative z-10">
-        
+
         {/* ── TOP SECTION: APA ITU DIGICONOMIC FEST? ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-10 lg:gap-14 items-center mb-6 sm:mb-12 md:mb-16">
-          
+
           {/* Left: Title + Narrative */}
           <div className="lg:col-span-7 space-y-3 sm:space-y-5">
             <div>
@@ -57,32 +59,51 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
             </div>
           </div>
 
-          {/* Right: Clean Polaroid Photo Pair (Compact on mobile) */}
-          <div className="lg:col-span-5 relative flex items-center justify-center py-2 sm:py-4">
-            {/* Polaroid 1 */}
-            <div className="w-36 sm:w-52 md:w-60 p-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl shadow-md -rotate-2 bg-[#fffdf9] border border-[#ebdcc8]/80 transition-all hover:rotate-0 hover:shadow-xl duration-300 relative z-10">
-              <div className="w-full h-24 sm:h-36 md:h-40 rounded-lg sm:rounded-xl overflow-hidden bg-[#e0ceb6]">
+          {/* Right: Interactive Hover Card-Deck Polaroids */}
+          <div
+            onMouseLeave={() => setFrontCard('seminar')}
+            className="lg:col-span-5 relative flex items-center justify-center min-h-[230px] sm:min-h-[320px] md:min-h-[360px] py-4"
+          >
+            {/* Kartu 1: Kolaborasi Mahasiswa */}
+            <div
+              onMouseEnter={() => setFrontCard('kolaborasi')}
+              onClick={() => setFrontCard('kolaborasi')}
+              className={`w-44 sm:w-56 md:w-64 p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[#fffdf9] border border-[#ebdcc8]/90 cursor-pointer absolute transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
+                frontCard === 'kolaborasi'
+                  ? 'z-30 -translate-x-4 sm:-translate-x-6 -translate-y-4 rotate-0 scale-105 shadow-[0_22px_45px_-12px_rgba(47,30,16,0.32)] ring-1 ring-[#caa152]/60'
+                  : 'z-10 -translate-x-10 sm:-translate-x-14 -translate-y-6 -rotate-6 scale-95 shadow-md opacity-95'
+              }`}
+            >
+              <div className="w-full h-28 sm:h-36 md:h-40 rounded-lg sm:rounded-xl overflow-hidden bg-[#e0ceb6]">
                 <img
                   src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&auto=format&fit=crop&q=80"
                   alt="Kolaborasi Mahasiswa"
-                  className="w-full h-full object-cover filter sepia-[0.2]"
+                  className="w-full h-full object-cover filter sepia-[0.18]"
                 />
               </div>
-              <p className="font-edwardian text-center text-lg sm:text-xl text-[#5c3e28] mt-1 sm:mt-2">
+              <p className="font-edwardian text-center text-lg sm:text-xl text-[#5c3e28] mt-1.5 sm:mt-2">
                 Kolaborasi Mahasiswa
               </p>
             </div>
 
-            {/* Polaroid 2 */}
-            <div className="w-32 sm:w-48 md:w-56 p-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl shadow-lg rotate-4 bg-[#fffdf9] border border-[#ebdcc8]/80 transition-all hover:rotate-1 hover:shadow-xl duration-300 absolute -bottom-2 sm:-bottom-4 -right-1 sm:right-2 z-20">
-              <div className="w-full h-20 sm:h-32 md:h-36 rounded-lg sm:rounded-xl overflow-hidden bg-[#e0ceb6]">
+            {/* Kartu 2: Seminar Bank Indonesia */}
+            <div
+              onMouseEnter={() => setFrontCard('seminar')}
+              onClick={() => setFrontCard('seminar')}
+              className={`w-44 sm:w-56 md:w-64 p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[#fffdf9] border border-[#ebdcc8]/90 cursor-pointer absolute transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
+                frontCard === 'seminar'
+                  ? 'z-30 translate-x-6 sm:translate-x-10 translate-y-6 rotate-2 scale-105 shadow-[0_22px_45px_-12px_rgba(47,30,16,0.32)] ring-1 ring-[#caa152]/60'
+                  : 'z-10 translate-x-12 sm:translate-x-16 translate-y-10 rotate-8 scale-95 shadow-md opacity-90'
+              }`}
+            >
+              <div className="w-full h-28 sm:h-36 md:h-40 rounded-lg sm:rounded-xl overflow-hidden bg-[#e0ceb6]">
                 <img
                   src="https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=600&auto=format&fit=crop&q=80"
                   alt="Seminar Edukatif"
                   className="w-full h-full object-cover filter sepia-[0.15]"
                 />
               </div>
-              <p className="font-edwardian text-center text-lg sm:text-xl text-[#5c3e28] mt-1 sm:mt-2">
+              <p className="font-edwardian text-center text-lg sm:text-xl text-[#5c3e28] mt-1.5 sm:mt-2">
                 Seminar Bank Indonesia
               </p>
             </div>

@@ -194,3 +194,75 @@ html, body {
 .btn-modern-shine:hover::after {
   left: 140%;
 }
+
+/* ── LUXURY 8-LAYER DIGICONOMIC LOGO ASSEMBLY ── */
+@keyframes digiconomic-logo-layer-in {
+  0% {
+    opacity: 0;
+    transform: translate3d(var(--logo-from-x, 0%), var(--logo-from-y, 0%), 0)
+      scale(var(--logo-from-scale, 0.92));
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes digiconomic-logo-sheen-sweep {
+  0% {
+    transform: translate3d(-160%, 0, 0) skewX(-24deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.75;
+  }
+  80% {
+    opacity: 0.55;
+  }
+  100% {
+    transform: translate3d(260%, 0, 0) skewX(-24deg);
+    opacity: 0;
+  }
+}
+
+@keyframes spin-reverse-slow {
+  from { transform: rotate(360deg); }
+  to   { transform: rotate(0deg); }
+}
+
+.digiconomic-logo-layer-enter {
+  opacity: 0;
+  animation-name: digiconomic-logo-layer-in;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  animation-fill-mode: forwards;
+  will-change: transform, opacity;
+}
+
+.digiconomic-logo-sheen {
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    rgba(255, 246, 214, 0.08) 30%,
+    rgba(255, 242, 198, 0.52) 50%,
+    rgba(255, 246, 214, 0.08) 70%,
+    transparent 100%
+  );
+  opacity: 0;
+  animation: digiconomic-logo-sheen-sweep 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.spin-reverse-slow {
+  animation: spin-reverse-slow 55s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .digiconomic-logo-layer-enter {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .digiconomic-logo-sheen {
+    display: none !important;
+  }
+}

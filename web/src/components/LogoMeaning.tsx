@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Compass, TrendingUp, Cpu, RefreshCw, Sparkles } from 'lucide-react';
-import { SectionDivider, CompassWatermark, BatikKawungPattern, MegaMendungClouds } from './Ornaments';
+import { CompassWatermark, BatikKawungPattern, MegaMendungClouds } from './Ornaments';
+import { AnimatedDigiconomicLogo } from './AnimatedDigiconomicLogo';
 
 interface LogoElement {
   id: number;
@@ -73,6 +74,10 @@ export const LogoMeaning: React.FC = () => {
     },
   ];
 
+  const toggleMobileElement = (id: number) => {
+    setActiveElement((prev) => (prev === id ? null : id));
+  };
+
   return (
     <section
       id="makna-logo"
@@ -83,7 +88,7 @@ export const LogoMeaning: React.FC = () => {
       <MegaMendungClouds color="#caa152" className="absolute top-6 -right-14 w-64 sm:w-80 opacity-50" />
       <MegaMendungClouds color="#caa152" flip className="absolute bottom-6 -left-14 w-64 sm:w-80 opacity-45" />
       <div className="max-w-6xl mx-auto relative z-10">
-        
+
         {/* ── SECTION HEADER ── */}
         <div className="text-center max-w-2xl mx-auto mb-5 sm:mb-12 px-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-0.5 sm:px-3.5 sm:py-1 rounded-full bg-[#3f2818] border border-[#caa152]/50 text-[#f3d48c] font-cinzel text-[8.5px] sm:text-[11px] tracking-widest uppercase font-semibold mb-1.5 sm:mb-3">
@@ -108,21 +113,28 @@ export const LogoMeaning: React.FC = () => {
           </p>
         </div>
 
-        {/* ── MEDALLION (Tampil di atas pada mobile secara compact) ── */}
-        <div className="flex items-center justify-center py-2 sm:py-4 lg:hidden">
+        {/* ── MEDALLION MOBILE (<lg): Terkunci 1:1 & Interaktif ── */}
+        <div className="flex flex-col items-center justify-center py-3 sm:py-5 lg:hidden">
           <div className="relative flex items-center justify-center">
-            <div className="w-28 h-28 rounded-full flex items-center justify-center p-2.5 border-2 border-[#caa152] shadow-[0_6px_18px_rgba(202,161,82,0.22)] bg-gradient-to-b from-[#ffffff] via-[#faf4e8] to-[#ebdcc8]">
-              <div className="absolute inset-1 rounded-full border border-dashed border-[#caa152]/50 pointer-events-none" />
-              <img
-                src="/Logo/00-logo-gabungan.svg"
-                alt="Logo Resmi Digiconomic Fest 2027"
-                className="w-16 h-16 object-contain filter drop-shadow(0 3px 8px rgba(70,36,10,0.18))"
+            <div className="absolute w-36 h-36 rounded-full blur-xl opacity-45 pointer-events-none bg-[radial-gradient(circle,rgba(202,161,82,0.5)_0%,transparent_70%)]" />
+            <div className="absolute w-36 h-36 rounded-full border border-[#caa152]/35 border-dashed spin-slow pointer-events-none" />
+            <div className="relative w-32 h-32 rounded-full flex items-center justify-center p-4 border-2 border-[#caa152] shadow-[0_8px_24px_rgba(202,161,82,0.25)] bg-gradient-to-b from-[#ffffff] via-[#faf4e8] to-[#ebdcc8]">
+              <div className="absolute inset-1.5 rounded-full border border-dashed border-[#caa152]/50 pointer-events-none" />
+              <AnimatedDigiconomicLogo
+                mode="showcase"
+                activePhilosophy={activeElement}
+                className="w-20 h-20"
+                showSheen
+                replayOnClick
               />
             </div>
           </div>
+          <p className="mt-2.5 text-[10px] text-[#dec9ad]/80 font-sans">
+            Ketuk kartu filosofi di bawah untuk menyorot elemen logo
+          </p>
         </div>
 
-        {/* ── RESPONSIVE SHOWCASE: 2x2 Grid on Mobile (<lg), 3-Column on Desktop (>=lg) ── */}
+        {/* ── RESPONSIVE SHOWCASE: 3-Column on Desktop (>=lg) ── */}
         <div className="hidden lg:grid grid-cols-12 gap-6 lg:gap-10 items-center">
           {/* Left Cards: Filosofi 01 & 02 */}
           <div className="lg:col-span-4 space-y-4">
@@ -148,7 +160,7 @@ export const LogoMeaning: React.FC = () => {
                     {item.icon}
                   </div>
                 </div>
-                <h3 className="font-cormorant text-xl font-normal text-[#fffdf9] group-hover:text-[#ba883a] transition-colors relative z-10 leading-tight mb-1">
+                <h3 className="font-cormorant text-xl font-normal text-[#fffdf9] group-hover:text-[#f3d48c] transition-colors relative z-10 leading-tight mb-1">
                   {item.title}
                 </h3>
                 <p className="font-sans text-xs text-[#dec9ad] leading-relaxed font-normal relative z-10">
@@ -158,20 +170,26 @@ export const LogoMeaning: React.FC = () => {
             ))}
           </div>
 
-          {/* Desktop Center Medallion */}
-          <div className="lg:col-span-4 flex items-center justify-center">
+          {/* Desktop Center Medallion — Terkunci 1:1 dengan 8-Layer Assembly & Interactive Highlight */}
+          <div className="lg:col-span-4 flex flex-col items-center justify-center">
             <div className="relative flex items-center justify-center">
               <div className="absolute w-76 h-76 rounded-full blur-xl opacity-60 pointer-events-none bg-[radial-gradient(circle,rgba(202,161,82,0.45)_0%,rgba(202,161,82,0.15)_50%,transparent_75%)]" />
-              <div className="absolute w-80 h-80 rounded-full border border-[#caa152]/40 border-dashed spin-slow pointer-events-none" />
-              <div className="w-64 h-64 rounded-full flex items-center justify-center p-5 border-2 border-[#caa152] shadow-[0_12px_40px_rgba(202,161,82,0.25)] relative group bg-gradient-to-b from-[#ffffff] via-[#faf4e8] to-[#ebdcc8]">
+              <div className="absolute w-84 h-84 rounded-full border border-[#caa152]/25 spin-reverse-slow pointer-events-none" />
+              <div className="absolute w-76 h-76 rounded-full border border-[#caa152]/40 border-dashed spin-slow pointer-events-none" />
+              <div className="w-64 h-64 rounded-full flex items-center justify-center p-7 border-2 border-[#caa152] shadow-[0_12px_40px_rgba(202,161,82,0.25)] relative group bg-gradient-to-b from-[#ffffff] via-[#faf4e8] to-[#ebdcc8]">
                 <div className="absolute inset-2.5 rounded-full border border-dashed border-[#caa152]/50 pointer-events-none" />
-                <img
-                  src="/Logo/00-logo-gabungan.svg"
-                  alt="Logo Resmi Digiconomic Fest 2027"
-                  className="w-36 h-36 object-contain filter drop-shadow(0 6px 14px rgba(70,36,10,0.22)) group-hover:scale-105 transition-transform duration-300 relative z-10"
+                <AnimatedDigiconomicLogo
+                  mode="showcase"
+                  activePhilosophy={activeElement}
+                  className="w-40 h-40 relative z-10"
+                  showSheen
+                  replayOnClick
                 />
               </div>
             </div>
+            <p className="mt-5 text-[11px] text-[#dec9ad]/75 font-sans tracking-wide">
+              Arahkan ke kartu filosofi untuk menyorot elemen • Klik logo untuk putar ulang
+            </p>
           </div>
 
           {/* Right Cards: Filosofi 03 & 04 */}
@@ -198,7 +216,7 @@ export const LogoMeaning: React.FC = () => {
                     {item.icon}
                   </div>
                 </div>
-                <h3 className="font-cormorant text-xl font-normal text-[#fffdf9] group-hover:text-[#ba883a] transition-colors relative z-10 leading-tight mb-1">
+                <h3 className="font-cormorant text-xl font-normal text-[#fffdf9] group-hover:text-[#f3d48c] transition-colors relative z-10 leading-tight mb-1">
                   {item.title}
                 </h3>
                 <p className="font-sans text-xs text-[#dec9ad] leading-relaxed font-normal relative z-10">
@@ -209,31 +227,40 @@ export const LogoMeaning: React.FC = () => {
           </div>
         </div>
 
-        {/* ── MOBILE CARD LAYOUT: 2-Column Grid (Sangat ringkas, hemat 60% tinggi) ── */}
+        {/* ── MOBILE CARD LAYOUT: 2-Column Grid Interaktif ── */}
         <div className="grid grid-cols-2 lg:hidden gap-2 sm:gap-3 mt-2 sm:mt-4">
-          {elements.map((item) => (
-            <div
-              key={item.id}
-              className="p-2.5 sm:p-4 rounded-xl border border-[#caa152]/35 bg-[#382315]/90 shadow-xs relative flex flex-col justify-start"
-            >
-              <div className="absolute inset-1 rounded-lg border border-dashed border-[#caa152]/20 pointer-events-none" />
-              <div className="flex items-center justify-between gap-1 mb-1 relative z-10">
-                <span className="font-cinzel text-[9px] font-semibold text-[#e3c47f]">{item.code}</span>
-                <div className="w-5 h-5 rounded-md bg-[#24140a] border border-[#caa152]/40 flex items-center justify-center shrink-0">
-                  {item.icon}
+          {elements.map((item) => {
+            const isSelected = activeElement === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => toggleMobileElement(item.id)}
+                className={`text-left p-2.5 sm:p-4 rounded-xl border shadow-xs relative flex flex-col justify-start transition-all duration-200 ${
+                  isSelected
+                    ? 'bg-[#452b1a] border-[#caa152] ring-1 ring-[#caa152]/60'
+                    : 'bg-[#382315]/90 border-[#caa152]/35'
+                }`}
+              >
+                <div className="absolute inset-1 rounded-lg border border-dashed border-[#caa152]/20 pointer-events-none" />
+                <div className="flex items-center justify-between gap-1 mb-1 relative z-10 w-full">
+                  <span className="font-cinzel text-[9px] font-semibold text-[#e3c47f]">{item.code}</span>
+                  <div className="w-5 h-5 rounded-md bg-[#24140a] border border-[#caa152]/40 flex items-center justify-center shrink-0">
+                    {item.icon}
+                  </div>
                 </div>
-              </div>
-              <h3 className="font-cormorant text-sm sm:text-base font-medium text-[#fffdf9] leading-tight mb-0.5 relative z-10">
-                {item.title}
-              </h3>
-              <p className="font-sans text-[10px] sm:text-[11px] text-[#dec9ad] leading-snug font-normal relative z-10 line-clamp-3">
-                {item.desc}
-              </p>
-            </div>
-          ))}
+                <h3 className="font-cormorant text-sm sm:text-base font-medium text-[#fffdf9] leading-tight mb-0.5 relative z-10">
+                  {item.title}
+                </h3>
+                <p className="font-sans text-[10px] sm:text-[11px] text-[#dec9ad] leading-snug font-normal relative z-10 line-clamp-3">
+                  {item.desc}
+                </p>
+              </button>
+            );
+          })}
         </div>
 
-        {/* ── FILOSOFI RONA & WARNA LOGO: 3 Kolom Berdampingan (1 Baris Ringkas) ── */}
+        {/* ── FILOSOFI RONA & WARNA LOGO: 3 Kolom Berdampingan ── */}
         <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-[#caa152]/30 relative z-10">
           <div className="text-center mb-2.5 sm:mb-5">
             <span className="font-cinzel text-[10px] sm:text-xs text-[#e3c47f] font-semibold tracking-wider">
@@ -247,7 +274,6 @@ export const LogoMeaning: React.FC = () => {
                 key={idx}
                 className="card-modern-hover p-4 sm:p-5 rounded-2xl bg-[#382315]/90 border border-[#caa152]/35 hover:border-[#caa152]/75 shadow-md flex flex-col items-center text-center"
               >
-                {/* Color Swatch Dot */}
                 <div
                   className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg ${color.previewBg} border ${color.borderAccent} shadow-2xs flex items-center justify-center mb-1`}
                 >
