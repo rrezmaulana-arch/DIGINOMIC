@@ -38,9 +38,8 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
 
   return (
     <>
-      {/* Animasi logo transisi setiap kali berpindah halaman */}
+      {/* Animasi logo transisi setiap kali berpindah halaman (dipercepat & ringan) */}
       <PageTransitionOverlay />
-      <BatikCursorTrail />
 
       <Suspense
         fallback={

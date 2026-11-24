@@ -8,6 +8,8 @@
     "api"
   ],
   "scripts": {
+    "dev": "npm --workspace=web run dev",
+    "build": "npm --workspace=web run build",
     "dev:web": "npm --workspace=web run dev",
     "build:web": "npm --workspace=web run build",
     "dev:api": "npm --workspace=api run dev",
