@@ -20,15 +20,23 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  const handleNavigateSection = (sectionId: string) => {
+  const handleNavigate = (target: string) => {
+    // Jika target diawali '/' (misalnya '/event' atau '/news'), pindah halaman penuh
+    if (target.startsWith('/')) {
+      navigate(target);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    // Jika target berupa section ID di Landing Page ('hero', 'kompetisi', 'linimasa', dll.)
     if (window.location.pathname !== '/') {
-      navigate('/#' + sectionId);
+      navigate('/#' + target);
       setTimeout(() => {
-        const el = document.getElementById(sectionId);
+        const el = document.getElementById(target);
         if (el) el.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
+      }, 120);
     } else {
-      const el = document.getElementById(sectionId);
+      const el = document.getElementById(target);
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     }
   };
@@ -45,7 +53,7 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({
         onOpenDashboard={() => navigate('/dashboard')}
         onOpenAdmin={() => navigate('/admin')}
         onLogout={onLogout}
-        onNavigate={handleNavigateSection}
+        onNavigate={handleNavigate}
         onSwitchRole={onSwitchRole}
       />
 
@@ -56,7 +64,7 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({
 
       {/* Footer */}
       <Footer
-        onNavigate={handleNavigateSection}
+        onNavigate={handleNavigate}
         onOpenPrivacy={() => alert('Kebijakan Privasi Digiconomic Fest 2027: Data peserta hanya digunakan untuk keperluan verifikasi dan korespondensi kompetisi resmi.')}
         onOpenTerms={() => alert('Syarat & Ketentuan: Setiap peserta wajib mahasiswa/siswa aktif, menjunjung tinggi integritas ilmiah, serta orisinalitas karya tanpa plagiarisme.')}
       />
