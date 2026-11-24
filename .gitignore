@@ -8,3 +8,6 @@ deploy/nginx/certs/
 api/uploads/
 *.log
 .DS_Store
+
+.vercel
+.env*
