@@ -1,0 +1,28 @@
+# Digiconomic Fest 2027
+
+> Festival dan kompetisi nasional ekonomi digital serta pemberdayaan UMKM yang diselenggarakan oleh Generasi Baru Indonesia (GenBI) bersama Bank Indonesia.
+
+## Ringkasan Acara
+- **Nama Acara:** Digiconomic Fest 2027
+- **Penyelenggara:** GenBI x Bank Indonesia
+- **Lokasi Puncak Acara:** Malang, Jawa Timur, Indonesia
+- **Puncak Acara (Main Event & Awarding Night):** 22 Maret 2027
+- **Total Apresiasi Kompetisi:** Rp 26.000.000+ (uang pembinaan, trofi, dan e-sertifikat nasional)
+
+## Jadwal Resmi 2026–2027
+1. **14 Desember 2026 – 30 Januari 2027:** Pendaftaran & Verifikasi Peserta
+2. **1 – 19 Februari 2027:** Seleksi & Penjurian Karya
+3. **20 Februari 2027:** Pengumuman Finalis
+4. **21 Maret 2027:** Final Kompetisi
+5. **22 Maret 2027:** Main Event, Pameran UMKM & Awarding Night
+
+## Cabang Kompetisi Utama
+- **Esai Nasional** (`/kompetisi/esai-nasional`): Kompetisi penulisan gagasan ilmiah seputar inovasi ekonomi digital dan transformasi UMKM.
+- **Mini Case Competition** (`/kompetisi/mini-case-competition`): Kompetisi pemecahan studi kasus bisnis nyata bagi mahasiswa untuk membantu UMKM lokal berkembang.
+
+## Halaman Resmi
+- Beranda: https://diginomic.vercel.app/
+- Agenda & Acara: https://diginomic.vercel.app/event
+- Daftar Kompetisi: https://diginomic.vercel.app/kompetisi
+- Petunjuk Pelaksanaan & Teknis (Juklak-Juknis): https://diginomic.vercel.app/juklak-juknis
+- Berita & Pengumuman: https://diginomic.vercel.app/news

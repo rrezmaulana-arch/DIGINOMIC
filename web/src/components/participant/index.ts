@@ -1,6 +1,4 @@
 /**
- * PARTICIPANT PORTAL COMPONENTS (Frontend - Portal Peserta Terdaftar)
- * Dashboard pelacakan status verifikasi QRIS, pengumpulan berkas karya, dan akses grup WhatsApp peserta.
+ * PARTICIPANT PORTAL COMPONENTS
  */
-export { DashboardView as ParticipantDashboard } from '../DashboardView';
-export { DashboardView } from '../DashboardView';
+export { FileDropCard } from '../FileDropCard';

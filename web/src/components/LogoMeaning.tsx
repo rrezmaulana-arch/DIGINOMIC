@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Compass, TrendingUp, Cpu, RefreshCw, Sparkles } from 'lucide-react';
-import { CompassWatermark, BatikKawungPattern, MegaMendungClouds } from './Ornaments';
+import { BatikKawungPattern } from './Ornaments';
 import { AnimatedDigiconomicLogo } from './AnimatedDigiconomicLogo';
 
 interface LogoElement {
@@ -55,22 +55,25 @@ export const LogoMeaning: React.FC = () => {
       title: 'Emas Mulia',
       code: '#CAA152',
       meaning: 'Melambangkan kejayaan, kemakmuran ekonomi UMKM, dan supremasi prestasi juara.',
-      previewBg: 'bg-[#caa152]',
-      borderAccent: 'border-[#caa152]/70',
+      swatchStyle: 'linear-gradient(135deg, #f3d48c 0%, #caa152 55%, #9a7128 100%)',
+      ringClass: 'border-2 border-[#f3d48c] shadow-[0_0_20px_rgba(202,161,82,0.35)]',
+      starClass: 'text-[#2f1e10]',
     },
     {
       title: 'Espresso Gelap',
       code: '#2F1E10',
       meaning: 'Melambangkan ketegasan fondasi, integritas ilmiah, serta stabilitas perekonomian bangsa.',
-      previewBg: 'bg-[#2f1e10]',
-      borderAccent: 'border-[#7a5530]/50',
+      swatchStyle: 'linear-gradient(135deg, #4b311c 0%, #2f1e10 60%, #190e06 100%)',
+      ringClass: 'border-2 border-[#caa152] ring-2 ring-[#faf4e8]/25 shadow-[0_0_20px_rgba(0,0,0,0.45)]',
+      starClass: 'text-[#f3d48c]',
     },
     {
       title: 'Linen & Gading',
       code: '#FAF4E8',
       meaning: 'Melambangkan kanvas keterbukaan ide kreatif dan sinergi inklusif tanpa batas.',
-      previewBg: 'bg-[#faf4e8]',
-      borderAccent: 'border-[#ebdcc8]',
+      swatchStyle: 'linear-gradient(135deg, #ffffff 0%, #faf4e8 65%, #e8d8bf 100%)',
+      ringClass: 'border-2 border-[#caa152] shadow-[0_0_20px_rgba(250,244,232,0.2)]',
+      starClass: 'text-[#8a5e38]',
     },
   ];
 
@@ -83,10 +86,7 @@ export const LogoMeaning: React.FC = () => {
       id="makna-logo"
       className="relative w-full py-8 sm:py-16 lg:py-24 px-3.5 sm:px-8 lg:px-16 overflow-hidden bg-gradient-to-b from-[#2f1d10] via-[#26160c] to-[#1f1209] text-[#faf4e8]"
     >
-      <CompassWatermark color="#caa152" className="absolute -bottom-24 -left-24 w-80 h-80 opacity-[0.06]" />
       <BatikKawungPattern color="#caa152" opacity={0.06} id="kawung-logo" />
-      <MegaMendungClouds color="#caa152" className="absolute top-6 -right-14 w-64 sm:w-80 opacity-50" />
-      <MegaMendungClouds color="#caa152" flip className="absolute bottom-6 -left-14 w-64 sm:w-80 opacity-45" />
       <div className="max-w-6xl mx-auto relative z-10">
 
         {/* ── SECTION HEADER ── */}
@@ -143,11 +143,10 @@ export const LogoMeaning: React.FC = () => {
                 key={item.id}
                 onMouseEnter={() => setActiveElement(item.id)}
                 onMouseLeave={() => setActiveElement(null)}
-                className={`p-5 rounded-2xl border transition-all duration-300 relative cursor-pointer group ${
-                  activeElement === item.id
+                className={`p-5 rounded-2xl border transition-all duration-300 relative cursor-pointer group ${activeElement === item.id
                     ? 'bg-[#452b1a] border-[#caa152] shadow-md -translate-y-0.5 ring-1 ring-[#caa152]/60'
                     : 'bg-[#382315]/90 border-[#caa152]/30 shadow-2xs hover:shadow-xs hover:border-[#caa152]/60'
-                }`}
+                  }`}
               >
                 <div className="absolute inset-1.5 rounded-xl border border-dashed border-[#caa152]/20 pointer-events-none group-hover:border-[#caa152]/50 transition-colors" />
                 <div className="flex items-center justify-between gap-2 mb-1 relative z-10">
@@ -199,11 +198,10 @@ export const LogoMeaning: React.FC = () => {
                 key={item.id}
                 onMouseEnter={() => setActiveElement(item.id)}
                 onMouseLeave={() => setActiveElement(null)}
-                className={`p-5 rounded-2xl border transition-all duration-300 relative cursor-pointer group ${
-                  activeElement === item.id
+                className={`p-5 rounded-2xl border transition-all duration-300 relative cursor-pointer group ${activeElement === item.id
                     ? 'bg-[#452b1a] border-[#caa152] shadow-md -translate-y-0.5 ring-1 ring-[#caa152]/60'
                     : 'bg-[#382315]/90 border-[#caa152]/30 shadow-2xs hover:shadow-xs hover:border-[#caa152]/60'
-                }`}
+                  }`}
               >
                 <div className="absolute inset-1.5 rounded-xl border border-dashed border-[#caa152]/20 pointer-events-none group-hover:border-[#caa152]/50 transition-colors" />
                 <div className="flex items-center justify-between gap-2 mb-1 relative z-10">
@@ -236,11 +234,10 @@ export const LogoMeaning: React.FC = () => {
                 key={item.id}
                 type="button"
                 onClick={() => toggleMobileElement(item.id)}
-                className={`text-left p-2.5 sm:p-4 rounded-xl border shadow-xs relative flex flex-col justify-start transition-all duration-200 ${
-                  isSelected
+                className={`text-left p-2.5 sm:p-4 rounded-xl border shadow-xs relative flex flex-col justify-start transition-all duration-200 ${isSelected
                     ? 'bg-[#452b1a] border-[#caa152] ring-1 ring-[#caa152]/60'
                     : 'bg-[#382315]/90 border-[#caa152]/35'
-                }`}
+                  }`}
               >
                 <div className="absolute inset-1 rounded-lg border border-dashed border-[#caa152]/20 pointer-events-none" />
                 <div className="flex items-center justify-between gap-1 mb-1 relative z-10 w-full">
@@ -261,32 +258,34 @@ export const LogoMeaning: React.FC = () => {
         </div>
 
         {/* ── FILOSOFI RONA & WARNA LOGO: 3 Kolom Berdampingan ── */}
-        <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-[#caa152]/30 relative z-10">
-          <div className="text-center mb-2.5 sm:mb-5">
-            <span className="font-cinzel text-[10px] sm:text-xs text-[#e3c47f] font-semibold tracking-wider">
-              Filosofi Rona & Gradasi Logo
+        <div className="mt-10 sm:mt-14 pt-7 sm:pt-9 border-t border-[#caa152]/30 relative z-10">
+          <div className="text-center mb-4 sm:mb-6">
+            <span className="font-cinzel text-[11px] sm:text-xs text-[#e3c47f] font-semibold tracking-[0.2em] uppercase">
+              Filosofi Rona &amp; Gradasi Logo
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
             {logoColorPalette.map((color, idx) => (
               <div
                 key={idx}
-                className="card-modern-hover p-4 sm:p-5 rounded-2xl bg-[#382315]/90 border border-[#caa152]/35 hover:border-[#caa152]/75 shadow-md flex flex-col items-center text-center"
+                className="card-modern-hover p-5 sm:p-6 rounded-2xl bg-[#382315]/95 border border-[#caa152]/40 hover:border-[#caa152]/85 shadow-md flex flex-col items-center text-center relative overflow-hidden"
               >
+                <div className="absolute inset-1.5 rounded-xl border border-dashed border-[#caa152]/18 pointer-events-none" />
                 <div
-                  className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg ${color.previewBg} border ${color.borderAccent} shadow-2xs flex items-center justify-center mb-1`}
+                  className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl ${color.ringClass} flex items-center justify-center mb-3 relative z-10`}
+                  style={{ background: color.swatchStyle }}
                 >
-                  <span className="text-[7px] sm:text-[9px] text-[#caa152] select-none">✦</span>
+                  <span className={`text-xs ${color.starClass} select-none`}>✦</span>
                 </div>
 
-                <h4 className="font-cormorant font-normal text-xs sm:text-sm text-[#fffdf9] leading-tight">
+                <h4 className="font-cormorant font-semibold text-xl sm:text-2xl text-[#fffdf9] leading-tight relative z-10">
                   {color.title}
                 </h4>
-                <span className="text-[10px] font-mono text-[#f3d48c] font-semibold bg-[#24140a] px-2.5 py-0.5 rounded-full border border-[#caa152]/40 mt-1.5">
+                <span className="text-[10px] font-mono text-[#f3d48c] font-semibold bg-[#24140a] px-3 py-0.5 rounded-full border border-[#caa152]/45 mt-1.5 relative z-10">
                   {color.code}
                 </span>
-                <p className="text-xs text-[#e3d0b5] leading-relaxed mt-2 font-sans">
+                <p className="text-xs text-[#e3d0b5] leading-relaxed mt-2.5 font-sans relative z-10">
                   {color.meaning}
                 </p>
               </div>

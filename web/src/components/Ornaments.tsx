@@ -90,32 +90,6 @@ export const SectionDivider: React.FC<SectionDividerProps> = ({
   );
 };
 
-interface CompassWatermarkProps {
-  className?: string;
-  color?: string;
-}
-
-export const CompassWatermark: React.FC<CompassWatermarkProps> = ({
-  className = '',
-  color = '#7a5530',
-}) => (
-  <svg viewBox="0 0 240 240" fill="none" aria-hidden="true" className={`pointer-events-none select-none ${className}`}>
-    <circle cx="120" cy="120" r="108" stroke={color} strokeWidth="1" strokeDasharray="3 5" />
-    <circle cx="120" cy="120" r="92" stroke={color} strokeWidth="0.8" />
-    <circle cx="120" cy="120" r="64" stroke={color} strokeWidth="0.6" strokeDasharray="2 4" />
-    <path d="M120 8V232M8 120H232" stroke={color} strokeWidth="0.7" />
-    <path d="M40 40L200 200M200 40L40 200" stroke={color} strokeWidth="0.5" />
-    <path
-      d="M120 26L134 106L214 120L134 134L120 214L106 134L26 120L106 106L120 26Z"
-      stroke={color}
-      strokeWidth="1"
-      fill={color}
-      fillOpacity="0.08"
-    />
-    <circle cx="120" cy="120" r="10" stroke={color} strokeWidth="1.2" />
-  </svg>
-);
-
 /**
  * Pola latar Batik Kawung halus (SVG seamless tile) untuk memberi tekstur Nusantara elegan.
  */
@@ -127,7 +101,11 @@ export const BatikKawungPattern: React.FC<{ color?: string; opacity?: number; id
   <svg
     aria-hidden="true"
     className="pointer-events-none select-none absolute inset-0 w-full h-full"
-    style={{ opacity }}
+    style={{
+      opacity,
+      maskImage: 'linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%)',
+      WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%)',
+    }}
   >
     <defs>
       <pattern id={id} width="64" height="64" patternUnits="userSpaceOnUse">
@@ -147,55 +125,6 @@ export const BatikKawungPattern: React.FC<{ color?: string; opacity?: number; id
 );
 
 /**
- * Ornamen Awan Mega Mendung berlapis bergaya Nusantara di sisi background section.
- */
-export const MegaMendungClouds: React.FC<{
-  color?: string;
-  className?: string;
-  flip?: boolean;
-}> = ({ color = '#caa152', className = '', flip = false }) => (
-  <svg
-    viewBox="0 0 420 180"
-    fill="none"
-    aria-hidden="true"
-    className={`pointer-events-none select-none ${flip ? 'scale-x-[-1]' : ''} ${className}`}
-  >
-    {/* Lapisan awan belakang */}
-    <path
-      d="M-10 140 C40 140 55 105 95 105 C120 105 135 80 175 82 C205 84 220 55 268 58 C312 60 330 92 365 92 C395 92 410 112 430 118 L430 180 L-10 180 Z"
-      fill={color}
-      fillOpacity="0.10"
-    />
-    {/* Lapisan awan tengah dengan kurva spiral Mega Mendung */}
-    <path
-      d="M0 156 C55 156 72 122 116 122 C148 122 162 98 205 100 C244 102 258 76 305 80 C342 83 360 112 396 112"
-      stroke={color}
-      strokeWidth="1.6"
-      strokeOpacity="0.32"
-      strokeLinecap="round"
-    />
-    <path
-      d="M28 168 C82 168 98 138 140 138 C172 138 188 118 228 120 C268 122 284 100 328 104"
-      stroke={color}
-      strokeWidth="1.2"
-      strokeOpacity="0.24"
-      strokeLinecap="round"
-    />
-    {/* Aksen awan melayang kecil */}
-    <path
-      d="M52 54 H108 C116 54 120 46 112 43 C106 41 102 36 94 36 C86 36 82 42 74 42 H58 C50 42 46 54 52 54 Z"
-      fill={color}
-      fillOpacity="0.16"
-    />
-    <path
-      d="M292 34 H352 C360 34 364 26 355 23 C349 21 345 16 336 16 C327 16 323 22 315 22 H298 C290 22 286 34 292 34 Z"
-      fill={color}
-      fillOpacity="0.14"
-    />
-  </svg>
-);
-
-/**
  * Transisi antar section:
  * - "mist": peleburan gradasi murni tanpa garis potong (ideal untuk section terang ke terang)
  * - "cloud" / "ridge" / "wave": 3 lapisan gelombang lembut untuk perpindahan terang <-> espresso
@@ -209,7 +138,7 @@ export const SectionWaveTransition: React.FC<{
   if (variant === 'mist') {
     return (
       <div
-        className="relative w-full h-14 sm:h-20 -my-px select-none pointer-events-none"
+        className="relative w-full h-8 sm:h-10 -my-px select-none pointer-events-none"
         style={{
           background: `linear-gradient(180deg, ${fromColor} 0%, ${toColor} 100%)`,
         }}

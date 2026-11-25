@@ -62,6 +62,80 @@ export async function seedDatabase(repo, options = {}) {
     });
   }
 
+  if (typeof repo.listNewsArticles === 'function' && typeof repo.createNewsArticle === 'function') {
+    const existingNews = await repo.listNewsArticles({ publishedOnly: false });
+    if (existingNews.length === 0) {
+      const initialNews = [
+        {
+          slug: 'pembukaan-pendaftaran-digiconomic-fest-2027',
+          category: 'Pengumuman',
+          title: 'Pendaftaran Digiconomic Fest 2027 Resmi Dibuka: Target 450+ Peserta Nasional',
+          excerpt:
+            'GenBI Malang resmi membuka pendaftaran Digiconomic Fest 2027 (14 Des 2026 – 30 Jan 2027) dengan dua cabang kompetisi nasional: Esai Nasional dan Mini Case Competition.',
+          content: [
+            'Generasi Baru Indonesia (GenBI) melalui kolaborasi Divisi Pendidikan dan Divisi Kewirausahaan resmi membuka pendaftaran Digiconomic Fest 2027 mulai 14 Desember 2026 hingga 30 Januari 2027.',
+            'Tahun ini tersedia dua cabang kompetisi utama yaitu Esai Nasional (kategori individu, target 350+ pendaftar) dan Mini Case Competition (kategori tim 2–3 orang, target 100+ pendaftar). Setiap akun hanya diperbolehkan mengikuti satu cabang lomba aktif agar kompetisi berjalan adil dan fokus.',
+            'Seluruh berkas pendaftaran dapat diunggah melalui portal resmi, dan status verifikasi serta akses grup peserta akan diperbarui langsung melalui Dashboard Peserta.',
+          ].join('\n\n'),
+          cover_image_url: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&fm=webp&q=75',
+          show_on_home: true,
+          is_featured: true,
+          is_published: true,
+        },
+        {
+          slug: 'jadwal-seleksi-hingga-main-event-2027',
+          category: 'Technical Meeting',
+          title: 'Catat Tanggal Penting: Penjurian Februari, Final 21 Maret & Main Event 22 Maret 2027',
+          excerpt:
+            'Simak linimasa resmi mulai dari evaluasi karya (1–19 Feb 2027), pengumuman finalis (20 Feb 2027), babak final (21 Mar 2027), hingga Acara Puncak pada 22 Maret 2027.',
+          content: [
+            'Setelah pendaftaran ditutup pada 30 Januari 2027, seluruh karya Esai Nasional dan Mini Case Competition akan memasuki tahap Judging & Evaluation pada 1–19 Februari 2027.',
+            'Pengumuman finalis dijadwalkan pada 20 Februari 2027, diikuti Technical Meeting khusus finalis sebelum melaju ke Competition Final pada 21 Maret 2027 di Malang.',
+            'Rangkaian kegiatan akan ditutup dengan Digiconomic Fest Main Event pada 22 Maret 2027 yang menghadirkan Seminar bersama Bank Indonesia dan praktisi UMKM, Pameran UMKM binaan BI, serta Awarding Night.',
+          ].join('\n\n'),
+          cover_image_url: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&fm=webp&q=75',
+          show_on_home: true,
+          is_featured: false,
+          is_published: true,
+        },
+        {
+          slug: 'tips-lolos-seleksi-esai-dan-mini-case',
+          category: 'Kompetisi',
+          title: '5 Hal yang Paling Dinilai Juri di Esai Nasional & Mini Case Competition',
+          excerpt:
+            'Ketajaman riset masalah UMKM di emerging market, kelayakan implementasi, serta orisinalitas gagasan menjadi indikator utama dewan juri.',
+          content: [
+            'Baik pada Esai Nasional maupun Mini Case Competition, karya yang menonjol selalu berangkat dari tantangan nyata pelaku UMKM lokal di tengah dinamika emerging market.',
+            'Lima aspek utama yang diperhatikan juri meliputi kesesuaian tema, kekuatan data pendukung, orisinalitas solusi digital/bisnis, kelayakan penerapan, serta kerapian sistematika penulisan sesuai Juklak & Juknis.',
+            'Pastikan format PDF dan batas halaman sudah sesuai panduan resmi sebelum mengunggah karya melalui Dashboard Peserta.',
+          ].join('\n\n'),
+          cover_image_url: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop&fm=webp&q=75',
+          show_on_home: true,
+          is_featured: false,
+          is_published: true,
+        },
+        {
+          slug: 'pameran-umkm-binaan-bank-indonesia-malang',
+          category: 'UMKM & Edukasi',
+          title: 'Pameran UMKM Binaan Bank Indonesia Hadir di Acara Puncak Digiconomic Fest 2027',
+          excerpt:
+            'Selain seminar nasional bertarget 375+ peserta, Main Event 22 Maret 2027 juga menampilkan pameran produk unggulan UMKM binaan Bank Indonesia.',
+          content: [
+            'Acara puncak Digiconomic Fest 2027 pada 22 Maret 2027 tidak hanya menjadi panggung apresiasi para finalis kompetisi, tetapi juga ruang temu langsung antara mahasiswa, praktisi, dan pelaku UMKM binaan Bank Indonesia.',
+            'Melalui sesi seminar, diskusi interaktif, dan Pameran UMKM binaan BI, pengunjung dapat melihat langsung bagaimana digitalisasi pembayaran dan inovasi bisnis membantu UMKM lokal naik kelas dan berdaya saing global.',
+          ].join('\n\n'),
+          cover_image_url: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&auto=format&fit=crop&fm=webp&q=75',
+          show_on_home: false,
+          is_featured: false,
+          is_published: true,
+        },
+      ];
+      for (const item of initialNews) {
+        await repo.createNewsArticle({ ...item, created_by: superAdmin.id });
+      }
+    }
+  }
+
   return { superAdmin, competitions: await repo.listCompetitions({ includeInactive: true }) };
 }
 

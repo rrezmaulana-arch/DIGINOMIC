@@ -47,10 +47,18 @@ export function checkOriginCsrf(req, config) {
 
 export function getClientIp(req, config) {
   if (config.trustProxy) {
-    const cfIp = req.headers['cf-connecting-ip'];
-    if (typeof cfIp === 'string' && cfIp.trim()) return cfIp.trim();
+    if (config.trustCloudflare) {
+      const cfIp = req.headers['cf-connecting-ip'];
+      if (typeof cfIp === 'string' && cfIp.trim()) return cfIp.trim();
+    }
+    const realIp = req.headers['x-real-ip'];
+    if (typeof realIp === 'string' && realIp.trim()) return realIp.trim();
     const xff = req.headers['x-forwarded-for'];
-    if (typeof xff === 'string' && xff.trim()) return xff.split(',')[0].trim();
+    if (typeof xff === 'string' && xff.trim()) {
+      // Ambil IP paling kanan (yang ditambahkan oleh proxy tepercaya), bukan indeks pertama yang bisa dipalsukan klien
+      const parts = xff.split(',').map((s) => s.trim()).filter(Boolean);
+      if (parts.length > 0) return parts[parts.length - 1];
+    }
   }
   return req.socket?.remoteAddress || '127.0.0.1';
 }

@@ -3,7 +3,6 @@ import { Camera, X, ZoomIn } from 'lucide-react';
 import {
   BatikKawungPattern,
   CornerFiligree,
-  MegaMendungClouds,
   SectionDivider,
 } from './Ornaments';
 
@@ -73,14 +72,12 @@ export const GallerySection: React.FC = () => {
   return (
     <section
       id="galeri"
-      className="relative w-full py-12 sm:py-16 md:py-24 px-4 sm:px-8 lg:px-12 overflow-hidden"
+      className="relative w-full py-10 sm:py-14 md:py-16 px-4 sm:px-8 lg:px-12 overflow-hidden"
       style={{
         background: 'linear-gradient(180deg, #faf4e8 0%, #f4ead8 55%, #efe3d0 100%)',
       }}
     >
       <BatikKawungPattern color="#7a5530" opacity={0.045} id="kawung-gallery" />
-      <MegaMendungClouds color="#8c6239" className="absolute top-6 -right-14 w-72 sm:w-96 opacity-45" />
-      <MegaMendungClouds color="#8c6239" flip className="absolute bottom-8 -left-14 w-72 sm:w-96 opacity-45" />
 
       <div className="max-w-6xl mx-auto relative z-10">
         {/* Header */}

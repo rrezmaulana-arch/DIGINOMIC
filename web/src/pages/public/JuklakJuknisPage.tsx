@@ -4,9 +4,7 @@ import { ArrowLeft, ArrowRight, BookOpen, Calendar, CheckCircle2, Download, File
 import { COMPETITIONS_DATA, TIMELINE_DATA } from '../../data/competitions';
 import {
   BatikKawungPattern,
-  CompassWatermark,
   CornerFiligree,
-  MegaMendungClouds,
   SectionWaveTransition,
 } from '../../components/Ornaments';
 
@@ -27,8 +25,6 @@ export const JuklakJuknisPage: React.FC = () => {
         }}
       >
         <BatikKawungPattern color="#caa152" opacity={0.07} id="kawung-juklak-hero" />
-        <MegaMendungClouds color="#caa152" className="absolute -bottom-4 right-0 w-80 sm:w-[440px] opacity-55" />
-        <CompassWatermark color="#caa152" className="absolute -top-20 -left-20 w-72 h-72 opacity-[0.07]" />
 
         <div className="max-w-5xl mx-auto relative z-10">
           <Link

@@ -9,15 +9,39 @@ import { processEmailOutbox, cleanupExpiredSessions, runFileRetentionJob } from 
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+async function loadDotEnv() {
+  const envPath = path.resolve(__dirname, '../.env');
+  try {
+    const raw = await fs.readFile(envPath, 'utf8');
+    for (const line of raw.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      const eqIdx = trimmed.indexOf('=');
+      if (eqIdx === -1) continue;
+      const key = trimmed.slice(0, eqIdx).trim();
+      let val = trimmed.slice(eqIdx + 1).trim();
+      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+        val = val.slice(1, -1);
+      }
+      if (!process.env[key]) process.env[key] = val;
+    }
+  } catch {
+    // .env opsional jika env vars sudah diset oleh platform (Railway/Docker)
+  }
+}
+
 async function runMigrationsIfPostgres(repo) {
   if (repo.type !== 'postgres') return;
-  const sqlPath = path.resolve(__dirname, '../db/migrations/001_init.sql');
-  const sql = await fs.readFile(sqlPath, 'utf8');
-  await repo.pool.query(sql);
-  console.log('[DB] Migrasi 001_init.sql berhasil diterapkan.');
+  for (const file of ['001_init.sql', '002_system_upgrade.sql']) {
+    const sqlPath = path.resolve(__dirname, `../db/migrations/${file}`);
+    const sql = await fs.readFile(sqlPath, 'utf8');
+    await repo.pool.query(sql);
+  }
+  console.log('[DB] Migrasi 001 & 002 berhasil diterapkan.');
 }
 
 async function main() {
+  await loadDotEnv();
   const config = loadConfig();
   const repo = await createRepository(config);
   await runMigrationsIfPostgres(repo);

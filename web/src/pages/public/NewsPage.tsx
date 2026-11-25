@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { PublicApi } from '../../services/apiService';
 import {
   Newspaper,
   Calendar,
@@ -12,7 +13,6 @@ import {
 } from 'lucide-react';
 import {
   BatikKawungPattern,
-  MegaMendungClouds,
   SectionWaveTransition,
 } from '../../components/Ornaments';
 
@@ -29,73 +29,6 @@ export interface NewsArticle {
   content: string[];
 }
 
-const NEWS_ARTICLES: NewsArticle[] = [
-  {
-    id: 'news-1',
-    slug: 'pembukaan-pendaftaran-digiconomic-fest-2027',
-    category: 'Pengumuman',
-    title: 'Pendaftaran Digiconomic Fest 2027 Resmi Dibuka: Target 450+ Peserta Nasional',
-    date: '14 Desember 2026',
-    readTime: '3 mnt baca',
-    featured: true,
-    image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=900&auto=format&fit=crop&q=80',
-    excerpt:
-      'GenBI Malang resmi membuka pendaftaran Digiconomic Fest 2027 (14 Des 2026 – 30 Jan 2027) dengan dua cabang kompetisi nasional: Esai Nasional dan Mini Case Competition.',
-    content: [
-      'Generasi Baru Indonesia (GenBI) melalui kolaborasi Divisi Pendidikan dan Divisi Kewirausahaan resmi membuka pendaftaran Digiconomic Fest 2027 mulai 14 Desember 2026 hingga 30 Januari 2027.',
-      'Tahun ini tersedia dua cabang kompetisi utama yaitu Esai Nasional (kategori individu, target 350+ pendaftar) dan Mini Case Competition (kategori tim 2–3 orang, target 100+ pendaftar). Setiap akun hanya diperbolehkan mengikuti satu cabang lomba aktif agar kompetisi berjalan adil dan fokus.',
-      'Seluruh berkas pendaftaran dapat diunggah melalui portal resmi, dan status verifikasi serta akses grup peserta akan diperbarui langsung melalui Dashboard Peserta.',
-    ],
-  },
-  {
-    id: 'news-2',
-    slug: 'jadwal-seleksi-hingga-main-event-2027',
-    category: 'Technical Meeting',
-    title: 'Catat Tanggal Penting: Penjurian Februari, Final 21 Maret & Main Event 22 Maret 2027',
-    date: '20 Januari 2027',
-    readTime: '4 mnt baca',
-    image: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80',
-    excerpt:
-      'Simak linimasa resmi mulai dari evaluasi karya (1–19 Feb 2027), pengumuman finalis (20 Feb 2027), babak final (21 Mar 2027), hingga Acara Puncak pada 22 Maret 2027.',
-    content: [
-      'Setelah pendaftaran ditutup pada 30 Januari 2027, seluruh karya Esai Nasional dan Mini Case Competition akan memasuki tahap Judging & Evaluation pada 1–19 Februari 2027.',
-      'Pengumuman finalis dijadwalkan pada 20 Februari 2027, diikuti Technical Meeting khusus finalis sebelum melaju ke Competition Final pada 21 Maret 2027 di Malang.',
-      'Rangkaian kegiatan akan ditutup dengan Digiconomic Fest Main Event pada 22 Maret 2027 yang menghadirkan Seminar bersama Bank Indonesia dan praktisi UMKM, Pameran UMKM binaan BI, serta Awarding Night.',
-    ],
-  },
-  {
-    id: 'news-3',
-    slug: 'tips-lolos-seleksi-esai-dan-mini-case',
-    category: 'Kompetisi',
-    title: '5 Hal yang Paling Dinilai Juri di Esai Nasional & Mini Case Competition',
-    date: '25 Januari 2027',
-    readTime: '5 mnt baca',
-    image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop&q=80',
-    excerpt:
-      'Ketajaman riset masalah UMKM di emerging market, kelayakan implementasi, serta orisinalitas gagasan menjadi indikator utama dewan juri.',
-    content: [
-      'Baik pada Esai Nasional maupun Mini Case Competition, karya yang menonjol selalu berangkat dari tantangan nyata pelaku UMKM lokal di tengah dinamika emerging market.',
-      'Lima aspek utama yang diperhatikan juri meliputi kesesuaian tema, kekuatan data pendukung, orisinalitas solusi digital/bisnis, kelayakan penerapan, serta kerapian sistematika penulisan sesuai Juklak & Juknis.',
-      'Pastikan format PDF dan batas halaman sudah sesuai panduan resmi sebelum mengunggah karya melalui Dashboard Peserta.',
-    ],
-  },
-  {
-    id: 'news-4',
-    slug: 'pameran-umkm-binaan-bank-indonesia-malang',
-    category: 'UMKM & Edukasi',
-    title: 'Pameran UMKM Binaan Bank Indonesia Hadir di Acara Puncak Digiconomic Fest 2027',
-    date: '15 Februari 2027',
-    readTime: '4 mnt baca',
-    image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&auto=format&fit=crop&q=80',
-    excerpt:
-      'Selain seminar nasional bertarget 375+ peserta, Main Event 22 Maret 2027 juga menampilkan pameran produk unggulan UMKM binaan Bank Indonesia.',
-    content: [
-      'Acara puncak Digiconomic Fest 2027 pada 22 Maret 2027 tidak hanya menjadi panggung apresiasi para finalis kompetisi, tetapi juga ruang temu langsung antara mahasiswa, praktisi, dan pelaku UMKM binaan Bank Indonesia.',
-      'Melalui sesi seminar, diskusi interaktif, dan Pameran UMKM binaan BI, pengunjung dapat melihat langsung bagaimana digitalisasi pembayaran dan inovasi bisnis membantu UMKM lokal naik kelas dan berdaya saing global.',
-    ],
-  },
-];
-
 const CATEGORIES: Array<'Semua' | NewsArticle['category']> = [
   'Semua',
   'Pengumuman',
@@ -104,20 +37,62 @@ const CATEGORIES: Array<'Semua' | NewsArticle['category']> = [
   'UMKM & Edukasi',
 ];
 
+function toWebpCover(url?: string | null): string {
+  if (!url) return '/gambar/hero-view-dekstop.webp';
+  if (url.includes('images.unsplash.com') && !url.includes('fm=webp')) {
+    const sep = url.includes('?') ? '&' : '?';
+    return `${url}${sep}fm=webp&w=800&q=75`;
+  }
+  return url;
+}
+
 export const NewsPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<'Semua' | NewsArticle['category']>('Semua');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeArticle, setActiveArticle] = useState<NewsArticle | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [articles, setArticles] = useState<NewsArticle[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    PublicApi.getNews(false)
+      .then((res) => {
+        const mapped: NewsArticle[] = (res.articles || []).map((a) => ({
+          id: a.id,
+          slug: a.slug,
+          category: a.category,
+          title: a.title,
+          date: a.published_at
+            ? new Date(a.published_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+            : new Date(a.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+          readTime: `${Math.max(1, Math.ceil((a.content || '').split(/\s+/).length / 180))} mnt baca`,
+          excerpt: a.excerpt || '',
+          image: toWebpCover(a.cover_image_url),
+          featured: a.is_featured,
+          content: (a.content || '').split(/\n+/).filter(Boolean),
+        }));
+        setArticles(mapped);
+        const slugHash = window.location.hash.replace(/^#/, '').trim();
+        if (slugHash) {
+          const matched = mapped.find((item) => item.slug === slugHash);
+          if (matched) setActiveArticle(matched);
+        }
+      })
+      .catch(() => {
+        setArticles([]);
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   const featuredArticle = useMemo(
-    () => NEWS_ARTICLES.find((a) => a.featured) || NEWS_ARTICLES[0],
-    []
+    () => articles.find((a) => a.featured) || articles[0],
+    [articles]
   );
 
   const filteredArticles = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    return NEWS_ARTICLES.filter((article) => {
+    return articles.filter((article) => {
       const matchCat = selectedCategory === 'Semua' || article.category === selectedCategory;
       const matchSearch =
         !q ||
@@ -126,7 +101,7 @@ export const NewsPage: React.FC = () => {
         article.category.toLowerCase().includes(q);
       return matchCat && matchSearch;
     });
-  }, [selectedCategory, searchQuery]);
+  }, [articles, selectedCategory, searchQuery]);
 
   const handleCopyShare = (article: NewsArticle) => {
     const url = `${window.location.origin}/news#${article.slug}`;
@@ -136,12 +111,10 @@ export const NewsPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full overflow-x-hidden">
+    <div className="w-full overflow-x-clip">
       {/* ── HERO HEADER ── */}
       <section className="relative pt-28 sm:pt-36 pb-14 sm:pb-20 px-4 sm:px-8 lg:px-16 bg-gradient-to-b from-[#2f1d10] via-[#26160c] to-[#1e1108] text-[#faf4e8] overflow-hidden">
         <BatikKawungPattern color="#caa152" opacity={0.07} id="kawung-news-hero" />
-        <MegaMendungClouds color="#caa152" className="absolute top-12 -right-14 w-64 sm:w-80 opacity-45" />
-        <MegaMendungClouds color="#caa152" flip className="absolute bottom-6 -left-14 w-64 sm:w-80 opacity-40" />
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#3f2818] border border-[#caa152]/50 text-[#f3d48c] font-cinzel text-[10px] sm:text-xs tracking-[0.22em] uppercase font-semibold mb-4">
@@ -167,7 +140,7 @@ export const NewsPage: React.FC = () => {
 
         <div className="max-w-6xl mx-auto relative z-10 space-y-8 sm:space-y-12">
           {/* FEATURED ARTICLE */}
-          {selectedCategory === 'Semua' && !searchQuery.trim() && (
+          {featuredArticle && selectedCategory === 'Semua' && !searchQuery.trim() && (
             <article
               onClick={() => setActiveArticle(featuredArticle)}
               className="card-modern-hover cursor-pointer grid grid-cols-1 lg:grid-cols-12 rounded-2xl sm:rounded-3xl overflow-hidden bg-[#fffdf9] border border-[#ebdcc8] shadow-sm"
@@ -176,6 +149,8 @@ export const NewsPage: React.FC = () => {
                 <img
                   src={featuredArticle.image}
                   alt={featuredArticle.title}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                 />
                 <span className="absolute top-4 left-4 px-3 py-1 rounded-full bg-[#2f1d10]/90 text-[#f3d48c] border border-[#caa152]/60 font-cinzel text-[10px] tracking-[0.18em] uppercase font-semibold">
@@ -253,7 +228,11 @@ export const NewsPage: React.FC = () => {
           </div>
 
           {/* NEWS GRID */}
-          {filteredArticles.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-12 px-4 rounded-2xl bg-[#fffdf9]/80 border border-[#ebdcc8]">
+              <p className="font-cormorant text-xl text-[#2a170b]">Memuat berita terbaru...</p>
+            </div>
+          ) : filteredArticles.length === 0 ? (
             <div className="text-center py-12 px-4 rounded-2xl bg-[#fffdf9]/80 border border-[#ebdcc8]">
               <p className="font-cormorant text-xl text-[#2a170b]">Belum ada berita yang cocok</p>
               <p className="font-sans text-xs text-[#6e4e32] mt-1">
@@ -273,6 +252,8 @@ export const NewsPage: React.FC = () => {
                       <img
                         src={article.image}
                         alt={article.title}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                       />
                       <span className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-[#fffdf9]/95 text-[#7a5530] border border-[#ebdcc8] font-cinzel text-[9px] tracking-[0.14em] uppercase font-semibold">

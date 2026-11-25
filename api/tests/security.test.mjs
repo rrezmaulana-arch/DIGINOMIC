@@ -9,6 +9,8 @@ import { createApp } from '../src/app.mjs';
 import { seedDatabase } from '../db/seed.mjs';
 import { readPrivateFile } from '../src/utils/fileSecurity.mjs';
 import { escapeCsvCell } from '../src/utils/csv.mjs';
+import { upsertGoogleUser } from '../src/services/googleAuth.mjs';
+import { getClientIp } from '../src/middleware/security.mjs';
 
 const VALID_PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d]);
 
@@ -42,7 +44,10 @@ async function startSecServer(overrides = {}) {
   });
   const repo = createMemoryRepo();
   const seeded = await seedDatabase(repo);
-  const { server, rateLimiter } = createApp({ repo, config });
+  const { server, rateLimiter } = createApp({ repo, config, verifyGoogleToken: async (credential) => {
+    const profile = JSON.parse(credential);
+    return { googleId: profile.email, email: profile.email, name: profile.name || 'Peserta Uji', avatarUrl: null };
+  } });
 
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   const { port } = server.address();
@@ -99,9 +104,9 @@ test('Security & Penetration Test Suite — Digiconomic Fest 2027', async (t) =>
 
   ctx.rateLimiter.reset();
 
-  await t.test('S1. Security Headers & Cookie HttpOnly + Secure + SameSite=Lax', async () => {
+  await t.test('S1. Security Headers & Cookie HttpOnly + Secure + SameSite=None', async () => {
     assert.ok(superSetCookie.includes('HttpOnly'));
-    assert.ok(superSetCookie.includes('SameSite=Lax'));
+    assert.ok(superSetCookie.includes('SameSite=None'));
     assert.ok(superSetCookie.includes('Secure'));
 
     const res = await fetch(`${ctx.baseUrl}/api/competitions`);
@@ -117,26 +122,26 @@ test('Security & Penetration Test Suite — Digiconomic Fest 2027', async (t) =>
     assert.equal(ctx.repo._db.sessions.size >= 2, true);
   });
 
-  await t.test('S2. Anti Mass-Assignment: role pada register selalu dipaksa PESERTA', async () => {
+  await t.test('S2. Anti Mass-Assignment: role pada login Google selalu dipaksa PESERTA', async () => {
     ctx.rateLimiter.reset();
-    const res = await ctx.req('POST', '/api/auth/register', {
-      body: {
+    const res = await ctx.req('POST', '/api/auth/google', {
+      body: { credential: JSON.stringify({
         email: 'hacker@evil.test',
         password: 'Password123',
         name: 'Calon Hacker',
         role: 'SUPERADMIN', // mencoba eskalasi peran
         privacy_accepted: true,
-      },
+      }) },
     });
-    assert.equal(res.status, 201);
+    assert.equal(res.status, 200);
     assert.equal(res.data.user.role, 'PESERTA');
     assert.equal(res.data.user.password_hash, undefined); // password_hash tidak boleh bocor
   });
 
   await t.test('S3. RBAC Enforcement: Guest (401), Peserta->Admin (403), Admin->SuperAdmin (403), Admin daftar lomba (403)', async () => {
     ctx.rateLimiter.reset();
-    const pLogin = await ctx.req('POST', '/api/auth/login', {
-      body: { email: 'hacker@evil.test', password: 'Password123' },
+    const pLogin = await ctx.req('POST', '/api/auth/google', {
+      body: { credential: JSON.stringify({ email: 'hacker@evil.test' }) },
     });
     const pesertaCookie = pLogin.cookie;
 
@@ -178,8 +183,8 @@ test('Security & Penetration Test Suite — Digiconomic Fest 2027', async (t) =>
 
   await t.test('S5. Magic Bytes & Upload Security: tolak file palsu (415) & file > 2 MB (413)', async () => {
     ctx.rateLimiter.reset();
-    const pLogin = await ctx.req('POST', '/api/auth/login', {
-      body: { email: 'hacker@evil.test', password: 'Password123' },
+    const pLogin = await ctx.req('POST', '/api/auth/google', {
+      body: { credential: JSON.stringify({ email: 'hacker@evil.test' }) },
     });
     const pesertaCookie = pLogin.cookie;
 
@@ -222,10 +227,7 @@ test('Security & Penetration Test Suite — Digiconomic Fest 2027', async (t) =>
     });
     assert.equal(xssAnn.status, 422);
 
-    const xssReg = await ctx.req('POST', '/api/auth/register', {
-      body: { email: 'xss@test.id', password: 'Password123', name: '<img src=x onerror=alert(1)>', privacy_accepted: true },
-    });
-    assert.equal(xssReg.status, 422);
+
   });
 
   await t.test('S8. CSV Formula Injection Protection (=, +, -, @)', () => {
@@ -237,8 +239,8 @@ test('Security & Penetration Test Suite — Digiconomic Fest 2027', async (t) =>
 
   await t.test('S9. Concurrency Race Condition BR-01: 2 pendaftaran bersamaan -> hanya 1 berhasil (201), lainnya 409', async () => {
     ctx.rateLimiter.reset();
-    const regUser = await ctx.req('POST', '/api/auth/register', {
-      body: { email: 'race@kampus.ac.id', password: 'Password123', name: 'Peserta Race', privacy_accepted: true },
+    const regUser = await ctx.req('POST', '/api/auth/google', {
+      body: { credential: JSON.stringify({ email: 'race@kampus.ac.id', password: 'Password123', name: 'Peserta Race', privacy_accepted: true }) },
     });
     const raceCookie = regUser.cookie;
 
@@ -306,8 +308,8 @@ test('Security & Penetration Test Suite — Digiconomic Fest 2027', async (t) =>
     assert.equal((await ctx.req('GET', '/api/admin/summary', { cookie: reloginAdm.cookie })).status, 401);
 
     // Logout mematikan cookie lama
-    const tmpReg = await ctx.req('POST', '/api/auth/register', {
-      body: { email: 'logout@test.id', password: 'Password123', name: 'Logout User', privacy_accepted: true },
+    const tmpReg = await ctx.req('POST', '/api/auth/google', {
+      body: { credential: JSON.stringify({ email: 'logout@test.id', password: 'Password123', name: 'Logout User', privacy_accepted: true }) },
     });
     assert.equal((await ctx.req('GET', '/api/auth/me', { cookie: tmpReg.cookie })).status, 200);
     await ctx.req('POST', '/api/auth/logout', { cookie: tmpReg.cookie });
@@ -340,4 +342,296 @@ test('Security & Penetration Test Suite — Digiconomic Fest 2027', async (t) =>
     assert.equal(got429, true);
     assert.ok(Number(retryAfter) >= 1);
   });
+
+  await t.test('S12. Google Login (upsertGoogleUser) tidak mengubah google_id/avatar/last_login_at bila role != PESERTA atau SUSPENDED', async () => {
+    const createMockPool = (userRow) => {
+      const queries = [];
+      return {
+        queries,
+        async query(sql, params) {
+          queries.push({ sql, params });
+          if (sql.startsWith('SELECT')) return { rows: [userRow] };
+          return { rows: [] };
+        },
+      };
+    };
+
+    const adminPool = createMockPool({
+      id: 'u-admin-1',
+      email: 'panitia@diginomic.id',
+      role: 'ADMIN',
+      status: 'ACTIVE',
+      google_id: null,
+      avatar_url: null,
+      last_login_at: '2026-01-01T00:00:00.000Z',
+    });
+    await assert.rejects(
+      () => upsertGoogleUser(adminPool, { googleId: 'g-999', email: 'panitia@diginomic.id', name: 'Panitia', avatarUrl: 'https://img/a.png' }),
+      (err) => err.status === 403 && err.code === 'GOOGLE_PESERTA_ONLY'
+    );
+    assert.equal(adminPool.queries.some((q) => q.sql.startsWith('UPDATE')), false);
+
+    const suspendedPool = createMockPool({
+      id: 'u-peserta-susp',
+      email: 'susp@diginomic.id',
+      role: 'PESERTA',
+      status: 'SUSPENDED',
+      google_id: 'g-old',
+      avatar_url: 'https://img/old.png',
+      last_login_at: '2026-01-01T00:00:00.000Z',
+    });
+    await assert.rejects(
+      () => upsertGoogleUser(suspendedPool, { googleId: 'g-new', email: 'susp@diginomic.id', name: 'Susp', avatarUrl: 'https://img/new.png' }),
+      (err) => err.status === 403 && err.code === 'ACCOUNT_SUSPENDED'
+    );
+    assert.equal(suspendedPool.queries.some((q) => q.sql.startsWith('UPDATE')), false);
+  });
+
+  await t.test('S13. getClientIp mengabaikan spoofing X-Forwarded-For indeks pertama & cf-connecting-ip tanpa TRUST_CLOUDFLARE', async () => {
+    const req = {
+      headers: {
+        'cf-connecting-ip': '1.1.1.1',
+        'x-forwarded-for': '9.9.9.9, 203.0.113.42',
+      },
+      socket: { remoteAddress: '127.0.0.1' },
+    };
+    assert.equal(getClientIp(req, { trustProxy: true, trustCloudflare: false }), '203.0.113.42');
+    assert.equal(getClientIp(req, { trustProxy: true, trustCloudflare: true }), '1.1.1.1');
+  });
+  await t.test('S14. Peserta OAuth (daftar pertama vs login berikutnya), blokir semua jalur password peserta, login staf manual, & tolak benturan email staf', async () => {
+    ctx.rateLimiter.reset();
+    // 1. Pendaftaran pertama via Google: buat akun PESERTA (abaikan role klien) & tandai is_new_user=true, profile_complete=false
+    const oauth = await ctx.req('POST', '/api/auth/google', {
+      body: { credential: JSON.stringify({ email: 'oauth@kampus.ac.id', name: 'Peserta Google' }), role: 'SUPERADMIN' },
+    });
+    assert.equal(oauth.status, 200);
+    assert.equal(oauth.data.user.role, 'PESERTA');
+    assert.equal(oauth.data.is_new_user, true);
+    assert.equal(oauth.data.profile_complete, false);
+    const participant = await ctx.repo.findUserByEmail('oauth@kampus.ac.id');
+    assert.equal(participant.password_hash, null);
+
+    // Lengkapi profil & KTM lalu login Google berikutnya -> is_new_user=false, profile_complete=true, user.id tetap sama
+    await ctx.req('PUT', '/api/profile', {
+      cookie: oauth.cookie,
+      body: { full_name: 'Peserta Google', institution: 'Universitas Airlangga', phone_wa: '081234560001' },
+    });
+    const ktmMp = buildMultipart('file', 'ktm.png', VALID_PNG);
+    await ctx.req('POST', '/api/profile/student-card', {
+      cookie: oauth.cookie,
+      body: ktmMp.body,
+      headers: { 'Content-Type': ktmMp.contentType },
+    });
+
+    const again = await ctx.req('POST', '/api/auth/google', {
+      body: { credential: JSON.stringify({ email: participant.email, name: participant.name }), role: 'ADMIN' },
+    });
+    assert.equal(again.status, 200);
+    assert.equal(again.data.user.id, participant.id);
+    assert.equal(again.data.user.role, 'PESERTA');
+    assert.equal(again.data.is_new_user, false);
+    assert.equal(again.data.profile_complete, true);
+
+    // 2. Endpoint registrasi password ditutup (410)
+    const closed = await ctx.req('POST', '/api/auth/register', {
+      body: { email: 'closed@kampus.ac.id', name: 'Closed', password: 'Password123', privacy_accepted: true },
+    });
+    assert.equal(closed.status, 410);
+    assert.equal(await ctx.repo.findUserByEmail('closed@kampus.ac.id'), null);
+
+    // 3. Tolak seluruh jalur password untuk akun PESERTA (login, ubah password, lupa password, reset password)
+    const passwordLogin = await ctx.req('POST', '/api/auth/login', {
+      body: { email: participant.email, password: 'Password123' },
+    });
+    assert.equal(passwordLogin.status, 403);
+    ctx.rateLimiter.reset();
+    assert.equal((await ctx.req('PATCH', '/api/auth/password', {
+      cookie: oauth.cookie, body: { current_password: '', new_password: 'Password123' },
+    })).status, 403);
+    const outboxBefore = ctx.repo._db.email_outbox.length;
+    assert.equal((await ctx.req('POST', '/api/auth/forgot-password', {
+      body: { email: participant.email },
+    })).status, 200);
+    assert.equal(ctx.repo._db.email_outbox.length, outboxBefore);
+    assert.equal((await ctx.repo.findUserByEmail(participant.email)).reset_token_hash, null);
+
+    const { hashToken } = await import('../src/utils/crypto.mjs');
+    await ctx.repo.updateUser(participant.id, {
+      reset_token_hash: hashToken('old-participant-token'),
+      reset_token_expires_at: new Date(Date.now() + 60000).toISOString(),
+    });
+    assert.equal((await ctx.req('POST', '/api/auth/reset-password', {
+      body: { token: 'old-participant-token', new_password: 'Password123' },
+    })).status, 400);
+
+    // 4. Tolak benturan email saat membuat staf dengan pesan persis "Email sudah digunakan" tanpa mengubah peran/sesi peserta
+    const conflictPeserta = await ctx.req('POST', '/api/superadmin/admins', {
+      cookie: superCookie,
+      body: { email: participant.email, name: 'Staf Bentrok', password: 'StaffPassword123', role: 'JURI' },
+    });
+    assert.equal(conflictPeserta.status, 409);
+    assert.equal(conflictPeserta.data.error.message, 'Email sudah digunakan');
+    assert.equal((await ctx.repo.findUserByEmail(participant.email)).role, 'PESERTA');
+    assert.equal((await ctx.req('GET', '/api/auth/me', { cookie: again.cookie })).status, 200);
+
+    // 5. Buat staf baru manual oleh SuperAdmin, tolak benturan email antar-staf, verifikasi login manual staf & tolak Google login staf
+    ctx.rateLimiter.reset();
+    const createStaffOk = await ctx.req('POST', '/api/superadmin/admins', {
+      cookie: superCookie,
+      body: { email: 'staf.resmi@diginomic.id', name: 'Staf Resmi', password: 'StaffPassword123', role: 'ADMIN' },
+    });
+    assert.equal(createStaffOk.status, 201);
+
+    const conflictStaff = await ctx.req('POST', '/api/superadmin/admins', {
+      cookie: superCookie,
+      body: { email: 'staf.resmi@diginomic.id', name: 'Duplikat Staf', password: 'OtherPassword123', role: 'SUPERADMIN' },
+    });
+    assert.equal(conflictStaff.status, 409);
+    assert.equal(conflictStaff.data.error.message, 'Email sudah digunakan');
+    assert.equal((await ctx.repo.findUserByEmail('staf.resmi@diginomic.id')).role, 'ADMIN');
+
+    const staffManualLogin = await ctx.req('POST', '/api/auth/login', {
+      body: { email: 'staf.resmi@diginomic.id', password: 'StaffPassword123' },
+    });
+    assert.equal(staffManualLogin.status, 200);
+    assert.equal(staffManualLogin.data.user.role, 'ADMIN');
+
+    const staffGoogle = await ctx.req('POST', '/api/auth/google', {
+      body: { credential: JSON.stringify({ email: 'superadmin@diginomic.id' }) },
+    });
+    assert.equal(staffGoogle.status, 403);
+    const adminGoogle = await ctx.req('POST', '/api/auth/google', {
+      body: { credential: JSON.stringify({ email: 'staf.resmi@diginomic.id' }) },
+    });
+    assert.equal(adminGoogle.status, 403);
+  });
+
+  await t.test('S15. Isolasi akses JURI lintas lomba, penolakan JURI tanpa penugasan, & penutupan proksi Drive bebas', async () => {
+    ctx.rateLimiter.reset();
+    const esaiComp = ctx.seeded.competitions.find((c) => c.slug === 'esai-nasional');
+    const caseComp = ctx.seeded.competitions.find((c) => c.slug === 'mini-case-competition');
+
+    // Buat karya di lomba Esai Nasional
+    const pLogin = await ctx.req('POST', '/api/auth/google', {
+      body: { credential: JSON.stringify({ email: 'karya.esai@kampus.ac.id', name: 'Penulis Esai' }) },
+    });
+    const pCookie = pLogin.cookie;
+    await ctx.req('PUT', '/api/profile', {
+      cookie: pCookie,
+      body: { full_name: 'Penulis Esai', institution: 'UB', phone_wa: '081277776666' },
+    });
+    const mp = buildMultipart('file', 'ktm.png', VALID_PNG);
+    await ctx.req('POST', '/api/profile/student-card', {
+      cookie: pCookie,
+      body: mp.body,
+      headers: { 'Content-Type': mp.contentType },
+    });
+    const regEsai = await ctx.req('POST', '/api/registrations', {
+      cookie: pCookie,
+      body: { competition_slug: 'esai-nasional' },
+    });
+    await ctx.req('PATCH', `/api/admin/registrations/${regEsai.data.registration.id}/status`, {
+      cookie: superCookie,
+      body: { status: 'TERVERIFIKASI' },
+    });
+    const subEsai = await ctx.req('POST', '/api/registrations/me/submissions', {
+      cookie: pCookie,
+      body: { title: 'Esai Rahasia', link_url: 'https://example.com/esai.pdf' },
+    });
+    const esaiSubId = subEsai.data.submission.id;
+
+    // 1. Juri tanpa assigned_competition_id ditolak 403
+    await ctx.req('POST', '/api/superadmin/admins', {
+      cookie: superCookie,
+      body: { email: 'juri.kosong@diginomic.id', name: 'Juri Kosong', role: 'JURI', password: 'JuriPassword123' },
+    });
+    const juriKosongLogin = await ctx.req('POST', '/api/auth/login', {
+      body: { email: 'juri.kosong@diginomic.id', password: 'JuriPassword123' },
+    });
+    assert.equal((await ctx.req('GET', '/api/admin/submissions', { cookie: juriKosongLogin.cookie })).status, 403);
+    assert.equal((await ctx.req('GET', '/api/admin/leaderboard', { cookie: juriKosongLogin.cookie })).status, 403);
+    assert.equal((await ctx.req('GET', `/api/admin/submissions/${esaiSubId}/scores`, { cookie: juriKosongLogin.cookie })).status, 403);
+
+    // 2. Juri yang ditugaskan ke Mini Case ditolak mengakses karya Esai Nasional
+    ctx.rateLimiter.reset();
+    await ctx.req('POST', '/api/superadmin/admins', {
+      cookie: superCookie,
+      body: {
+        email: 'juri.case@diginomic.id',
+        name: 'Juri Mini Case',
+        role: 'JURI',
+        assigned_competition_id: caseComp.id,
+        password: 'JuriPassword123',
+      },
+    });
+    const juriCaseLogin = await ctx.req('POST', '/api/auth/login', {
+      body: { email: 'juri.case@diginomic.id', password: 'JuriPassword123' },
+    });
+    assert.equal((await ctx.req('GET', `/api/admin/submissions/${esaiSubId}/scores`, { cookie: juriCaseLogin.cookie })).status, 403);
+    assert.equal((await ctx.req('GET', `/api/admin/submissions/${esaiSubId}/file`, { cookie: juriCaseLogin.cookie })).status, 403);
+    assert.equal(
+      (
+        await ctx.req('POST', '/api/admin/scores', {
+          cookie: juriCaseLogin.cookie,
+          body: {
+            submission_id: esaiSubId,
+            score_orisinalitas: 85,
+            score_analisis: 85,
+            score_inovasi: 85,
+            score_sistematika: 85,
+          },
+        })
+      ).status,
+      403
+    );
+
+    // 3. Juri Esai diizinkan membaca daftar lomba miliknya & menilai karya Esai
+    ctx.rateLimiter.reset();
+    await ctx.req('POST', '/api/superadmin/admins', {
+      cookie: superCookie,
+      body: {
+        email: 'juri.esai@diginomic.id',
+        name: 'Juri Esai',
+        role: 'JURI',
+        assigned_competition_id: esaiComp.id,
+        password: 'JuriPassword123',
+      },
+    });
+    const juriEsaiLogin = await ctx.req('POST', '/api/auth/login', {
+      body: { email: 'juri.esai@diginomic.id', password: 'JuriPassword123' },
+    });
+    const juriComps = await ctx.req('GET', '/api/admin/competitions', { cookie: juriEsaiLogin.cookie });
+    assert.equal(juriComps.status, 200);
+    assert.equal(juriComps.data.competitions.length, 1);
+    assert.equal(juriComps.data.competitions[0].id, esaiComp.id);
+
+    // 4. Proksi bebas /api/admin/files/:id sudah ditutup (404)
+    assert.equal((await ctx.req('GET', '/api/admin/files/arbitrary-drive-id-123', { cookie: superCookie })).status, 404);
+  });
+
+});
+
+
+test('Verifikasi Google wajib Client ID, audience cocok, dan email terverifikasi', async () => {
+  const { verifyGoogleIdToken } = await import('../src/services/googleAuth.mjs');
+  const originalFetch = globalThis.fetch;
+  let payload = { sub: 'google-123', email: 'user@gmail.com', email_verified: true, aud: 'expected-client' };
+  let calls = 0;
+  globalThis.fetch = async () => {
+    calls++;
+    return { ok: true, json: async () => payload };
+  };
+  try {
+    await assert.rejects(() => verifyGoogleIdToken('token', ''), (err) => err.status === 503);
+    assert.equal(calls, 0);
+    await assert.rejects(() => verifyGoogleIdToken('token', 'wrong-client'), /audience/);
+    payload = { ...payload, email_verified: false };
+    await assert.rejects(() => verifyGoogleIdToken('token', 'expected-client'), /belum diverifikasi/);
+    payload = { ...payload, email_verified: true };
+    const profile = await verifyGoogleIdToken('token', 'expected-client');
+    assert.equal(profile.googleId, 'google-123');
+    assert.equal(profile.email, 'user@gmail.com');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });

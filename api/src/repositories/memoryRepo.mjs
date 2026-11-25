@@ -47,7 +47,19 @@ export function createMemoryRepo() {
       return clone(db.users.get(id) || null);
     },
 
-    async createUser({ email, password_hash, name, role = 'PESERTA', status = 'ACTIVE', division = null, privacy_accepted_at = null }) {
+    async createUser({
+      email,
+      password_hash = null,
+      name,
+      role = 'PESERTA',
+      status = 'ACTIVE',
+      division = null,
+      assigned_competition_id = null,
+      nim = null,
+      google_id = null,
+      avatar_url = null,
+      privacy_accepted_at = null,
+    }) {
       const cleanEmail = email.toLowerCase();
       for (const u of db.users.values()) {
         if (u.email === cleanEmail) {
@@ -65,6 +77,10 @@ export function createMemoryRepo() {
         role,
         status,
         division,
+        assigned_competition_id,
+        nim,
+        google_id,
+        avatar_url,
         privacy_accepted_at,
         reset_token_hash: null,
         reset_token_expires_at: null,
@@ -91,7 +107,7 @@ export function createMemoryRepo() {
 
     async listAdmins() {
       return [...db.users.values()]
-        .filter((u) => u.role === 'ADMIN' || u.role === 'SUPERADMIN')
+        .filter((u) => u.role === 'ADMIN' || u.role === 'SUPERADMIN' || u.role === 'JURI')
         .map((u) => clone(u));
     },
 

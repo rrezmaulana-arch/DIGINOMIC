@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FAQ_DATA } from '../data/competitions';
 import { ChevronDown, MessageSquare } from 'lucide-react';
-import { SectionDivider, BatikKawungPattern, MegaMendungClouds } from './Ornaments';
+import { SectionDivider, BatikKawungPattern } from './Ornaments';
 
 interface FAQProps {
   onOpenWhatsAppHelp: () => void;
@@ -14,14 +14,12 @@ export const FAQSection: React.FC<FAQProps> = ({ onOpenWhatsAppHelp }) => {
   return (
     <section
       id="faq"
-      className="relative w-full py-10 sm:py-16 md:py-20 px-3.5 sm:px-8 lg:px-16 overflow-hidden"
+      className="relative w-full py-10 sm:py-14 md:py-16 px-3.5 sm:px-8 lg:px-16 overflow-hidden"
       style={{
         background: 'linear-gradient(180deg, #efe3d0 0%, #eadbc4 60%, #e4d2b7 100%)',
       }}
     >
       <BatikKawungPattern color="#7a5530" opacity={0.045} id="kawung-faq" />
-      <MegaMendungClouds color="#8c6239" className="absolute top-6 -right-14 w-64 sm:w-80 opacity-50" />
-      <MegaMendungClouds color="#8c6239" flip className="absolute bottom-6 -left-14 w-64 sm:w-80 opacity-45" />
       <div className="max-w-4xl mx-auto relative z-10">
 
         {/* Section Header */}

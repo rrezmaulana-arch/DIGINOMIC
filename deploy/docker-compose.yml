@@ -29,7 +29,7 @@ services:
       PORT: "4000"
       TRUST_PROXY: "true"
       UPLOAD_DIR: /app/uploads
-      DATABASE_URL: postgresql://app:${DB_PASSWORD}@db:5432/digiconomic
+      DATABASE_URL: postgresql://${DB_APP_USER:-diginomic_app}:${DB_APP_PASSWORD}@db:5432/digiconomic
     volumes:
       - ./data/uploads:/app/uploads
     mem_limit: 450m
@@ -44,9 +44,11 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_ADMIN_USER:-pgadmin}
+      POSTGRES_PASSWORD: ${DB_ADMIN_PASSWORD:?DB_ADMIN_PASSWORD wajib diset}
       POSTGRES_DB: digiconomic
+      DB_APP_USER: ${DB_APP_USER:-diginomic_app}
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD:?DB_APP_PASSWORD wajib diset}
     command:
       - postgres
       - -c
@@ -57,8 +59,9 @@ services:
       - work_mem=4MB
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./postgres/init-least-privilege.sh:/docker-entrypoint-initdb.d/01-init-app-user.sh:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U app -d digiconomic"]
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_ADMIN_USER:-pgadmin} -d digiconomic" ]
       interval: 10s
       timeout: 5s
       retries: 5

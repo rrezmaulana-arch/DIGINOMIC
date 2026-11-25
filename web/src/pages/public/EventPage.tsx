@@ -18,8 +18,6 @@ import {
 } from 'lucide-react';
 import {
   BatikKawungPattern,
-  MegaMendungClouds,
-  CompassWatermark,
   SectionWaveTransition,
 } from '../../components/Ornaments';
 
@@ -95,13 +93,10 @@ export const EventPage: React.FC = () => {
   ];
 
   return (
-    <div className="w-full overflow-x-hidden">
+    <div className="w-full overflow-x-clip">
       {/* ── HERO HEADER (Deep Royal Espresso) ── */}
       <section className="relative pt-28 sm:pt-36 pb-16 sm:pb-24 px-4 sm:px-8 lg:px-16 bg-gradient-to-b from-[#2f1d10] via-[#26160c] to-[#1e1108] text-[#faf4e8] overflow-hidden">
         <BatikKawungPattern color="#caa152" opacity={0.07} id="kawung-event-hero" />
-        <CompassWatermark color="#caa152" className="absolute -bottom-24 -right-24 w-80 h-80 opacity-[0.06]" />
-        <MegaMendungClouds color="#caa152" className="absolute top-12 -right-14 w-64 sm:w-80 opacity-45" />
-        <MegaMendungClouds color="#caa152" flip className="absolute bottom-8 -left-14 w-64 sm:w-80 opacity-40" />
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#3f2818] border border-[#caa152]/50 text-[#f3d48c] font-cinzel text-[10px] sm:text-xs tracking-[0.22em] uppercase font-semibold mb-4">

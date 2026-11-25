@@ -22,19 +22,19 @@ export const PageTransitionOverlay: React.FC = () => {
     setTransitionKey((k) => k + 1);
     setPhase('enter');
 
-    // Gulir ke atas cepat agar mulus
+    // Gulir ke atas di balik tirai agar tidak terasa melompat
     const scrollTimer = window.setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
-    }, 50);
+      if (!window.location.hash) window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+    }, 200);
 
-    // Transisi cepat & snappy (~280ms total) agar tidak menahan pengguna
+    // Beri jeda cukup agar 8 layer selesai dirakit + kilau emas sempat menyapu
     const exitTimer = window.setTimeout(() => {
       setPhase('exit');
-    }, 180);
+    }, 680);
 
     const doneTimer = window.setTimeout(() => {
       setPhase('idle');
-    }, 280);
+    }, 1020);
 
     return () => {
       window.clearTimeout(scrollTimer);

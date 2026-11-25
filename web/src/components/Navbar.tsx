@@ -21,7 +21,7 @@ interface NavbarProps {
   onOpenAdmin: () => void;
   onLogout: () => void;
   onNavigate: (target: string) => void;
-  onSwitchRole?: (role: 'PESERTA' | 'ADMIN' | 'SUPERADMIN') => void;
+  onSwitchRole?: (role: 'PESERTA' | 'ADMIN' | 'JURI' | 'SUPERADMIN') => void;
 }
 
 interface NavLinkItem {
@@ -113,11 +113,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     <>
       <header className="fixed top-0 left-0 right-0 z-50 px-3 sm:px-6 lg:px-10 pt-3 sm:pt-4 pointer-events-none">
         <div
-          className={`pointer-events-auto max-w-6xl mx-auto flex items-center justify-between gap-2 rounded-full transition-all duration-300 ease-out px-4 sm:px-6 ${
-            isScrolled
-              ? 'bg-[#fffdf9]/88 backdrop-blur-xl border border-[#caa152]/45 shadow-[0_12px_36px_-12px_rgba(47,30,16,0.22)] py-2'
-              : 'bg-[#fffdf9]/72 backdrop-blur-md border border-[#d8be99]/50 shadow-[0_6px_24px_-10px_rgba(47,30,16,0.12)] py-2.5'
-          }`}
+          className={`pointer-events-auto max-w-6xl mx-auto flex items-center justify-between gap-2 rounded-full transition-all duration-300 ease-out px-4 sm:px-6 ${isScrolled
+            ? 'bg-[#fffdf9]/88 backdrop-blur-xl border border-[#caa152]/45 shadow-[0_12px_36px_-12px_rgba(47,30,16,0.22)] py-2'
+            : 'bg-[#fffdf9]/72 backdrop-blur-md border border-[#d8be99]/50 shadow-[0_6px_24px_-10px_rgba(47,30,16,0.12)] py-2.5'
+            }`}
         >
 
           {/* LOGO & BRAND LOCKUP */}
@@ -155,27 +154,24 @@ export const Navbar: React.FC<NavbarProps> = ({
                   >
                     <button
                       onClick={() => goTo(l.target)}
-                      className={`relative inline-flex items-center gap-1 px-4 lg:px-5 py-1.5 rounded-full font-cinzel text-[10px] lg:text-[11px] tracking-[0.18em] transition-all duration-250 ${
-                        isActive
-                          ? 'bg-[#3b2412] text-[#faf4e8] font-semibold shadow-xs'
-                          : 'text-[#5c3e28] hover:text-[#241308] hover:bg-[#fffdf9]/85 font-medium'
-                      }`}
+                      className={`relative inline-flex items-center gap-1 px-4 lg:px-5 py-1.5 rounded-full font-cinzel text-[10px] lg:text-[11px] tracking-[0.18em] transition-all duration-250 ${isActive
+                        ? 'bg-[#3b2412] text-[#faf4e8] font-semibold shadow-xs'
+                        : 'text-[#5c3e28] hover:text-[#241308] hover:bg-[#fffdf9]/85 font-medium'
+                        }`}
                     >
                       <span>{l.label}</span>
                       <ChevronDown
-                        className={`w-3 h-3 transition-transform duration-200 ${
-                          compDropdownOpen ? 'rotate-180' : ''
-                        }`}
+                        className={`w-3 h-3 transition-transform duration-200 ${compDropdownOpen ? 'rotate-180' : ''
+                          }`}
                       />
                     </button>
 
                     {/* Hover Dropdown 2 Cabang Lomba (dengan bridge pt-2 agar tidak putus saat kursor turun) */}
                     <div
-                      className={`absolute left-1/2 -translate-x-1/2 top-full pt-2.5 w-72 transition-all duration-200 origin-top ${
-                        compDropdownOpen
-                          ? 'opacity-100 scale-100 pointer-events-auto translate-y-0'
-                          : 'opacity-0 scale-95 pointer-events-none -translate-y-1'
-                      }`}
+                      className={`absolute left-1/2 -translate-x-1/2 top-full pt-2.5 w-72 transition-all duration-200 origin-top ${compDropdownOpen
+                        ? 'opacity-100 scale-100 pointer-events-auto translate-y-0'
+                        : 'opacity-0 scale-95 pointer-events-none -translate-y-1'
+                        }`}
                     >
                       <div className="rounded-2xl bg-[#fffdf9]/98 backdrop-blur-xl border border-[#caa152]/55 shadow-[0_18px_40px_-14px_rgba(47,30,16,0.28)] p-2 space-y-1">
                         <p className="px-3 pt-1 pb-1 font-cinzel text-[9px] tracking-[0.2em] uppercase text-[#8a5e38] font-semibold">
@@ -189,11 +185,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                             <button
                               key={item.target}
                               onClick={() => goTo(item.target)}
-                              className={`w-full text-left px-3 py-2.5 rounded-xl flex items-start gap-3 transition-all ${
-                                isSubActive
-                                  ? 'bg-[#f4ead9] border border-[#caa152]/50'
-                                  : 'hover:bg-[#faf4e8]'
-                              }`}
+                              className={`w-full text-left px-3 py-2.5 rounded-xl flex items-start gap-3 transition-all ${isSubActive
+                                ? 'bg-[#f4ead9] border border-[#caa152]/50'
+                                : 'hover:bg-[#faf4e8]'
+                                }`}
                             >
                               <div className="w-8 h-8 rounded-lg bg-[#2f1d10] border border-[#caa152]/50 flex items-center justify-center shrink-0 mt-0.5">
                                 <Icon className="w-4 h-4 text-[#f3d48c]" />
@@ -235,11 +230,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   key={l.id}
                   onClick={() => goTo(l.target)}
-                  className={`relative px-4 lg:px-5 py-1.5 rounded-full font-cinzel text-[10px] lg:text-[11px] tracking-[0.18em] transition-all duration-250 ${
-                    isActive
-                      ? 'bg-[#3b2412] text-[#faf4e8] font-semibold shadow-xs'
-                      : 'text-[#5c3e28] hover:text-[#241308] hover:bg-[#fffdf9]/85 font-medium'
-                  }`}
+                  className={`relative px-4 lg:px-5 py-1.5 rounded-full font-cinzel text-[10px] lg:text-[11px] tracking-[0.18em] transition-all duration-250 ${isActive
+                    ? 'bg-[#3b2412] text-[#faf4e8] font-semibold shadow-xs'
+                    : 'text-[#5c3e28] hover:text-[#241308] hover:bg-[#fffdf9]/85 font-medium'
+                    }`}
                 >
                   <span>{l.label}</span>
                 </button>
@@ -268,7 +262,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <div className="absolute right-0 mt-2 w-52 bg-[#fffdf9] border-2 border-[#caa152] rounded-2xl shadow-xl py-2 z-50 font-sans">
                     <div className="px-4 py-2 border-b border-[#ebdcc8] mb-1">
                       <p className="text-[10px] text-[#7a5530] uppercase tracking-wider font-semibold">
-                        Akun {currentUser.role === 'SUPERADMIN' ? 'Superadmin' : currentUser.role === 'ADMIN' ? 'Panitia' : 'Peserta'}
+                        Akun {currentUser.role === 'SUPERADMIN' ? 'Superadmin' : currentUser.role === 'ADMIN' ? 'Panitia' : currentUser.role === 'JURI' ? 'Dewan Juri' : 'Peserta'}
                       </p>
                       <p className="text-xs font-semibold text-[#2f1e10] truncate">{currentUser.name}</p>
                     </div>
@@ -276,35 +270,35 @@ export const Navbar: React.FC<NavbarProps> = ({
                     {currentUser.role === 'PESERTA' && (
                       <button
                         onClick={() => { setDrop(false); onOpenDashboard(); }}
-                        className="w-full text-left px-4 py-2 text-xs text-[#2f1e10] hover:bg-[#faf4e8] flex items-center gap-2 transition-colors"
+                        className="w-full text-left px-4 py-2 text-xs text-[#2f1e10] hover:bg-[#faf4e8] flex items-center gap-2 transition-colors cursor-pointer"
                       >
                         <User className="w-3.5 h-3.5 text-[#caa152]" />
                         <span>Dashboard Saya</span>
                       </button>
                     )}
 
-                    {currentUser.role === 'ADMIN' && (
+                    {(currentUser.role === 'ADMIN' || currentUser.role === 'JURI') && (
                       <button
-                        onClick={() => { setDrop(false); onOpenAdmin(); }}
-                        className="w-full text-left px-4 py-2 text-xs text-[#2f1e10] hover:bg-[#faf4e8] flex items-center gap-2 transition-colors"
+                        onClick={() => { setDrop(false); onNavigate('/admin'); }}
+                        className="w-full text-left px-4 py-2 text-xs text-[#2f1e10] hover:bg-[#faf4e8] flex items-center gap-2 transition-colors cursor-pointer"
                       >
                         <ShieldCheck className="w-3.5 h-3.5 text-[#caa152]" />
-                        <span>Panel Admin Panitia</span>
+                        <span>{currentUser.role === 'JURI' ? 'Panel Dewan Juri' : 'Panel Admin Panitia'}</span>
                       </button>
                     )}
 
                     {currentUser.role === 'SUPERADMIN' && (
                       <>
                         <button
-                          onClick={() => { setDrop(false); window.location.href = '/superadmin'; }}
-                          className="w-full text-left px-4 py-2 text-xs text-[#2f1e10] hover:bg-[#faf4e8] flex items-center gap-2 transition-colors"
+                          onClick={() => { setDrop(false); onNavigate('/superadmin'); }}
+                          className="w-full text-left px-4 py-2 text-xs text-[#2f1e10] hover:bg-[#faf4e8] flex items-center gap-2 transition-colors cursor-pointer"
                         >
                           <KeyRound className="w-3.5 h-3.5 text-[#caa152]" />
                           <span>Portal Superadmin</span>
                         </button>
                         <button
-                          onClick={() => { setDrop(false); onOpenAdmin(); }}
-                          className="w-full text-left px-4 py-2 text-xs text-[#2f1e10] hover:bg-[#faf4e8] flex items-center gap-2 transition-colors"
+                          onClick={() => { setDrop(false); onNavigate('/admin'); }}
+                          className="w-full text-left px-4 py-2 text-xs text-[#2f1e10] hover:bg-[#faf4e8] flex items-center gap-2 transition-colors cursor-pointer"
                         >
                           <ShieldCheck className="w-3.5 h-3.5 text-[#caa152]" />
                           <span>Panel Verifikasi Admin</span>
@@ -315,7 +309,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <div className="border-t border-[#ebdcc8] my-1" />
                     <button
                       onClick={() => { setDrop(false); onLogout(); }}
-                      className="w-full text-left px-4 py-2 text-xs text-[#7a5530] hover:bg-[#faf4e8] flex items-center gap-2 transition-colors"
+                      className="w-full text-left px-4 py-2 text-xs text-[#7a5530] hover:bg-[#faf4e8] flex items-center gap-2 transition-colors cursor-pointer"
                     >
                       <LogOut className="w-3.5 h-3.5 text-[#7a5530]" />
                       <span>Keluar Akun</span>
@@ -327,13 +321,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               <div className="hidden sm:flex items-center gap-2">
                 <button
                   onClick={onOpenRegister}
-                  className="px-3.5 py-1.5 rounded-full bg-[#faf4e8] hover:bg-[#f0e3cc] text-[#2f1e10] font-sans text-xs font-semibold tracking-wide border border-[#caa152] transition-all duration-200"
+                  className="px-3.5 py-1.5 rounded-full bg-[#faf4e8] hover:bg-[#f0e3cc] text-[#2f1e10] font-sans text-xs font-semibold tracking-wide border border-[#caa152] transition-all duration-200 cursor-pointer"
                 >
                   Masuk
                 </button>
                 <button
-                  onClick={() => { window.location.href = '/daftar'; }}
-                  className="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-[#ba883a] via-[#caa152] to-[#b88636] text-white font-sans text-xs font-semibold tracking-wide shadow-xs hover:shadow transition-all duration-200 active:scale-95"
+                  onClick={() => goTo('/login')}
+                  className="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-[#ba883a] via-[#caa152] to-[#b88636] text-white font-sans text-xs font-semibold tracking-wide shadow-xs hover:shadow transition-all duration-200 active:scale-95 cursor-pointer"
                 >
                   Daftar Lomba
                 </button>
@@ -386,11 +380,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <div key={l.id}>
                   <button
                     onClick={() => goTo(l.target)}
-                    className={`w-full text-left px-4 py-3 rounded-xl font-cinzel text-xs tracking-widest transition-all duration-200 flex items-center gap-3 ${
-                      activeTab === l.id
-                        ? 'bg-gradient-to-r from-[#f7ede0] to-[#faf5ec] text-[#2a170b] font-semibold border-l-2 border-[#caa152]'
-                        : 'text-[#6e4e32] font-normal hover:bg-[#faf5ec]'
-                    }`}
+                    className={`w-full text-left px-4 py-3 rounded-xl font-cinzel text-xs tracking-widest transition-all duration-200 flex items-center gap-3 ${activeTab === l.id
+                      ? 'bg-gradient-to-r from-[#f7ede0] to-[#faf5ec] text-[#2a170b] font-semibold border-l-2 border-[#caa152]'
+                      : 'text-[#6e4e32] font-normal hover:bg-[#faf5ec]'
+                      }`}
                   >
                     {activeTab === l.id && <span className="text-[#caa152] text-[8px]">✦</span>}
                     {l.label}
@@ -403,11 +396,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                         <button
                           key={sub.target}
                           onClick={() => goTo(sub.target)}
-                          className={`w-full text-left px-3 py-2 rounded-lg text-xs font-sans transition-colors flex items-center justify-between ${
-                            location.pathname === sub.target
-                              ? 'bg-[#f4ead9] text-[#2a170b] font-semibold'
-                              : 'text-[#7a5530] hover:bg-[#faf5ec]'
-                          }`}
+                          className={`w-full text-left px-3 py-2 rounded-lg text-xs font-sans transition-colors flex items-center justify-between ${location.pathname === sub.target
+                            ? 'bg-[#f4ead9] text-[#2a170b] font-semibold'
+                            : 'text-[#7a5530] hover:bg-[#faf5ec]'
+                            }`}
                         >
                           <span>{sub.title}</span>
                           <span className="text-[10px] text-[#caa152]">→</span>
@@ -428,7 +420,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   Masuk
                 </button>
                 <button
-                  onClick={() => { setMobileMenuOpen(false); window.location.href = '/daftar'; }}
+                  onClick={() => goTo('/login')}
                   className="w-full py-2.5 rounded-full bg-gradient-to-r from-[#ba883a] via-[#caa152] to-[#b88636] text-white font-cinzel text-xs font-semibold tracking-wider shadow-xs active:scale-95 transition-all"
                 >
                   Daftar Lomba

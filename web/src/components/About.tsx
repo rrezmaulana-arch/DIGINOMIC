@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
-import { CompassWatermark, BatikKawungPattern, MegaMendungClouds } from './Ornaments';
+import { BatikKawungPattern } from './Ornaments';
 
 interface AboutProps {
   onExploreComps: () => void;
@@ -14,13 +14,10 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
       id="tentang"
       className="relative w-full py-8 sm:py-14 md:py-20 px-3.5 sm:px-8 md:px-12 overflow-hidden"
       style={{
-        background: 'linear-gradient(180deg, #f3e6d3 0%, #efe1cc 50%, #ebdcc5 100%)',
+        background: 'linear-gradient(180deg, #faf4e8 0%, #f5ebd9 25%, #efe1cc 60%, #ebdcc5 100%)',
       }}
     >
-      <CompassWatermark color="#7a5530" className="absolute -top-20 -right-20 w-72 h-72 opacity-[0.06]" />
       <BatikKawungPattern color="#7a5530" opacity={0.045} id="kawung-about" />
-      <MegaMendungClouds color="#8c6239" className="absolute top-6 -right-14 w-64 sm:w-80 opacity-50" />
-      <MegaMendungClouds color="#8c6239" flip className="absolute bottom-6 -left-14 w-64 sm:w-80 opacity-45" />
       <div className="max-w-6xl mx-auto relative z-10">
 
         {/* ── TOP SECTION: APA ITU DIGICONOMIC FEST? ── */}
@@ -41,11 +38,11 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
             </div>
 
             <p className="font-sans text-[11.5px] sm:text-sm text-[#4a2e18] leading-[1.7] sm:leading-[1.85] font-normal">
-              <strong className="text-[#2a170b] font-medium">Digiconomic Fest 2027</strong> merupakan program kerja kolaboratif Divisi Pendidikan dan Divisi Kewirausahaan GenBI yang menjadi wadah edukasi, kompetisi, dan kolaborasi bagi generasi muda untuk memahami serta mengembangkan potensi UMKM di tengah dinamika <em>emerging market</em>.
+              <strong className="text-[#241308] font-semibold">Digiconomic Fest 2027</strong> merupakan program kerja kolaboratif <strong className="text-[#241308] font-semibold">GenBI (Generasi Baru Indonesia) &amp; Bank Indonesia</strong> yang menjadi wadah edukasi, <strong className="text-[#7a5530] font-semibold underline decoration-[#caa152]/60 underline-offset-4">kompetisi ekonomi digital nasional</strong>, dan kolaborasi bagi mahasiswa untuk mengembangkan potensi UMKM di tengah dinamika <em>emerging market</em>.
             </p>
 
             <p className="font-sans text-[11.5px] sm:text-sm text-[#4a2e18] leading-[1.7] sm:leading-[1.85] font-normal">
-              Melalui rangkaian kegiatan kompetisi dan seminar, Digiconomic Fest diharapkan mampu mendorong lahirnya ide, inovasi, dan kontribusi nyata dalam menciptakan UMKM lokal yang adaptif, berdaya saing global, dan berkelanjutan.
+              Melalui cabang <strong className="text-[#241308] font-semibold">Esai Nasional</strong>, <strong className="text-[#241308] font-semibold">Mini Case Competition</strong>, serta seminar nasional di <strong className="text-[#241308] font-semibold">Malang, Jawa Timur</strong>, festival ini mendorong inovasi nyata agar <strong className="text-[#7a5530] font-semibold">UMKM lokal</strong> semakin adaptif, berdaya saing global, dan berkelanjutan.
             </p>
 
             <div className="pt-1 sm:pt-2">
@@ -75,13 +72,13 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
               }`}
             >
               <div className="w-full h-28 sm:h-36 md:h-40 rounded-lg sm:rounded-xl overflow-hidden bg-[#e0ceb6]">
-                <img
+                <img loading="lazy" decoding="async"
                   src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&auto=format&fit=crop&q=80"
                   alt="Kolaborasi Mahasiswa"
                   className="w-full h-full object-cover filter sepia-[0.18]"
                 />
               </div>
-              <p className="font-edwardian text-center text-lg sm:text-xl text-[#5c3e28] mt-1.5 sm:mt-2">
+              <p className="font-sans-body text-center text-sm sm:text-base font-medium text-[#5c3e28] mt-2">
                 Kolaborasi Mahasiswa
               </p>
             </div>
@@ -97,13 +94,13 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
               }`}
             >
               <div className="w-full h-28 sm:h-36 md:h-40 rounded-lg sm:rounded-xl overflow-hidden bg-[#e0ceb6]">
-                <img
+                <img loading="lazy" decoding="async"
                   src="https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=600&auto=format&fit=crop&q=80"
                   alt="Seminar Edukatif"
                   className="w-full h-full object-cover filter sepia-[0.15]"
                 />
               </div>
-              <p className="font-edwardian text-center text-lg sm:text-xl text-[#5c3e28] mt-1.5 sm:mt-2">
+              <p className="font-sans-body text-center text-sm sm:text-base font-medium text-[#5c3e28] mt-2">
                 Seminar Bank Indonesia
               </p>
             </div>

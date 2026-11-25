@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Competition } from '../types';
 import { COMPETITIONS_DATA } from '../data/competitions';
 import { ArrowRight, BookOpen, Briefcase, FileText, Trophy } from 'lucide-react';
 import {
   BatikKawungPattern,
-  CompassWatermark,
   CornerFiligree,
-  MegaMendungClouds,
 } from './Ornaments';
 
 interface CompetitionsProps {
@@ -18,19 +17,17 @@ export const Competitions: React.FC<CompetitionsProps> = ({
   onSelectCompetition,
   onExploreDetail,
 }) => {
-  const [modal, setModal] = useState<Competition | null>(null);
+  const navigate = useNavigate();
 
   return (
     <section
       id="kompetisi"
-      className="relative w-full py-12 sm:py-16 md:py-24 px-3.5 sm:px-6 md:px-10 lg:px-12 overflow-hidden"
+      className="relative w-full pt-14 pb-12 sm:pt-20 sm:pb-16 md:pt-24 md:pb-16 px-3.5 sm:px-6 md:px-10 lg:px-12 overflow-x-clip"
       style={{
-        background: 'linear-gradient(180deg, #efe2ce 0%, #f5ead9 50%, #ebdcc5 100%)',
+        background: 'linear-gradient(180deg, #efe2ce 0%, #f5ead9 52%, #f3e6d3 100%)',
       }}
     >
       <BatikKawungPattern color="#7a5530" opacity={0.055} id="kawung-comp-outer" />
-      <MegaMendungClouds color="#8c6239" className="absolute top-6 -right-14 w-72 sm:w-96 opacity-55" />
-      <MegaMendungClouds color="#8c6239" flip className="absolute bottom-6 -left-14 w-72 sm:w-96 opacity-50" />
 
       <div className="max-w-6xl mx-auto relative z-10">
         {/* ── ROYAL PAVILION CARD (MODERNIZED) ── */}
@@ -42,7 +39,6 @@ export const Competitions: React.FC<CompetitionsProps> = ({
         >
           <BatikKawungPattern color="#caa152" opacity={0.05} id="kawung-pavilion" />
           <CornerFiligree color="#caa152" />
-          <CompassWatermark color="#caa152" className="absolute -bottom-24 -right-24 w-80 h-80 opacity-[0.07]" />
 
           {/* Header */}
           <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between mb-7 sm:mb-10 gap-4 pb-6 border-b border-[#caa152]/25">
@@ -63,11 +59,12 @@ export const Competitions: React.FC<CompetitionsProps> = ({
             </div>
 
             <button
-              onClick={() => setModal(COMPETITIONS_DATA[0])}
-              className="btn-modern-shine w-full sm:w-auto px-5 py-2.5 rounded-full bg-[#462d1a] hover:bg-[#583921] border border-[#caa152]/80 text-[#fcedb8] font-poppins text-xs font-semibold tracking-wider transition-all flex items-center justify-center gap-2 shrink-0"
+              type="button"
+              onClick={() => navigate('/juklak-juknis')}
+              className="btn-modern-shine w-full sm:w-auto px-5 py-2.5 rounded-full bg-[#462d1a] hover:bg-[#583921] border border-[#caa152]/80 text-[#fcedb8] font-poppins text-xs font-semibold tracking-wider transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer"
             >
               <BookOpen className="w-3.5 h-3.5 text-[#caa152]" />
-              <span>BUKU PANDUAN</span>
+              <span>JUKLAK &amp; JUKNIS</span>
             </button>
           </div>
 
@@ -85,10 +82,6 @@ export const Competitions: React.FC<CompetitionsProps> = ({
                   }}
                 >
                   <CornerFiligree color="#b88c52" className="w-6 h-6 opacity-45" />
-                  <CompassWatermark
-                    color="#7a5530"
-                    className="absolute -bottom-12 -right-12 w-40 h-40 opacity-[0.06] transition-transform duration-500 group-hover:rotate-12"
-                  />
 
                   <div className="relative z-10 space-y-3.5">
                     <div className="flex items-center justify-between gap-2">
@@ -147,43 +140,6 @@ export const Competitions: React.FC<CompetitionsProps> = ({
           </div>
         </div>
       </div>
-
-      {/* Guidebook Modal */}
-      {modal && (
-        <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4"
-          onClick={() => setModal(null)}
-        >
-          <div
-            className="bg-[#fffdfa] rounded-2xl sm:rounded-3xl border-2 border-[#caa152] p-6 max-w-lg w-full relative shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="font-poppins text-xl font-semibold text-[#241308] mb-2">
-              Panduan Resmi Kompetisi
-            </h3>
-            <p className="font-sans text-xs text-[#5c3e28] mb-4">
-              Silakan unduh dokumen pedoman teknis lengkap di bawah ini:
-            </p>
-            <div className="space-y-2 mb-6">
-              <a
-                href="https://diginomicfest.id/guidebook-2027.pdf"
-                target="_blank"
-                rel="noreferrer"
-                className="w-full p-3 rounded-xl bg-[#faf4e8] border border-[#ebdcc8] hover:border-[#caa152] flex items-center justify-between text-xs font-semibold text-[#2f1e10]"
-              >
-                <span>Guidebook Esai & Mini Case (PDF)</span>
-                <ArrowRight className="w-4 h-4 text-[#caa152]" />
-              </a>
-            </div>
-            <button
-              onClick={() => setModal(null)}
-              className="w-full py-2.5 rounded-full bg-[#2f1e10] text-[#f5eee2] font-poppins text-xs font-semibold"
-            >
-              TUTUP
-            </button>
-          </div>
-        </div>
-      )}
     </section>
   );
 };

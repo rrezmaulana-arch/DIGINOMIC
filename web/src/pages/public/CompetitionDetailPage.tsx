@@ -4,9 +4,7 @@ import { ArrowLeft, ArrowRight, Clock, Download, FileText, Trophy } from 'lucide
 import { COMPETITIONS_DATA } from '../../data/competitions';
 import {
   BatikKawungPattern,
-  CompassWatermark,
   CornerFiligree,
-  MegaMendungClouds,
   SectionWaveTransition,
 } from '../../components/Ornaments';
 
@@ -115,8 +113,6 @@ export const CompetitionDetailPage: React.FC = () => {
         }}
       >
         <BatikKawungPattern color="#caa152" opacity={0.07} id="kawung-detail-hero" />
-        <MegaMendungClouds color="#caa152" className="absolute -bottom-4 right-0 w-80 sm:w-[440px] opacity-60" />
-        <CompassWatermark color="#caa152" className="absolute -top-20 -left-20 w-72 h-72 opacity-[0.07]" />
 
         <div className="max-w-6xl mx-auto relative z-10">
           <Link
@@ -160,7 +156,6 @@ export const CompetitionDetailPage: React.FC = () => {
       {/* ── KONTEN DETAIL KOMPETISI ── */}
       <div className="relative py-10 sm:py-14 px-4 sm:px-8 lg:px-12 overflow-hidden">
         <BatikKawungPattern color="#7a5530" opacity={0.035} id="kawung-detail-body" />
-        <CompassWatermark color="#7a5530" className="absolute -bottom-24 -right-24 w-[420px] h-[420px] opacity-[0.07]" />
 
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 lg:gap-9 items-start">
@@ -203,11 +198,10 @@ export const CompetitionDetailPage: React.FC = () => {
                   {detail.stages.map((st) => (
                     <div
                       key={st.num}
-                      className={`card-modern-hover rounded-2xl p-4 sm:p-5 border ${
-                        st.highlight
-                          ? 'bg-[#3b2412] border-[#caa152]/80 text-[#faf4e8] shadow-md'
-                          : 'bg-[#fffdf9]/95 border-[#d9c5a7] text-[#2f1e10]'
-                      }`}
+                      className={`card-modern-hover rounded-2xl p-4 sm:p-5 border ${st.highlight
+                        ? 'bg-[#3b2412] border-[#caa152]/80 text-[#faf4e8] shadow-md'
+                        : 'bg-[#fffdf9]/95 border-[#d9c5a7] text-[#2f1e10]'
+                        }`}
                     >
                       <p className={`font-sans text-[11px] mb-1.5 ${st.highlight ? 'text-[#e3c47f]' : 'text-[#8c643b]'}`}>
                         {st.num} · {st.tag}
@@ -226,7 +220,6 @@ export const CompetitionDetailPage: React.FC = () => {
               {/* 2-Column Rules Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
                 <div className="card-modern-hover relative rounded-2xl bg-[#f5ebda]/90 border border-[#d9c5a7] p-5 sm:p-6 overflow-hidden">
-                  <CompassWatermark color="#7a5530" className="absolute -bottom-10 -right-10 w-36 h-36 opacity-[0.07]" />
                   <h3 className="font-poppins text-base sm:text-lg font-semibold text-[#2f1e10] font-medium mb-3 relative z-10">
                     {detail.leftRulesTitle}
                   </h3>
@@ -238,7 +231,6 @@ export const CompetitionDetailPage: React.FC = () => {
                 </div>
 
                 <div className="card-modern-hover relative rounded-2xl bg-[#f5ebda]/90 border border-[#d9c5a7] p-5 sm:p-6 overflow-hidden">
-                  <CompassWatermark color="#7a5530" className="absolute -bottom-10 -right-10 w-36 h-36 opacity-[0.07]" />
                   <h3 className="font-poppins text-base sm:text-lg font-semibold text-[#2f1e10] font-medium mb-3 relative z-10">
                     {detail.rightRulesTitle}
                   </h3>
@@ -269,15 +261,13 @@ export const CompetitionDetailPage: React.FC = () => {
                     <p className="font-sans text-xs text-[#5c3e28] mt-0.5">{detail.guidebookSubtitle}</p>
                   </div>
                 </div>
-                <a
-                  href="https://diginomicfest.id/guidebook-2027.pdf"
-                  target="_blank"
-                  rel="noreferrer"
+                <Link
+                  to="/juklak-juknis"
                   className="btn-modern-shine inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-[#3b2412] hover:bg-[#241308] text-[#faf4e8] font-sans text-xs font-semibold transition-all shrink-0"
                 >
                   <Clock className="w-3.5 h-3.5 text-[#caa152]" />
-                  <span>Unduh Guidebook</span>
-                </a>
+                  <span>Buka Juklak &amp; Juknis</span>
+                </Link>
               </div>
             </div>
 
@@ -287,7 +277,6 @@ export const CompetitionDetailPage: React.FC = () => {
                 className="relative rounded-3xl border-2 border-[#caa152]/80 p-6 sm:p-7 shadow-[0_14px_34px_rgba(47,30,16,0.09)] overflow-hidden"
                 style={{ background: 'linear-gradient(180deg, #fffdf9 0%, #f5ebda 100%)' }}
               >
-                <CompassWatermark color="#7a5530" className="absolute -top-10 -right-10 w-44 h-44 opacity-[0.07]" />
 
                 <div className="relative z-10">
                   <p className="font-cinzel text-[10px] tracking-[0.22em] uppercase text-[#8a6037] font-semibold">
@@ -318,22 +307,20 @@ export const CompetitionDetailPage: React.FC = () => {
 
                   <div className="space-y-2.5 pt-2">
                     <button
-                      onClick={() => navigate(`/daftar?lomba=${comp.id}`)}
-                      className="btn-modern-shine group w-full py-3 px-5 rounded-full bg-[#3b2412] hover:bg-[#241308] text-[#faf4e8] font-sans text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99]"
+                      onClick={() => navigate(`/daftar?lomba=${comp.slug}`)}
+                      className="btn-modern-shine group w-full py-3 px-5 rounded-full bg-[#3b2412] hover:bg-[#241308] text-[#faf4e8] font-sans text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99] cursor-pointer"
                     >
                       <span>{comp.isTeam ? 'Daftar Tim Sekarang' : 'Daftar Sekarang'}</span>
                       <ArrowRight className="w-4 h-4 text-[#caa152] transition-transform group-hover:translate-x-1" />
                     </button>
 
-                    <a
-                      href="https://diginomicfest.id/guidebook-2027.pdf"
-                      target="_blank"
-                      rel="noreferrer"
+                    <Link
+                      to="/juklak-juknis"
                       className="w-full py-2.5 px-5 rounded-full bg-[#fffdf9] hover:bg-[#efe2ce] border border-[#bda07a] text-[#2f1e10] font-sans text-xs sm:text-sm font-medium flex items-center justify-center gap-2 transition-colors"
                     >
                       <Download className="w-3.5 h-3.5 text-[#7a5530]" />
-                      <span>Unduh Guidebook</span>
-                    </a>
+                      <span>Baca Juklak &amp; Juknis</span>
+                    </Link>
                   </div>
                 </div>
               </div>

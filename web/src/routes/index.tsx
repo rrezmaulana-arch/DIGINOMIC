@@ -1,9 +1,8 @@
 import React, { Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { PageTransitionOverlay } from '../components/PageTransitionOverlay';
-import { BatikCursorTrail } from '../components/BatikCursorTrail';
-import { UserProfile, Registration } from '../types';
+import { UserProfile } from '../types';
 
 // Lazy load pages for code splitting
 const LandingPage = React.lazy(() => import('../pages/public/LandingPage').then(m => ({ default: m.LandingPage })));
@@ -12,8 +11,9 @@ const CompetitionsPage = React.lazy(() => import('../pages/public/CompetitionsPa
 const NewsPage = React.lazy(() => import('../pages/public/NewsPage').then(m => ({ default: m.NewsPage })));
 const CompetitionDetailPage = React.lazy(() => import('../pages/public/CompetitionDetailPage').then(m => ({ default: m.CompetitionDetailPage })));
 const JuklakJuknisPage = React.lazy(() => import('../pages/public/JuklakJuknisPage').then(m => ({ default: m.JuklakJuknisPage })));
+const PrivacyPolicyPage = React.lazy(() => import('../pages/public/PrivacyPolicyPage').then(m => ({ default: m.PrivacyPolicyPage })));
+const TermsOfServicePage = React.lazy(() => import('../pages/public/TermsOfServicePage').then(m => ({ default: m.TermsOfServicePage })));
 const LoginPage = React.lazy(() => import('../pages/auth/LoginPage').then(m => ({ default: m.LoginPage })));
-const RegisterPage = React.lazy(() => import('../pages/auth/RegisterPage').then(m => ({ default: m.RegisterPage })));
 const ParticipantDashboardPage = React.lazy(() => import('../pages/participant/ParticipantDashboardPage').then(m => ({ default: m.ParticipantDashboardPage })));
 const AdminDashboardPage = React.lazy(() => import('../pages/admin/AdminDashboardPage').then(m => ({ default: m.AdminDashboardPage })));
 const SuperAdminDashboardPage = React.lazy(() => import('../pages/superadmin/SuperAdminDashboardPage').then(m => ({ default: m.SuperAdminDashboardPage })));
@@ -22,23 +22,42 @@ interface AppRoutesProps {
   currentUser: UserProfile | null;
   onLogin: (user: UserProfile) => void;
   onLogout: () => void;
-  onSwitchRole: (role: 'PESERTA' | 'ADMIN' | 'SUPERADMIN') => void;
-  onRegisterSuccess: (reg: Registration, user: UserProfile) => void;
+  onSwitchRole: (role: 'PESERTA' | 'ADMIN' | 'JURI' | 'SUPERADMIN') => void;
 }
+
+const DaftarRedirect: React.FC = () => {
+  const { search } = useLocation();
+  return <Navigate to={`/login${search}`} replace />;
+};
+
+import { pageMetadata } from '../pageMetadata';
 
 export const AppRoutes: React.FC<AppRoutesProps> = ({
   currentUser,
   onLogin,
   onLogout,
   onSwitchRole,
-  onRegisterSuccess,
 }) => {
   const isGuest = !currentUser || currentUser.id === 'guest';
   const role = currentUser?.role;
+  const { pathname } = useLocation();
+  React.useEffect(() => {
+    const page = pageMetadata[pathname.replace(/\/$/, '') || '/'];
+    const title = page && page[0] !== 'Digiconomic Fest 2027'
+      ? page[0] + ' | Digiconomic Fest 2027' : 'Digiconomic Fest 2027';
+    document.title = title;
+    const description = page?.[1] || 'Portal Digiconomic Fest 2027.';
+    for (const [selector, value] of [
+      ['meta[name="description"]', description],
+      ['meta[property="og:title"]', title],
+      ['meta[property="og:description"]', description],
+      ['meta[name="robots"]', page ? 'index,follow' : 'noindex,follow'],
+    ]) document.querySelector(selector)?.setAttribute('content', value);
+  }, [pathname]);
 
   return (
     <>
-      {/* Animasi logo transisi setiap kali berpindah halaman (dipercepat & ringan) */}
+      {/* Animasi logo transisi setiap kali berpindah halaman */}
       <PageTransitionOverlay />
 
       <Suspense
@@ -136,12 +155,29 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
           {/* 2. AUTHENTICATION */}
           <Route
             path="/login"
-            element={<LoginPage onLogin={onLogin} />}
+            element={
+              !isGuest ? (
+                <Navigate to={role === 'PESERTA' ? '/dashboard' : role === 'SUPERADMIN' ? '/superadmin' : '/admin'} replace />
+              ) : (
+                <LoginPage key="participant" onLogin={onLogin} />
+              )
+            }
           />
 
           <Route
             path="/daftar"
-            element={<RegisterPage onRegisterSuccess={onRegisterSuccess} />}
+            element={<DaftarRedirect />}
+          />
+
+          <Route
+            path="/panitia/login"
+            element={
+              !isGuest && role !== 'PESERTA' ? (
+                <Navigate to={role === 'SUPERADMIN' ? '/superadmin' : '/admin'} replace />
+              ) : (
+                <LoginPage key="staff" staff onLogin={onLogin} />
+              )
+            }
           />
 
           {/* 3. PARTICIPANT DASHBOARD */}
@@ -165,7 +201,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
             path="/admin"
             element={
               isGuest ? (
-                <Navigate to="/login" replace />
+                <Navigate to="/panitia/login" replace />
               ) : role === 'PESERTA' ? (
                 <Navigate to="/dashboard" replace />
               ) : (
@@ -183,7 +219,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
             path="/superadmin"
             element={
               isGuest ? (
-                <Navigate to="/login" replace />
+                <Navigate to="/panitia/login" replace />
               ) : role !== 'SUPERADMIN' ? (
                 <Navigate to="/admin" replace />
               ) : (
@@ -198,6 +234,10 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
 
           {/* 6. WILDCARD FALLBACK */}
           <Route path="*" element={<Navigate to="/" replace />} />
+
+          {/* 7. LEGAL PAGES */}
+          <Route path="/kebijakan-privasi" element={<PrivacyPolicyPage />} />
+          <Route path="/syarat-ketentuan" element={<TermsOfServicePage />} />
         </Routes>
       </Suspense>
     </>

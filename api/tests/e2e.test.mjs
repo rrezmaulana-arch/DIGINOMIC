@@ -51,7 +51,10 @@ async function startTestServer() {
   });
   const repo = createMemoryRepo();
   const seeded = await seedDatabase(repo);
-  const { server } = createApp({ repo, config });
+  const { server } = createApp({ repo, config, verifyGoogleToken: async (credential) => {
+    const profile = JSON.parse(credential);
+    return { googleId: profile.email, email: profile.email, name: profile.name || 'Peserta Uji', avatarUrl: null };
+  } });
 
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   const { port } = server.address();
@@ -159,16 +162,11 @@ test('End-to-End Functional & Business Rules Suite — Digiconomic Fest 2027', a
     adminCookie = loginAdm.cookie;
   });
 
-  await t.test('3. Registrasi peserta (validasi privasi, email, password) & profil + upload KTM', async () => {
-    const noPrivacy = await ctx.req('POST', '/api/auth/register', {
-      body: { email: 'budi@kampus.ac.id', password: 'Password123', name: 'Budi Santoso', privacy_accepted: false },
+  await t.test('3. Registrasi peserta melalui Google & profil + upload KTM', async () => {
+    const reg1 = await ctx.req('POST', '/api/auth/google', {
+      body: { credential: JSON.stringify({ email: 'budi@kampus.ac.id', password: 'Password123', name: 'Budi Santoso', privacy_accepted: true }) },
     });
-    assert.equal(noPrivacy.status, 422);
-
-    const reg1 = await ctx.req('POST', '/api/auth/register', {
-      body: { email: 'budi@kampus.ac.id', password: 'Password123', name: 'Budi Santoso', privacy_accepted: true },
-    });
-    assert.equal(reg1.status, 201);
+    assert.equal(reg1.status, 200);
     p1Cookie = reg1.cookie;
 
     // Belum lengkapi profil -> daftar lomba harus 422
@@ -253,10 +251,10 @@ test('End-to-End Functional & Business Rules Suite — Digiconomic Fest 2027', a
   });
 
   await t.test('5. Pendaftaran lomba tim (validasi max_team_size) & peringatan nomor HP kembar (BR-13)', async () => {
-    const reg2 = await ctx.req('POST', '/api/auth/register', {
-      body: { email: 'siti@kampus.ac.id', password: 'Password123', name: 'Siti Aminah', privacy_accepted: true },
+    const reg2 = await ctx.req('POST', '/api/auth/google', {
+      body: { credential: JSON.stringify({ email: 'siti@kampus.ac.id', password: 'Password123', name: 'Siti Aminah', privacy_accepted: true }) },
     });
-    assert.equal(reg2.status, 201);
+    assert.equal(reg2.status, 200);
     p2Cookie = reg2.cookie;
 
     // Sengaja pakai nomor WA yang sama dengan Budi untuk menguji BR-13
@@ -466,7 +464,7 @@ test('End-to-End Functional & Business Rules Suite — Digiconomic Fest 2027', a
 
     // Alur forgot-password + reset-password via token di email_outbox
     const forgot = await ctx.req('POST', '/api/auth/forgot-password', {
-      body: { email: 'budi@kampus.ac.id' },
+      body: { email: 'admin.lomba@diginomic.id' },
     });
     assert.equal(forgot.status, 200);
     const resetJob = ctx.repo._db.email_outbox.find((e) => e.template === 'PASSWORD_RESET');
@@ -479,7 +477,7 @@ test('End-to-End Functional & Business Rules Suite — Digiconomic Fest 2027', a
 
     // Login dengan password baru berhasil
     const relogin = await ctx.req('POST', '/api/auth/login', {
-      body: { email: 'budi@kampus.ac.id', password: 'NewPassword2027' },
+      body: { email: 'admin.lomba@diginomic.id', password: 'NewPassword2027' },
     });
     assert.equal(relogin.status, 200);
   });

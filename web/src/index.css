@@ -2,14 +2,6 @@
 
 /* ── CUSTOM LOCAL FONTS ── */
 @font-face {
-  font-family: 'Abang';
-  src: url('/fonts/Abang.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
   font-family: 'ITC Edwardian Script';
   src: url('/fonts/ITCEdwardianScript.ttf') format('truetype');
   font-weight: 400;
@@ -20,28 +12,26 @@
 /* ── TAILWIND V4 FONT TOKENS ── */
 @theme {
   --font-sans: 'Open Sans', system-ui, sans-serif;
-  --font-display: 'Abang', Georgia, serif;
+  --font-display: 'Cormorant Garamond', Georgia, serif;
   --font-script: 'ITC Edwardian Script', 'Edwardian Script ITC', cursive;
-  --font-ui: 'Poppins', system-ui, sans-serif;
+  --font-ui: 'Open Sans', system-ui, sans-serif;
 }
 
 /* ── UTILITY CLASSES (4 FONT RESMI) ── */
 .font-abang,
 .font-cormorant,
+.font-serif-title,
 .font-serif-disp {
-  font-family: 'Abang', Georgia, serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
 }
 
 .font-edwardian,
-.font-script {
-  font-family: 'ITC Edwardian Script', 'Edwardian Script ITC', cursive;
-}
+.font-script { font-family: 'Open Sans', system-ui, sans-serif; }
 
 .font-poppins,
 .font-cinzel,
-.font-marcellus,
-.font-serif-title {
-  font-family: 'Poppins', system-ui, sans-serif;
+.font-marcellus {
+  font-family: 'Open Sans', system-ui, sans-serif;
 }
 
 .font-open-sans,
@@ -87,20 +77,23 @@
 .shimmer-text {
   background: linear-gradient(
     115deg,
-    #663a0d 0%,
-    #a87226 22%,
-    #caa152 42%,
-    #ffebb0 52%,
-    #caa152 62%,
-    #99641c 82%,
-    #663a0d 100%
+    #7a4912 0%,
+    #b8822e 22%,
+    #dfba68 42%,
+    #fff3c4 52%,
+    #dfba68 62%,
+    #a87226 82%,
+    #7a4912 100%
   );
-  background-size: 230% auto;
+  background-size: 220% auto;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: shimmer-gold 4.5s linear infinite;
+  background-position: 50% 50%;
+  animation: shimmer-gold 3.2s linear infinite;
   display: inline-block;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
   filter: drop-shadow(0 1.5px 2px rgba(70, 36, 10, 0.25));
 }
 
@@ -263,4 +256,93 @@ html, body {
   .digiconomic-logo-sheen {
     display: none !important;
   }
+}
+
+html { scroll-padding-top: 5rem; }
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+.hero-mist {
+  height: clamp(4.5rem, 11vh, 7.5rem);
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(250, 244, 232, 0.45) 40%,
+    rgba(250, 244, 232, 0.9) 80%,
+    #faf4e8 100%
+  );
+}
+
+/* ── PAPER-CUT CLOUD FRAMING (Besar, Halus, Menyatu di Tepi Layar) ── */
+.cloud-bank {
+  position: relative;
+  isolation: isolate;
+  pointer-events: none;
+  overflow-x: clip;
+  --bank-width: clamp(13rem, 26vw, 24rem);
+}
+.cloud-bank::before,
+.cloud-bank::after {
+  position: absolute;
+  content: '';
+  z-index: 2;
+  top: 50%;
+  width: var(--bank-width);
+  aspect-ratio: 479 / 165;
+  background: url('/gambar/awan-view.webp') center / contain no-repeat;
+  filter: drop-shadow(0 8px 20px rgba(92, 62, 40, 0.1));
+}
+.cloud-bank--left::before,
+.cloud-bank--banks::before {
+  left: 0;
+  opacity: 0.55;
+  transform: translate(-28%, -52%);
+}
+.cloud-bank--right::before {
+  right: 0;
+  opacity: 0.55;
+  transform: translate(28%, -52%) scaleX(-1);
+}
+.cloud-bank::after {
+  width: calc(var(--bank-width) * 0.65);
+  opacity: 0.32;
+}
+.cloud-bank--left::after {
+  left: calc(var(--bank-width) * 0.35);
+  transform: translateY(-15%) scaleX(-1);
+}
+.cloud-bank--right::after {
+  right: calc(var(--bank-width) * 0.35);
+  transform: translateY(-15%);
+}
+.cloud-bank--banks::after {
+  width: calc(var(--bank-width) * 0.85);
+  right: 0;
+  opacity: 0.48;
+  transform: translate(26%, -45%) scaleX(-1);
+}
+.agenda-guide { display: inline-flex; align-items: center; gap: .6rem; padding: .5rem 1.1rem; border: 1px solid rgba(202,161,82,0.55); border-radius: 9999px; background: rgba(54,36,23,0.7); color: #f7e1b5; font-size: .82rem; cursor: pointer; transition: background-color .18s, border-color .18s; }
+.agenda-guide:hover { background: rgba(74,49,32,0.9); border-color: #e8c78a; }
+.agenda-list { position: relative; padding-left: 1.3rem; }
+.agenda-list li { position: relative; padding: 0 0 1rem 1.8rem; border-left: 1px solid #977641; }
+.agenda-list li:last-child { border-color: transparent; padding-bottom: 0; }
+.agenda-list li:last-child::before { content:''; position:absolute; left:-1px; top:0; height:2.2rem; border-left:1px solid #977641; }
+.agenda-card { background: #362417; border: 1px solid #745537; border-radius: .85rem; }
+.agenda-card summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.2rem; list-style: none; cursor: pointer; }
+.agenda-card summary::-webkit-details-marker { display: none; }
+.agenda-node { position: absolute; display: grid; place-items: center; width: 2rem; height: 2rem; left: calc(-1rem - 1px); top: 1rem; border-radius: 50%; background: #2e1d11; border: 1px solid #be995e; color: #efd293; font-size: .78rem; font-variant-numeric: tabular-nums; }
+.stage-date { display: block; color: #ead19d; font-size: .78rem; letter-spacing: .035em; }
+.agenda-card strong { display: block; margin-top: .22rem; font-size: clamp(1rem,2vw,1.2rem); }
+.agenda-card p { padding: 0 1.2rem 1.2rem; color: #f2e6d2; line-height: 1.6; }
+.agenda-chevron { flex-shrink: 0; color: #dfba77; }
+.agenda-card[open] .agenda-chevron { transform: rotate(180deg); }
+.agenda-card summary:focus-visible { outline: 2px solid #ffe2a1; border-radius: inherit; }
+.agenda-card[open], .agenda-card:focus-within { border-color: #dfb97c; }
+@media (hover:hover) {
+  .agenda-card:hover { background: #4a3120; border-color: #e8c78a; box-shadow: 0 6px 18px #160c0840; }
+  .agenda-card:hover .agenda-node { background: #edd19a; color: #301c0d; }
+}
+@media (prefers-reduced-motion:no-preference) {
+  .agenda-card, .agenda-node, .agenda-chevron { transition: background-color .18s, color .18s, border-color .18s, transform .18s; }
 }

@@ -18,7 +18,7 @@ export function buildSessionCookie(name, value, config, maxAgeSec) {
     `${name}=${encodeURIComponent(value)}`,
     'Path=/',
     'HttpOnly',
-    'SameSite=Lax',
+    `SameSite=${config.isProd ? 'None' : 'Lax'}`,
     `Max-Age=${maxAgeSec}`,
   ];
   if (config.isProd) parts.push('Secure');

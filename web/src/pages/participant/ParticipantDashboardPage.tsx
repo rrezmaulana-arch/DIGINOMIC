@@ -1,549 +1,1158 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { DashboardLayout, SidebarNavItem } from '../../layouts/DashboardLayout';
-import { Registration, RegistrationStatus, SubmissionData, UserProfile } from '../../types';
-import { RegistrationService, subscribeToStorageChanges } from '../../services/registrationService';
-import confetti from 'canvas-confetti';
+import { FileDropCard } from '../../components/FileDropCard';
+import { ParticipantApi, PublicApi } from '../../services/apiService';
+import { PENDING_COMPETITION_KEY } from '../auth/LoginPage';
+import type { AnnouncementItem, UserProfile } from '../../types';
 import {
+  LayoutDashboard,
+  FileText,
+  Megaphone,
+  Upload,
+  Lock,
   CheckCircle2,
   Clock,
-  XCircle,
-  Lock,
-  ExternalLink,
-  Upload,
-  FileText,
   AlertCircle,
-  MessageSquare,
+  ExternalLink,
   Users,
-  Check,
-  Download
+  Pin,
+  Loader2,
+  ShieldAlert,
+  QrCode,
+  Link2,
+  RefreshCw,
 } from 'lucide-react';
 
 interface ParticipantDashboardPageProps {
   currentUser: UserProfile;
   onLogout: () => void;
-  onSwitchRole?: (role: 'PESERTA' | 'ADMIN' | 'SUPERADMIN') => void;
+  onSwitchRole?: (role: 'PESERTA' | 'ADMIN' | 'JURI' | 'SUPERADMIN') => void;
 }
+
+interface RegistrationDraft {
+  fullName: string;
+  nim: string;
+  institution: string;
+  phoneWa: string;
+  selectedSlug: string;
+  teamName: string;
+  teamMembers: Array<{ full_name: string; nim: string; institution: string; phone_wa: string }>;
+}
+
+function readRegistrationDraft(key: string): RegistrationDraft | null {
+  try {
+    const draft = JSON.parse(sessionStorage.getItem(key) || 'null');
+    const fields = ['fullName', 'nim', 'institution', 'phoneWa', 'selectedSlug', 'teamName'];
+    if (!draft || !fields.every((field) => typeof draft[field] === 'string')) return null;
+    if (
+      !Array.isArray(draft.teamMembers) ||
+      !draft.teamMembers.every(
+        (member: any) =>
+          member && ['full_name', 'nim', 'institution', 'phone_wa'].every((field) => typeof member[field] === 'string')
+      )
+    ) {
+      return null;
+    }
+    return draft;
+  } catch {
+    return null;
+  }
+}
+
+function resolveCompetitionSlugParam(raw?: string | null): string {
+  if (!raw) return '';
+  if (raw === 'comp-1' || raw === 'esai-nasional') return 'esai-nasional';
+  if (raw === 'comp-2' || raw === 'mini-case-competition') return 'mini-case-competition';
+  return raw;
+}
+
+const STATUS_META: Record<string, { label: string; color: string; desc: string }> = {
+  MENUNGGU_VERIFIKASI: {
+    label: 'Menunggu Verifikasi Panitia',
+    color: 'bg-amber-100 text-amber-900 border-amber-300',
+    desc: 'Pastikan biodata, KTM, dan bukti pembayaran QRIS sudah diunggah. Panitia memverifikasi berkas maksimal 1×24 jam.',
+  },
+  TERVERIFIKASI: {
+    label: 'Terverifikasi Resmi',
+    color: 'bg-emerald-100 text-emerald-900 border-emerald-300',
+    desc: 'Selamat! Pendaftaran Anda telah terverifikasi. Silakan gabung ke grup koordinasi WhatsApp & unggah karya sebelum tenggat.',
+  },
+  DITOLAK: {
+    label: 'Perlu Revisi Berkas',
+    color: 'bg-red-100 text-red-900 border-red-300',
+    desc: 'Terdapat berkas atau bukti bayar yang perlu diperbaiki. Periksa catatan panitia di bawah lalu kirim ulang revisi Anda.',
+  },
+  LOLOS_TAHAP_1: {
+    label: 'Lolos Seleksi Tahap 1',
+    color: 'bg-indigo-100 text-indigo-900 border-indigo-300',
+    desc: 'Selamat! Karya Anda lolos seleksi tahap pertama. Pantau menu Pengumuman untuk agenda berikutnya.',
+  },
+  FINALIS: {
+    label: 'Finalis Nasional',
+    color: 'bg-purple-100 text-purple-900 border-purple-300',
+    desc: 'Selamat! Anda terpilih sebagai Finalis Nasional Digiconomic Fest 2027.',
+  },
+  JUARA: {
+    label: 'Juara Resmi Digiconomic 2027',
+    color: 'bg-yellow-100 text-yellow-900 border-yellow-400',
+    desc: 'Selamat atas prestasi gemilang Anda pada Digiconomic Fest 2027!',
+  },
+  GUGUR: {
+    label: 'Belum Lolos Seleksi',
+    color: 'bg-stone-200 text-stone-800 border-stone-300',
+    desc: 'Terima kasih atas partisipasi dan karya terbaik Anda di Digiconomic Fest 2027.',
+  },
+  DIBATALKAN: {
+    label: 'Kepesertaan Dibatalkan',
+    color: 'bg-gray-200 text-gray-800 border-gray-400',
+    desc: 'Pendaftaran lomba ini telah dibatalkan.',
+  },
+};
 
 export const ParticipantDashboardPage: React.FC<ParticipantDashboardPageProps> = ({
   currentUser,
   onLogout,
   onSwitchRole,
 }) => {
-  const [registrations, setRegistrations] = useState<Registration[]>(() => RegistrationService.getAll());
-  const settings = RegistrationService.getSettings();
+  const [searchParams] = useSearchParams();
+  const draftKey = `diginomic-registration-draft:${currentUser.id}`;
+  const [initialDraft] = useState(() => readRegistrationDraft(draftKey));
+  const [activeTab, setActiveTab] = useState('overview');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
 
-// Subscribe to localStorage changes for multi-tab sync
+  const [profile, setProfile] = useState<any>(null);
+  const [registration, setRegistration] = useState<any>(null);
+  const [competitions, setCompetitions] = useState<any[]>([]);
+  const [announcements, setAnnouncements] = useState<AnnouncementItem[]>([]);
+
+  // Form Biodata
+  const [fullName, setFullName] = useState(initialDraft?.fullName ?? currentUser.name ?? '');
+  const [nim, setNim] = useState(initialDraft?.nim || '');
+  const [institution, setInstitution] = useState(initialDraft?.institution || '');
+  const [phoneWa, setPhoneWa] = useState(initialDraft?.phoneWa || '');
+  const [ktmFile, setKtmFile] = useState<File | null>(null);
+
+  // Form Pilih Lomba
+  const [selectedSlug, setSelectedSlug] = useState(() => {
+    const fromUrl = resolveCompetitionSlugParam(searchParams.get('lomba'));
+    if (fromUrl) return fromUrl;
+    try {
+      const pending = resolveCompetitionSlugParam(sessionStorage.getItem(PENDING_COMPETITION_KEY));
+      if (pending) {
+        sessionStorage.removeItem(PENDING_COMPETITION_KEY);
+        return pending;
+      }
+    } catch {
+      // Abaikan jika sessionStorage tidak tersedia
+    }
+    return initialDraft?.selectedSlug || '';
+  });
+
+  const [teamName, setTeamName] = useState(initialDraft?.teamName || '');
+  const [teamMembers, setTeamMembers] = useState(
+    initialDraft?.teamMembers || [
+      { full_name: '', nim: '', institution: '', phone_wa: '' },
+      { full_name: '', nim: '', institution: '', phone_wa: '' },
+    ]
+  );
+
+  // Form Pembayaran QRIS
+  const [paymentFile, setPaymentFile] = useState<File | null>(null);
+  const [senderName, setSenderName] = useState('');
+  const [paymentDate, setPaymentDate] = useState('');
+
+  // Form Unggah Karya
+  const [subMode, setSubMode] = useState<'file' | 'link'>('file');
+  const [subTitle, setSubTitle] = useState('');
+  const [subDesc, setSubDesc] = useState('');
+  const [subFile, setSubFile] = useState<File | null>(null);
+  const [subLinkUrl, setSubLinkUrl] = useState('');
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [profRes, regRes, compRes, annRes] = await Promise.all([
+        ParticipantApi.getProfile(),
+        ParticipantApi.getMyRegistration(),
+        PublicApi.getCompetitions(),
+        ParticipantApi.getAnnouncements(),
+      ]);
+      setProfile(profRes.profile);
+      const isProfComplete = Boolean(
+        profRes.profile?.full_name &&
+          profRes.profile?.institution &&
+          profRes.profile?.phone_wa &&
+          profRes.profile?.has_student_card
+      );
+      if (
+        searchParams.get('lengkapi_profil') === '1' ||
+        Boolean(searchParams.get('lomba')) ||
+        !isProfComplete
+      ) {
+        setActiveTab('registration');
+      } else {
+        setActiveTab('overview');
+      }
+      if (profRes.profile && (!initialDraft || regRes.registration)) {
+        setFullName(profRes.profile.full_name || currentUser.name);
+        setNim(profRes.profile.nim || '');
+        setInstitution(profRes.profile.institution || '');
+        setPhoneWa(profRes.profile.phone_wa || '');
+      }
+      if (regRes.registration) {
+        setSenderName(regRes.registration.payment_sender_name || '');
+        setPaymentDate(regRes.registration.payment_date || '');
+        if (regRes.registration.team_name) setTeamName(regRes.registration.team_name);
+        if (regRes.registration.team_members?.length) setTeamMembers(regRes.registration.team_members);
+      }
+      setRegistration(regRes.registration);
+      setCompetitions(compRes.competitions || []);
+      setAnnouncements(annRes.announcements || []);
+    } catch (err: any) {
+      setFeedback({ type: 'error', msg: err?.message || 'Gagal memuat data dashboard peserta.' });
+    } finally {
+      setLoading(false);
+    }
+  }, [currentUser.name, initialDraft, searchParams]);
+
   useEffect(() => {
-    const unsubscribe = subscribeToStorageChanges(() => {
-      setRegistrations(RegistrationService.getAll());
+    loadData();
+  }, [loadData]);
+
+  useEffect(() => {
+    if (loading) return;
+    try {
+      if (registration) {
+        sessionStorage.removeItem(draftKey);
+        return;
+      }
+      sessionStorage.setItem(
+        draftKey,
+        JSON.stringify({
+          fullName,
+          nim,
+          institution,
+          phoneWa,
+          selectedSlug,
+          teamName,
+          teamMembers,
+        })
+      );
+    } catch {
+      // Abaikan bila penyimpanan browser dibatasi
+    }
+  }, [loading, registration, draftKey, fullName, nim, institution, phoneWa, selectedSlug, teamName, teamMembers]);
+
+  const isVerified =
+    registration && ['TERVERIFIKASI', 'LOLOS_TAHAP_1', 'FINALIS', 'JUARA'].includes(registration.status);
+
+  const navItems: SidebarNavItem[] = [
+    { id: 'overview', label: 'Ringkasan & Linimasa', icon: <LayoutDashboard className="w-4 h-4" /> },
+    { id: 'registration', label: 'Pendaftaran & Berkas', icon: <FileText className="w-4 h-4" /> },
+    {
+      id: 'announcements',
+      label: 'Pengumuman Resmi',
+      icon: <Megaphone className="w-4 h-4" />,
+      badge: announcements.length > 0 ? announcements.length : undefined,
+    },
+    {
+      id: 'submission',
+      label: isVerified ? 'Unggah Karya' : 'Unggah Karya (Terkunci)',
+      icon: isVerified ? <Upload className="w-4 h-4" /> : <Lock className="w-4 h-4 text-gray-400" />,
+    },
+  ];
+
+  const saveProfileAndKtm = async () => {
+    const saved = await ParticipantApi.updateProfile({
+      full_name: fullName,
+      nim,
+      institution,
+      phone_wa: phoneWa,
     });
-    return unsubscribe;
-  }, []);
-
-  // Cari data registrasi pengguna demo berdasarkan ID atau email
-  const userRegistration = registrations.find((r) => r.userId === currentUser.id || r.email.toLowerCase() === currentUser.email.toLowerCase()) || null;
-
-  // Submission Form State
-  const [submissionTitle, setSubmissionTitle] = useState(userRegistration?.submission?.title || '');
-  const [submissionLink, setSubmissionLink] = useState(userRegistration?.submission?.driveLink || '');
-  const [submissionDesc, setSubmissionDesc] = useState(userRegistration?.submission?.description || '');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-
-  useEffect(() => {
-    if (userRegistration?.submission) {
-      setSubmissionTitle(userRegistration.submission.title);
-      setSubmissionLink(userRegistration.submission.driveLink);
-      setSubmissionDesc(userRegistration.submission.description || '');
+    if (ktmFile) {
+      await ParticipantApi.uploadStudentCard(ktmFile);
+      setKtmFile(null);
     }
-  }, [userRegistration]);
-
-  if (!userRegistration) {
-    return (
-      <DashboardLayout currentUser={currentUser} onLogout={onLogout} onSwitchRole={onSwitchRole}>
-        <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-center bg-[#fffdf9] rounded-3xl border border-[#ebdcc8] shadow-sm relative">
-          <div className="w-16 h-16 rounded-2xl bg-[#faf4e8] border border-[#caa152] flex items-center justify-center mb-4">
-            <FileText className="w-8 h-8 text-[#caa152]" />
-          </div>
-          <h2 className="text-2xl font-bold text-[#2f1e10]">
-            Belum Ada Pendaftaran Aktif
-          </h2>
-          <p className="text-sm text-[#7a5530] max-w-md mt-1 mb-6">
-            Akun Anda belum terdaftar di cabang lomba Digiconomic Fest 2027. Silakan pilih kompetisi dan selesaikan formulir pendaftaran Anda.
-          </p>
-          <Link
-            to="/daftar"
-            className="px-6 py-2.5 rounded-full bg-[#2f1e10] hover:bg-[#7a5530] text-[#f5eee2] text-xs font-semibold tracking-wide border border-[#caa152] shadow-sm transition-all"
-          >
-            Daftar Kompetisi Sekarang
-          </Link>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  const steps: { label: string; status: RegistrationStatus }[] = [
-    { label: 'Pendaftaran', status: 'MENUNGGU_VERIFIKASI' },
-    { label: 'Verifikasi Berkas', status: 'TERVERIFIKASI' },
-    { label: 'Pengumpulan Karya', status: 'LOLOS_TAHAP_1' },
-    { label: 'Seleksi Tahap 1', status: 'FINALIS' },
-    { label: 'Babak Final & Juara', status: 'JUARA' },
-  ];
-
-  const getStepIndex = (status: RegistrationStatus): number => {
-    switch (status) {
-      case 'MENUNGGU_VERIFIKASI': return 0;
-      case 'TERVERIFIKASI': return 1;
-      case 'LOLOS_TAHAP_1': return 2;
-      case 'FINALIS': return 3;
-      case 'JUARA': return 4;
-      default: return 0;
-    }
+    setProfile({ ...saved.profile, has_student_card: Boolean(profile?.has_student_card || ktmFile) });
   };
 
-  const currentIndex = getStepIndex(userRegistration.status);
-  const isVerified = currentIndex >= 1 && userRegistration.status !== 'DITOLAK';
-
-  // Calculate percentage for progress bar
-  const progressPercent = Math.max(10, Math.min(100, (currentIndex / (steps.length - 1)) * 100));
-
-  const handleSubmitWork = (e: React.FormEvent) => {
+  const handleSaveProfileAndKtm = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!submissionTitle || !submissionLink) {
-      alert('Mohon isi Judul Karya dan Tautan Google Drive.');
+    setFeedback(null);
+    setSaving(true);
+    try {
+      await saveProfileAndKtm();
+      if (registration?.status === 'DITOLAK') {
+        await ParticipantApi.reviseRegistration(
+          registration.is_team
+            ? {
+                team_name: teamName,
+                team_members: teamMembers.filter((m) => m.full_name.trim().length > 0),
+              }
+            : {}
+        );
+        setFeedback({ type: 'success', msg: 'Revisi data & berkas berhasil dikirim kembali ke panitia!' });
+      } else {
+        setFeedback({ type: 'success', msg: 'Biodata & berkas KTM berhasil diperbarui.' });
+      }
+      await loadData();
+    } catch (err: any) {
+      setFeedback({ type: 'error', msg: err?.message || 'Gagal menyimpan biodata.' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCreateRegistration = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFeedback(null);
+    if (!selectedSlug) {
+      setFeedback({ type: 'error', msg: 'Pilih cabang lomba terlebih dahulu.' });
       return;
     }
-
-    // Validate Google Drive link format
-    const driveLinkRegex = /^https:\/\/drive\.google\.com\/(file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/;
-    if (!driveLinkRegex.test(submissionLink)) {
-      alert('Tautan tidak valid. Harap gunakan format Google Drive yang benar (contoh: https://drive.google.com/file/d/FILE_ID/view).');
+    const comp = competitions.find((c) => c.slug === selectedSlug);
+    if (!profile?.has_student_card && !ktmFile) {
+      setFeedback({ type: 'error', msg: 'Unggah Kartu Pelajar / KTM terlebih dahulu sebelum mendaftar.' });
       return;
     }
-
-    setIsSubmitting(true);
-    const submissionData: SubmissionData = {
-      title: submissionTitle,
-      driveLink: submissionLink,
-      description: submissionDesc,
-      submittedAt: new Date().toLocaleDateString('id-ID', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      }),
-      score: userRegistration.submission?.score,
-      round: userRegistration.submission?.round || 'TAHAP_1'
-    };
-
-    const updated = RegistrationService.submitWork(userRegistration.id, submissionData);
-    setRegistrations(updated);
-    setIsSubmitting(false);
-    setSubmitSuccess(true);
-    confetti({ particleCount: 70, spread: 70 });
-    setTimeout(() => setSubmitSuccess(false), 5000);
+    setSaving(true);
+    try {
+      await saveProfileAndKtm();
+      const created = await ParticipantApi.createRegistration({
+        competition_slug: selectedSlug,
+        ...(comp?.is_team
+          ? {
+              team_name: teamName,
+              team_members: teamMembers.filter((m) => m.full_name.trim().length > 0),
+            }
+          : {}),
+      });
+      setRegistration(created.registration);
+      setFeedback({
+        type: 'success',
+        msg: 'Pendaftaran berhasil dibuat! Silakan unggah bukti pembayaran QRIS pada kartu di bawah ini.',
+      });
+      await loadData();
+    } catch (err: any) {
+      setFeedback({ type: 'error', msg: err?.message || 'Gagal membuat pendaftaran lomba.' });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleOpenWhatsAppConfirm = () => {
-    const url = RegistrationService.buildWhatsAppPaymentUrl(userRegistration, `Rp ${userRegistration.fee.toLocaleString('id-ID')}`);
-    window.open(url, '_blank');
+  const handleUploadPayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!paymentFile) return;
+    setFeedback(null);
+    setSaving(true);
+    try {
+      await ParticipantApi.uploadPaymentProof(paymentFile, senderName, paymentDate);
+      setPaymentFile(null);
+      if (registration?.status === 'DITOLAK') {
+        await ParticipantApi.reviseRegistration({});
+      }
+      setFeedback({
+        type: 'success',
+        msg: 'Bukti pembayaran QRIS berhasil diunggah! Mohon tunggu verifikasi panitia.',
+      });
+      await loadData();
+    } catch (err: any) {
+      setFeedback({ type: 'error', msg: err?.message || 'Gagal mengunggah bukti pembayaran.' });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleOpenHelpdesk = () => {
-    window.open(RegistrationService.buildWhatsAppHelpdeskUrl(), '_blank');
+  const handleSubmitWork = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFeedback(null);
+    setSaving(true);
+    try {
+      if (subMode === 'file') {
+        if (!subFile) {
+          setFeedback({ type: 'error', msg: 'Pilih berkas PDF karya terlebih dahulu.' });
+          setSaving(false);
+          return;
+        }
+        await ParticipantApi.uploadSubmissionFile(subFile, subTitle, subDesc);
+        setSubFile(null);
+      } else {
+        await ParticipantApi.submitSubmissionLink({
+          title: subTitle,
+          link_url: subLinkUrl,
+          description: subDesc,
+        });
+        setSubLinkUrl('');
+      }
+      setSubTitle('');
+      setSubDesc('');
+      setFeedback({ type: 'success', msg: 'Karya berhasil diunggah! Anda dapat mengunci versi final di bawah.' });
+      await loadData();
+    } catch (err: any) {
+      setFeedback({ type: 'error', msg: err?.message || 'Gagal mengunggah karya.' });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'SUBMISSION' | 'RESOURCES'>('OVERVIEW');
+  const handleFinalizeSubmission = async (subId: string) => {
+    if (!window.confirm('Kunci karya ini sebagai versi FINAL? Setelah dikunci, Anda tidak dapat mengunggah revisi lagi.')) {
+      return;
+    }
+    setSaving(true);
+    try {
+      await ParticipantApi.finalizeSubmission(subId);
+      setFeedback({ type: 'success', msg: 'Karya berhasil dikunci sebagai versi FINAL!' });
+      await loadData();
+    } catch (err: any) {
+      setFeedback({ type: 'error', msg: err?.message || 'Gagal mengunci karya.' });
+    } finally {
+      setSaving(false);
+    }
+  };
 
-  const participantNavItems: SidebarNavItem[] = [
-    { id: 'OVERVIEW', label: 'Status & Linimasa', icon: <CheckCircle2 className="w-4 h-4" /> },
-    { id: 'SUBMISSION', label: 'Unggah Karya', icon: <Upload className="w-4 h-4" />, badge: userRegistration?.submission ? 'Terkirim' : undefined },
-    { id: 'RESOURCES', label: 'Grup WA & Panduan', icon: <MessageSquare className="w-4 h-4" /> },
-  ];
+  const handleCancelRegistration = async () => {
+    if (
+      !window.confirm(
+        'Batalkan pendaftaran cabang lomba saat ini? Setelah dibatalkan, Anda dapat memilih dan mendaftar cabang lomba lain.'
+      )
+    ) {
+      return;
+    }
+    setSaving(true);
+    setFeedback(null);
+    try {
+      await ParticipantApi.cancelRegistration();
+      setRegistration(null);
+      setSelectedSlug('');
+      setFeedback({ type: 'success', msg: 'Pendaftaran dibatalkan. Silakan pilih cabang lomba baru Anda.' });
+      await loadData();
+    } catch (err: any) {
+      setFeedback({ type: 'error', msg: err?.message || 'Gagal membatalkan pendaftaran.' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const statusInfo = registration ? STATUS_META[registration.status] || STATUS_META.MENUNGGU_VERIFIKASI : null;
+  const selectedComp = competitions.find((c) => c.slug === selectedSlug);
+  const hasFinalSub = Boolean(registration?.submissions?.some((s: any) => s.is_final));
 
   return (
-    <DashboardLayout 
-      currentUser={currentUser} 
-      onLogout={onLogout} 
+    <DashboardLayout
+      currentUser={currentUser}
+      onLogout={onLogout}
       onSwitchRole={onSwitchRole}
-      navItems={participantNavItems}
+      navItems={navItems}
       activeTab={activeTab}
-      onSelectTab={(tabId) => setActiveTab(tabId as any)}
+      onSelectTab={(tab) => {
+        if (tab === 'submission' && !isVerified) {
+          setFeedback({
+            type: 'error',
+            msg: 'Menu Unggah Karya akan terbuka otomatis setelah pendaftaran Anda diverifikasi oleh Panitia.',
+          });
+          return;
+        }
+        setFeedback(null);
+        setActiveTab(tab);
+      }}
     >
-      <div className="space-y-6 font-sans">
-
-        {/* ================= 1. HEADER RINGKAS PESERTA ================= */}
-        <div className="bg-[#fffdf9] p-6 rounded-2xl border border-[#ebdcc8] shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
-          <div className="space-y-1">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#7a5530]">
-              Portal Peserta Resmi Digiconomic Fest 2027
-            </span>
-            <h1 className="text-2xl font-bold text-[#2f1e10]">
-              Halo, {userRegistration.participantName}
-            </h1>
-            <p className="text-xs text-[#5c3e28]">
-              Cabang Lomba: <strong className="text-[#2f1e10]">{userRegistration.competitionTitle}</strong> ({userRegistration.isTeam ? `Tim: ${userRegistration.teamName || 'Tim'}` : 'Individu'}) • Kampus: <strong>{userRegistration.institution}</strong>
+      <div className="max-w-5xl mx-auto space-y-5">
+        <div className="flex items-center justify-between gap-3 bg-white/95 rounded-2xl p-4 sm:p-5 border border-[#ebdcc8] shadow-2xs">
+          <div>
+            <p className="text-[10px] font-cinzel uppercase tracking-[0.2em] text-[#ba883a] font-semibold">
+              Portal Peserta Resmi • Digiconomic Fest 2027
             </p>
+            <h1 className="font-cormorant text-2xl sm:text-3xl text-[#2f1e10] font-semibold">
+              {navItems.find((n) => n.id === activeTab)?.label || 'Dashboard Peserta'}
+            </h1>
           </div>
-
-          {/* Registration Code Badge */}
-          <div className="bg-[#faf4e8] px-4 py-3 rounded-xl border border-[#ebdcc8] text-center shrink-0 w-full md:w-auto">
-            <span className="text-[10px] uppercase tracking-wider text-[#7a5530] block font-semibold">
-              ID Registrasi Anda
-            </span>
-            <span className="font-mono font-bold text-base text-[#2f1e10] block my-0.5">
-              #{userRegistration.registrationCode}
-            </span>
-            <span className={`inline-block px-3 py-0.5 rounded-full text-[10px] font-semibold tracking-wide ${userRegistration.status === 'TERVERIFIKASI'
-                ? 'bg-[#f0e3cc] text-[#2f1e10] border border-[#caa152]'
-                : userRegistration.status === 'DITOLAK'
-                  ? 'bg-[#f5ede0] text-[#7a5530] border border-[#d8be99]'
-                  : userRegistration.status === 'LOLOS_TAHAP_1' || userRegistration.status === 'FINALIS'
-                    ? 'bg-[#2f1e10] text-[#caa152] border border-[#caa152]'
-                    : 'bg-white text-[#7a5530] border border-[#ebdcc8]'
-              }`}>
-              {userRegistration.status}
-            </span>
-          </div>
+          <button
+            type="button"
+            onClick={loadData}
+            disabled={loading}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#faf4e8] hover:bg-[#f0e3cc] border border-[#caa152]/60 text-xs font-semibold text-[#2f1e10] cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-[#ba883a] ${loading ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Segarkan</span>
+          </button>
         </div>
 
-        {/* ================= 2. LINIMASA PROGRES (SLEEK PROGRESS BAR) ================= */}
-        {activeTab === 'OVERVIEW' && (
-        <div className="bg-[#fffdf9] p-6 rounded-2xl border border-[#ebdcc8] shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-lg font-bold text-[#2f1e10]">
-                Progres Tahapan Kompetisi
-              </h2>
-              <p className="text-xs text-[#7a5530]">
-                Linimasa langkah resmi pendaftaran hingga babak penentuan juara.
-              </p>
-            </div>
-            <button
-              onClick={handleOpenHelpdesk}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#ebdcc8] bg-[#faf4e8] hover:bg-[#f0e3cc] text-xs font-medium text-[#7a5530] transition-colors"
-            >
-              <MessageSquare className="w-3.5 h-3.5 text-[#caa152]" />
-              <span>Bantuan Panitia</span>
-            </button>
+        {feedback && (
+          <div
+            className={`p-3.5 rounded-xl border text-xs flex items-start gap-2.5 ${
+              feedback.type === 'success'
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                : 'bg-red-50 border-red-200 text-red-900'
+            }`}
+          >
+            {feedback.type === 'success' ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            ) : (
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+            )}
+            <span>{feedback.msg}</span>
           </div>
-
-          {/* Connected Horizontal Progress Bar */}
-          <div className="relative pt-6 pb-4 px-2 sm:px-6">
-
-            {/* Background Track Line */}
-            <div className="absolute top-10 left-6 right-6 h-1.5 bg-[#ebdcc8] rounded-full z-0 hidden sm:block" />
-
-            {/* Active Filled Progress Bar */}
-            <div
-              className="absolute top-10 left-6 h-1.5 btn-modern-shine bg-gradient-to-r from-[#ba883a] to-[#caa152] rounded-full z-0 transition-all duration-500 hidden sm:block"
-              style={{ width: `calc(${progressPercent}% - 48px)` }}
-            />
-
-            {/* Stepper Nodes */}
-            <div className="relative z-10 grid grid-cols-1 sm:grid-cols-5 gap-4 sm:gap-2">
-              {steps.map((st, idx) => {
-                const isPassed = currentIndex > idx;
-                const isCurrent = currentIndex === idx && userRegistration.status !== 'DITOLAK';
-                const isRejected = userRegistration.status === 'DITOLAK' && idx === 0;
-
-                return (
-                  <div key={idx} className="flex sm:flex-col items-center sm:text-center gap-3 sm:gap-1.5">
-
-                    {/* Milestone Dot/Badge */}
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition-all ${isCurrent
-                        ? 'bg-[#2f1e10] text-[#caa152] ring-4 ring-[#caa152]/30 shadow-md scale-110'
-                        : isPassed
-                          ? 'bg-[#caa152] text-white shadow-xs'
-                          : isRejected
-                            ? 'bg-[#7a5530] text-white'
-                            : 'bg-[#faf4e8] text-[#7a5530] border-2 border-[#ebdcc8]'
-                      }`}>
-                      {isPassed ? (
-                        <Check className="w-4 h-4 stroke-[3]" />
-                      ) : isRejected ? (
-                        <XCircle className="w-4 h-4" />
-                      ) : (
-                        <span>{idx + 1}</span>
-                      )}
-                    </div>
-
-                    {/* Step Label */}
-                    <div className="text-left sm:text-center">
-                      <span className="text-[10px] uppercase tracking-wider text-[#7a5530] block font-semibold">
-                        Tahap {idx + 1}
-                      </span>
-                      <span className={`text-xs block leading-tight font-medium ${isCurrent ? 'text-[#2f1e10] font-bold' : isPassed ? 'text-[#2f1e10]' : 'text-[#7a5530]'
-                        }`}>
-                        {st.label}
-                      </span>
-                    </div>
-
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Pending Verification Notice */}
-          {userRegistration.status === 'MENUNGGU_VERIFIKASI' && (
-            <div className="mt-4 p-3.5 rounded-xl bg-[#faf4e8] border border-[#caa152] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <Clock className="w-4 h-4 text-[#caa152] shrink-0" />
-                <p className="text-xs text-[#5c3e28]">
-                  Pembayaran sedang dalam proses verifikasi panitia. Kirimkan bukti transfer ke WhatsApp agar status segera aktif.
-                </p>
-              </div>
-              <button
-                onClick={handleOpenWhatsAppConfirm}
-                className="px-4 py-1.5 rounded-lg bg-[#2f1e10] hover:bg-[#7a5530] text-[#f5eee2] text-xs font-semibold shrink-0 border border-[#caa152] transition-colors"
-              >
-                Kirim Bukti Pembayaran
-              </button>
-            </div>
-          )}
-
-          {/* Rejected Notice */}
-          {userRegistration.status === 'DITOLAK' && (
-            <div className="mt-4 p-3.5 rounded-xl bg-[#f5ede0] border border-[#7a5530] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="flex items-start gap-2.5">
-                <AlertCircle className="w-4 h-4 text-[#7a5530] shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-xs font-bold text-[#2f1e10]">Pendaftaran Memerlukan Revisi</p>
-                  <p className="text-xs text-[#7a5530] mt-0.5">
-                    Catatan Panitia: {userRegistration.rejectReason || 'Bukti transfer atau KTM kurang jelas. Silakan kirim revisi.'}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={handleOpenHelpdesk}
-                className="px-4 py-1.5 rounded-lg bg-[#2f1e10] hover:bg-[#7a5530] text-[#f5eee2] text-xs font-semibold shrink-0"
-              >
-                Hubungi Panitia Revisi
-              </button>
-            </div>
-          )}
-        </div>
         )}
 
-        {/* ================= 3. AKSES RESMI & FORM SUBMISSION ================= */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-          {/* KOLOM KIRI: AKSES RESMI & SUMBER DAYA (Jika tab OVERVIEW atau RESOURCES) */}
-          {(activeTab === 'OVERVIEW' || activeTab === 'RESOURCES') && (
-          <div className={`${activeTab === 'RESOURCES' ? 'lg:col-span-12' : 'lg:col-span-5'} space-y-4`}>
-
-            {/* WhatsApp Group Box */}
-            <div className="p-5 rounded-2xl bg-[#fffdf9] border border-[#ebdcc8] shadow-sm space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#7a5530]">
-                  Grup Komunikasi Resmi
-                </span>
-                {isVerified ? (
-                  <span className="text-[10px] font-semibold text-[#2f1e10] bg-[#f0e3cc] px-2 py-0.5 rounded-md border border-[#caa152]">
-                    Terbuka
-                  </span>
-                ) : (
-                  <span className="text-[10px] text-[#7a5530] flex items-center gap-1">
-                    <Lock className="w-3 h-3" /> Terkunci
-                  </span>
-                )}
-              </div>
-
-              <h3 className="text-lg font-bold text-[#2f1e10]">
-                Grup WhatsApp Peserta
-              </h3>
-              <p className="text-xs text-[#5c3e28] leading-relaxed">
-                Wadah koordinasi resmi dengan panitia untuk technical meeting dan pengumuman lomba.
-              </p>
-
-              {isVerified ? (
-                <a
-                  href={userRegistration.competitionId === 'comp-1' ? settings.whatsappGroupEsai : settings.whatsappGroupCase}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-full py-2.5 rounded-xl bg-[#2f1e10] hover:bg-[#7a5530] text-[#f5eee2] text-xs font-semibold flex items-center justify-center gap-2 border border-[#caa152] transition-colors"
-                >
-                  <Users className="w-4 h-4 text-[#caa152]" />
-                  <span>Gabung Grup WhatsApp</span>
-                </a>
-              ) : (
-                <div className="p-3 rounded-xl bg-[#faf4e8] border border-[#ebdcc8] text-xs text-[#7a5530] flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-[#7a5530] shrink-0" />
-                  <span>Akses terbuka otomatis setelah berkas terverifikasi panitia.</span>
-                </div>
-              )}
-            </div>
-
-            {/* Guidebook Download Box */}
-            <div className="p-5 rounded-2xl bg-[#fffdf9] border border-[#ebdcc8] shadow-sm space-y-2.5">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#7a5530]">
-                Buku Panduan Perlombaan
-              </span>
-              <h3 className="text-lg font-bold text-[#2f1e10]">
-                Guidebook & Ketentuan Teknis
-              </h3>
-              <p className="text-xs text-[#5c3e28] leading-relaxed">
-                Pelajari format penulisan naskah esai dan rubrik penilaian dewan juri.
-              </p>
-              <a
-                href={settings.guidebookUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="w-full py-2.5 rounded-xl bg-[#faf4e8] hover:bg-[#f0e3cc] text-[#2f1e10] text-xs font-semibold flex items-center justify-center gap-2 border border-[#caa152] transition-colors"
-              >
-                <Download className="w-4 h-4 text-[#7a5530]" />
-                <span>Unduh Guidebook (PDF)</span>
-              </a>
-            </div>
-
-            {/* Deadline info */}
-            <div className="p-3.5 rounded-xl bg-[#faf4e8] border border-[#ebdcc8] text-xs text-[#5c3e28] space-y-1">
-              <div className="flex items-center gap-2 font-bold text-[#2f1e10]">
-                <Clock className="w-4 h-4 text-[#caa152]" />
-                <span>Batas Akhir Pengumpulan Karya:</span>
-              </div>
-              <p className="font-mono text-xs text-[#7a5530] pl-6">
-                {settings.submissionDeadline}
-              </p>
-            </div>
-
+        {loading ? (
+          <div className="bg-white/80 rounded-2xl p-12 border border-[#ebdcc8] flex flex-col items-center justify-center gap-3">
+            <Loader2 className="w-7 h-7 animate-spin text-[#caa152]" />
+            <p className="text-xs text-[#7a5530]">Memuat portal kepesertaan Anda...</p>
           </div>
-          )}
-
-          {/* KOLOM KANAN: FORM SUBMISSION (Jika tab OVERVIEW atau SUBMISSION) */}
-          {(activeTab === 'OVERVIEW' || activeTab === 'SUBMISSION') && (
-          <div className={`${activeTab === 'SUBMISSION' ? 'lg:col-span-12' : 'lg:col-span-7'}`}>
-            <div className="p-6 rounded-2xl bg-[#fffdf9] border border-[#ebdcc8] shadow-sm space-y-4">
-
-              <div className="border-b border-[#ebdcc8] pb-3">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#7a5530]">
-                  Tahap 2: Pengumpulan Naskah Lomba
-                </span>
-                <h3 className="text-xl font-bold text-[#2f1e10]">
-                  Formulir Pengumpulan Karya
-                </h3>
-                <p className="text-xs text-[#5c3e28] mt-0.5 leading-relaxed">
-                  Kumpulkan dokumen naskah esai atau proposal solusi kasus Anda melalui link Google Drive (akses: view only).
-                </p>
-              </div>
-
-              {/* Alert submit success */}
-              {submitSuccess && (
-                <div className="p-3 rounded-xl bg-[#f0e3cc] border border-[#7a5530] text-xs text-[#2f1e10] font-semibold flex items-center gap-2 animate-in fade-in">
-                  <Check className="w-4 h-4 text-[#7a5530]" />
-                  <span>Karya berhasil disimpan dan diteruskan ke dewan juri untuk dinilai!</span>
-                </div>
-              )}
-
-              {/* Status Submission Banner if already submitted */}
-              {userRegistration.submission && (
-                <div className="p-4 rounded-xl bg-[#faf4e8] border border-[#caa152] space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-semibold text-[#7a5530] uppercase">
-                      Karya Terakhir Dikumpulkan
-                    </span>
-                    <span className="text-[10px] text-[#7a5530] font-mono">
-                      {userRegistration.submission.submittedAt}
-                    </span>
-                  </div>
-                  <h4 className="text-base font-bold text-[#2f1e10]">
-                    "{userRegistration.submission.title}"
-                  </h4>
-                  <div className="flex items-center justify-between pt-1">
-                    <a
-                      href={userRegistration.submission.driveLink}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-xs text-[#7a5530] hover:text-[#2f1e10] underline flex items-center gap-1 font-sans"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5 text-[#caa152]" />
-                      <span>Buka File di Google Drive</span>
-                    </a>
-
-                    {userRegistration.submission.score ? (
-                      <span className="text-xs font-bold text-[#ba883a] bg-white px-2.5 py-0.5 rounded border border-[#caa152]">
-                        Skor Penilaian: {userRegistration.submission.score}/100
+        ) : (
+          <>
+            {/* TAB 1: RINGKASAN & LINIMASA */}
+            {activeTab === 'overview' && (
+              <div className="space-y-5">
+                <div className="bg-white/95 rounded-2xl p-5 sm:p-6 border border-[#ebdcc8] shadow-xs">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <p className="text-[11px] font-cinzel uppercase tracking-widest text-[#ba883a] font-semibold">
+                        Halo Peserta
+                      </p>
+                      <h2 className="font-cormorant text-2xl sm:text-3xl text-[#2f1e10] font-semibold mt-0.5">
+                        {profile?.full_name || currentUser.name}
+                      </h2>
+                      <p className="text-xs text-[#7a5530] mt-1">
+                        {profile?.institution || 'Lengkapi biodata & pilih cabang lomba resmi Anda.'}
+                        {registration ? ` • Kode Registrasi: ${registration.registration_code}` : ''}
+                      </p>
+                    </div>
+                    {statusInfo ? (
+                      <span
+                        className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border self-start sm:self-center ${statusInfo.color}`}
+                      >
+                        {statusInfo.label}
                       </span>
                     ) : (
-                      <span className="text-[10px] text-[#7a5530] bg-white px-2 py-0.5 rounded border border-[#ebdcc8]">
-                        Status: Menunggu Penilaian Juri
-                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('registration')}
+                        className="px-4 py-2 rounded-full bg-[#ba883a] text-white text-xs font-semibold hover:bg-[#a6762d] transition-colors cursor-pointer self-start"
+                      >
+                        Mulai Pendaftaran Lomba →
+                      </button>
                     )}
                   </div>
 
-                  {userRegistration.submission.juryFeedback && (
-                    <div className="pt-2 border-t border-[#ebdcc8] text-xs text-[#5c3e28]">
-                      <strong>Catatan Tim Penilai:</strong> {userRegistration.submission.juryFeedback}
+                  {statusInfo && (
+                    <div className="mt-4 p-3.5 rounded-xl bg-[#faf4e8] border border-[#ebdcc8] text-xs text-[#5c3e28]">
+                      <p>{statusInfo.desc}</p>
+                      {registration?.reject_reason && registration.status === 'DITOLAK' && (
+                        <p className="mt-2 font-semibold text-red-700">
+                          Catatan Revisi Panitia: &ldquo;{registration.reject_reason}&rdquo;
+                        </p>
+                      )}
+                      {registration?.cancel_reason && registration.status === 'DIBATALKAN' && (
+                        <p className="mt-2 font-semibold text-red-700">
+                          Alasan Pembatalan: &ldquo;{registration.cancel_reason}&rdquo;
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {registration?.group_url && (
+                    <div className="mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-bold text-emerald-900">
+                          Grup Koordinasi Peserta ({registration.competition_name})
+                        </p>
+                        <p className="text-[11px] text-emerald-700">
+                          Wajib bergabung untuk informasi Technical Meeting &amp; pengarahan pengumpulan karya.
+                        </p>
+                      </div>
+                      <a
+                        href={registration.group_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-700 text-white text-xs font-semibold hover:bg-emerald-800 transition-colors shrink-0"
+                      >
+                        <span>Gabung Grup WA</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
                     </div>
                   )}
                 </div>
-              )}
 
-              {/* The Submission Input Form */}
-              <form onSubmit={handleSubmitWork} className="space-y-3.5">
-                <div>
-                  <label className="block text-xs font-semibold text-[#2f1e10] uppercase mb-1">
-                    Judul Karya / Naskah Lomba *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={submissionTitle}
-                    onChange={(e) => setSubmissionTitle(e.target.value)}
-                    placeholder="Contoh: Akselerasi QRIS Cross-Border bagi UMKM Pesisir"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#ebdcc8] bg-[#faf4e8]/60 text-xs text-[#2f1e10] focus:outline-none focus:border-[#caa152] focus:bg-white"
-                  />
+                {/* Linimasa Step-by-Step */}
+                <div className="bg-white/95 rounded-2xl p-5 sm:p-6 border border-[#ebdcc8] shadow-xs">
+                  <h3 className="font-cormorant text-xl font-semibold text-[#2f1e10] mb-4">Progres Kepesertaan Anda</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    {[
+                      {
+                        step: '1. Biodata & KTM',
+                        done: Boolean(profile?.has_student_card),
+                        desc: 'Isi data diri, NIM/NISN, dan unggah KTM',
+                      },
+                      {
+                        step: '2. Pilih Lomba & Bayar',
+                        done: Boolean(registration && registration.has_payment_proof),
+                        desc: 'Pilih cabang lomba & unggah bukti QRIS',
+                      },
+                      {
+                        step: '3. Verifikasi Panitia',
+                        done: Boolean(isVerified),
+                        desc: 'Validasi berkas & pembayaran resmi',
+                      },
+                      {
+                        step: '4. Unggah Karya',
+                        done: Boolean(registration?.submissions?.length > 0),
+                        desc: 'Maks. 2 versi & kunci karya final',
+                      },
+                    ].map((item, idx) => (
+                      <div
+                        key={idx}
+                        className={`p-3.5 rounded-xl border ${
+                          item.done ? 'bg-emerald-50/60 border-emerald-300' : 'bg-[#faf4e8]/70 border-[#ebdcc8]'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-bold text-[#2f1e10]">{item.step}</span>
+                          {item.done ? (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                          ) : (
+                            <Clock className="w-4 h-4 text-amber-600" />
+                          )}
+                        </div>
+                        <p className="text-[11px] text-[#7a5530]">{item.desc}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+              </div>
+            )}
 
-                <div>
-                  <label className="block text-xs font-semibold text-[#2f1e10] uppercase mb-1">
-                    Tautan Google Drive Dokumen Karya *
-                  </label>
-                  <input
-                    type="url"
-                    required
-                    value={submissionLink}
-                    onChange={(e) => setSubmissionLink(e.target.value)}
-                    placeholder="https://drive.google.com/file/d/..."
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#ebdcc8] bg-[#faf4e8]/60 text-xs text-[#2f1e10] focus:outline-none focus:border-[#caa152] focus:bg-white font-mono text-[11px]"
-                  />
-                  <p className="text-[10px] text-[#7a5530] mt-1">
-                    Pastikan izin akses tautan: <strong>"Anyone with the link can view"</strong> agar dewan juri dapat membuka dokumen.
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#2f1e10] uppercase mb-1">
-                    Abstrak / Deskripsi Singkat Karya
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={submissionDesc}
-                    onChange={(e) => setSubmissionDesc(e.target.value)}
-                    placeholder="Tuliskan intisari gagasan inovatif atau metodologi karya Anda..."
-                    className="w-full p-3 rounded-xl border border-[#ebdcc8] bg-[#faf4e8]/60 text-xs text-[#2f1e10] focus:outline-none focus:border-[#caa152] focus:bg-white"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-2.5 rounded-xl text-white text-xs font-semibold tracking-wide flex items-center justify-center gap-2 shadow-sm hover:shadow transition-all bg-[#2f1e10] hover:bg-[#7a5530] border border-[#caa152] disabled:opacity-50"
+            {/* TAB 2: PENDAFTARAN & BERKAS */}
+            {activeTab === 'registration' && (
+              <div className="space-y-6">
+                <form
+                  onSubmit={registration || !selectedComp ? handleSaveProfileAndKtm : handleCreateRegistration}
+                  className="bg-white/95 rounded-2xl p-5 sm:p-6 border border-[#ebdcc8] shadow-2xs space-y-5"
                 >
-                  <Upload className="w-4 h-4 text-[#caa152]" />
-                  <span>{userRegistration.submission ? 'Perbarui Pengumpulan Karya' : 'Kumpulkan Karya Sekarang'}</span>
-                </button>
-              </form>
+                  <fieldset disabled={saving} className="space-y-5 disabled:opacity-70">
+                    {!registration ? (
+                      <div className="space-y-3">
+                        <h3 className="font-cormorant text-2xl font-semibold text-[#2f1e10]">1. Pilih Cabang Kompetisi</h3>
+                        <p className="text-xs text-[#7a5530]">
+                          Satu akun peserta hanya dapat mendaftar pada satu cabang lomba aktif.
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                          {competitions.map((comp) => (
+                            <label
+                              key={comp.id}
+                              className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                                selectedSlug === comp.slug
+                                  ? 'border-[#ba883a] bg-[#faf4e8]'
+                                  : 'border-[#ebdcc8] hover:border-[#caa152]'
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="radio"
+                                    name="competition_slug"
+                                    value={comp.slug}
+                                    checked={selectedSlug === comp.slug}
+                                    onChange={() => {
+                                      setSelectedSlug(comp.slug);
+                                      setTeamMembers((members) =>
+                                        Array.from({ length: Math.max(0, comp.max_team_size - 1) }, (_, index) =>
+                                          members[index] || { full_name: '', nim: '', institution: '', phone_wa: '' }
+                                        )
+                                      );
+                                    }}
+                                    className="accent-[#ba883a]"
+                                  />
+                                  <span className="font-semibold text-sm text-[#2f1e10]">{comp.name}</span>
+                                </div>
+                                <span className="text-xs font-bold text-[#ba883a]">
+                                  Rp {Number(comp.fee).toLocaleString('id-ID')}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-[#7a5530] mt-1.5 pl-6">
+                                {comp.is_team ? `Tim (2–${comp.max_team_size} orang)` : 'Individu (Perorangan)'} • Sisa kuota:{' '}
+                                <strong>{Math.max(0, comp.max_quota - comp.registered_count)}</strong>
+                              </p>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-4 rounded-xl bg-[#faf4e8] border border-[#caa152]/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                          <p className="text-[10px] font-cinzel uppercase tracking-wider text-[#ba883a] font-bold">
+                            Cabang Lomba Terdaftar
+                          </p>
+                          <p className="text-sm font-bold text-[#2f1e10]">
+                            {registration.competition_name} ({registration.registration_code})
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <span className="text-xs font-bold text-[#2f1e10]">
+                            Biaya: Rp {Number(registration.fee || 0).toLocaleString('id-ID')}
+                          </span>
+                          {['MENUNGGU_VERIFIKASI', 'DITOLAK'].includes(registration.status) && (
+                            <button
+                              type="button"
+                              onClick={handleCancelRegistration}
+                              disabled={saving}
+                              className="px-3 py-1.5 rounded-full border border-red-300 bg-red-50 text-red-700 text-[11px] font-semibold hover:bg-red-100 cursor-pointer"
+                            >
+                              Batalkan &amp; Ganti Lomba
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
-            </div>
-          </div>
-          )}
+                    <div className="space-y-4 border-t border-[#ebdcc8] pt-5">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-cormorant text-2xl font-semibold text-[#2f1e10]">
+                            {registration
+                              ? 'Biodata Peserta & Kartu Identitas (KTM)'
+                              : selectedComp?.is_team
+                                ? '2. Data Ketua Tim & KTM'
+                                : 'Biodata Peserta & Kartu Identitas (KTM)'}
+                          </h3>
+                          {profile?.has_student_card && (
+                            <span className="text-[11px] px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-semibold">
+                              KTM Tersimpan
+                            </span>
+                          )}
+                        </div>
 
-        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-semibold text-[#2f1e10] mb-1">Nama Lengkap *</label>
+                            <input
+                              type="text"
+                              required
+                              value={fullName}
+                              onChange={(e) => setFullName(e.target.value)}
+                              className="w-full px-3.5 py-2 rounded-xl border border-[#d8be99] bg-[#faf4e8]/40 text-xs focus:outline-none focus:border-[#caa152]"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-[#2f1e10] mb-1">NIM / NISN *</label>
+                            <input
+                              type="text"
+                              required
+                              value={nim}
+                              onChange={(e) => setNim(e.target.value)}
+                              placeholder="Contoh: 215020100111001"
+                              className="w-full px-3.5 py-2 rounded-xl border border-[#d8be99] bg-[#faf4e8]/40 text-xs focus:outline-none focus:border-[#caa152]"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-[#2f1e10] mb-1">Asal Perguruan Tinggi / Sekolah *</label>
+                            <input
+                              type="text"
+                              required
+                              value={institution}
+                              onChange={(e) => setInstitution(e.target.value)}
+                              placeholder="Contoh: Universitas Brawijaya"
+                              className="w-full px-3.5 py-2 rounded-xl border border-[#d8be99] bg-[#faf4e8]/40 text-xs focus:outline-none focus:border-[#caa152]"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-[#2f1e10] mb-1">No. WhatsApp Aktif *</label>
+                            <input
+                              type="tel"
+                              required
+                              value={phoneWa}
+                              onChange={(e) => setPhoneWa(e.target.value)}
+                              placeholder="081234567890"
+                              className="w-full px-3.5 py-2 rounded-xl border border-[#d8be99] bg-[#faf4e8]/40 text-xs focus:outline-none focus:border-[#caa152]"
+                            />
+                          </div>
+                        </div>
 
+                        <FileDropCard
+                          label="Unggah Kartu Tanda Mahasiswa / Kartu Pelajar (JPG, PNG, PDF maks. 2 MB) *"
+                          selectedFile={ktmFile}
+                          uploaded={Boolean(profile?.has_student_card)}
+                          uploadedLabel="KTM sudah tersimpan di server"
+                          onFileSelect={setKtmFile}
+                        />
+
+                        {(!registration && selectedComp?.is_team) || (registration?.is_team && registration.status === 'DITOLAK') ? (
+                          <div className="space-y-4 pt-2 border-t border-[#ebdcc8]">
+                            <div>
+                              <label className="block text-xs font-semibold text-[#2f1e10] mb-1">Nama Tim *</label>
+                              <input
+                                type="text"
+                                required
+                                value={teamName}
+                                onChange={(e) => setTeamName(e.target.value)}
+                                placeholder="Contoh: Garuda Digital"
+                                className="w-full px-3.5 py-2 rounded-xl border border-[#d8be99] bg-[#faf4e8]/40 text-xs focus:outline-none focus:border-[#caa152]"
+                              />
+                            </div>
+                            <div className="space-y-3">
+                              <p className="text-xs font-semibold text-[#2f1e10] flex items-center gap-1.5">
+                                <Users className="w-4 h-4 text-[#ba883a]" /> Data Anggota Tim (Selain Ketua)
+                              </p>
+                              {teamMembers.slice(0, (selectedComp?.max_team_size || 3) - 1).map((m, idx) => (
+                                <div
+                                  key={idx}
+                                  className="p-3.5 rounded-xl bg-[#faf4e8]/70 border border-[#ebdcc8] grid grid-cols-1 sm:grid-cols-2 gap-3"
+                                >
+                                  <input
+                                    type="text"
+                                    required={idx === 0 || Object.values(m).some((value) => value.trim().length > 0)}
+                                    placeholder={`Nama Anggota ${idx + 2}${idx === 0 ? ' *' : ' (opsional)'}`}
+                                    value={m.full_name}
+                                    onChange={(e) => {
+                                      const next = [...teamMembers];
+                                      next[idx] = { ...next[idx], full_name: e.target.value };
+                                      setTeamMembers(next);
+                                    }}
+                                    className="px-3 py-2 rounded-lg border border-[#d8be99] bg-white text-xs"
+                                  />
+                                  <input
+                                    type="text"
+                                    placeholder="NIM / NPM"
+                                    value={m.nim || ''}
+                                    onChange={(e) => {
+                                      const next = [...teamMembers];
+                                      next[idx] = { ...next[idx], nim: e.target.value };
+                                      setTeamMembers(next);
+                                    }}
+                                    className="px-3 py-2 rounded-lg border border-[#d8be99] bg-white text-xs"
+                                  />
+                                  <input
+                                    type="text"
+                                    required={idx === 0 || Object.values(m).some((value) => value.trim().length > 0)}
+                                    placeholder="Asal Perguruan Tinggi"
+                                    value={m.institution}
+                                    onChange={(e) => {
+                                      const next = [...teamMembers];
+                                      next[idx] = { ...next[idx], institution: e.target.value };
+                                      setTeamMembers(next);
+                                    }}
+                                    className="px-3 py-2 rounded-lg border border-[#d8be99] bg-white text-xs"
+                                  />
+                                  <input
+                                    type="tel"
+                                    required={idx === 0 || Object.values(m).some((value) => value.trim().length > 0)}
+                                    placeholder="No. WhatsApp (08...)"
+                                    value={m.phone_wa}
+                                    onChange={(e) => {
+                                      const next = [...teamMembers];
+                                      next[idx] = { ...next[idx], phone_wa: e.target.value };
+                                      setTeamMembers(next);
+                                    }}
+                                    className="px-3 py-2 rounded-lg border border-[#d8be99] bg-white text-xs"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
+
+                        {!registration && selectedComp && (
+                          <div className="rounded-xl border border-[#ebdcc8] bg-[#faf4e8] p-4 text-xs text-[#5c3e28] space-y-1">
+                            <p className="font-semibold text-[#2f1e10]">Ringkasan Pendaftaran</p>
+                            <p>
+                              {selectedComp.name} •{' '}
+                              {selectedComp.is_team
+                                ? `Tim ${1 + teamMembers.filter((member) => member.full_name.trim()).length} orang`
+                                : 'Peserta Individu'}
+                            </p>
+                            <p>Biaya Pendaftaran: Rp {Number(selectedComp.fee || 0).toLocaleString('id-ID')}</p>
+                            <p>Setelah klik tombol di bawah, Anda akan diarahkan mengunggah bukti pembayaran QRIS.</p>
+                          </div>
+                        )}
+
+                        <button
+                          type="submit"
+                          disabled={saving}
+                          className="px-6 py-2.5 rounded-full bg-[#2f1e10] text-[#faf4e8] text-xs font-semibold hover:bg-[#462d18] transition-colors cursor-pointer"
+                        >
+                          {saving
+                            ? 'Memproses...'
+                            : registration
+                              ? registration.status === 'DITOLAK'
+                                ? 'Kirim Ulang Revisi Pendaftaran'
+                                : 'Simpan Perubahan Biodata'
+                              : selectedComp
+                                ? 'Simpan Profil & Daftar Lomba Sekarang'
+                                : 'Simpan Profil & KTM'}
+                        </button>
+                      </div>
+                  </fieldset>
+                </form>
+
+                {/* Kartu Pembayaran QRIS */}
+                {registration && ['MENUNGGU_VERIFIKASI', 'DITOLAK'].includes(registration.status) && (
+                  <form
+                    onSubmit={handleUploadPayment}
+                    className="bg-white/95 rounded-2xl p-5 sm:p-6 border-2 border-[#caa152]/70 shadow-2xs space-y-4"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-10 h-10 rounded-xl bg-[#2f1e10] text-[#f3d48c] flex items-center justify-center shrink-0">
+                          <QrCode className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h3 className="font-cormorant text-2xl font-semibold text-[#2f1e10]">
+                            Pembayaran Registrasi via QRIS Resmi
+                          </h3>
+                          <p className="text-xs text-[#7a5530]">
+                            Nominal wajib transfer:{' '}
+                            <strong className="text-[#2f1e10]">
+                              Rp {Number(registration.fee || 0).toLocaleString('id-ID')}
+                            </strong>
+                          </p>
+                        </div>
+                      </div>
+                      {registration.has_payment_proof && (
+                        <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold self-start sm:self-auto">
+                          Bukti Bayar Terunggah
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-[#2f1e10] mb-1">Nama Pengirim / E-Wallet / Bank *</label>
+                        <input
+                          type="text"
+                          required
+                          value={senderName}
+                          onChange={(e) => setSenderName(e.target.value)}
+                          placeholder="Contoh: Budi Santoso (BCA / GoPay)"
+                          className="w-full px-3.5 py-2 rounded-xl border border-[#d8be99] text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-[#2f1e10] mb-1">Tanggal Pembayaran *</label>
+                        <input
+                          type="date"
+                          required
+                          value={paymentDate}
+                          onChange={(e) => setPaymentDate(e.target.value)}
+                          className="w-full px-3.5 py-2 rounded-xl border border-[#d8be99] text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    <FileDropCard
+                      label="Unggah Bukti Transaksi QRIS (JPG, PNG, PDF maks. 2 MB) *"
+                      selectedFile={paymentFile}
+                      uploaded={Boolean(registration.has_payment_proof)}
+                      uploadedLabel="Bukti pembayaran sudah diterima server"
+                      onFileSelect={setPaymentFile}
+                    />
+
+                    <button
+                      type="submit"
+                      disabled={saving || !paymentFile}
+                      className="px-6 py-2.5 rounded-full bg-[#ba883a] text-white text-xs font-semibold hover:bg-[#a6762d] transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      {saving ? 'Mengunggah...' : 'Kirim Bukti Pembayaran QRIS'}
+                    </button>
+                  </form>
+                )}
+              </div>
+            )}
+
+            {/* TAB 3: PENGUMUMAN */}
+            {activeTab === 'announcements' && (
+              <div className="bg-white/95 rounded-2xl p-5 sm:p-6 border border-[#ebdcc8] shadow-2xs space-y-4">
+                <h3 className="font-cormorant text-2xl font-semibold text-[#2f1e10]">Papan Pengumuman Resmi Panitia</h3>
+                {announcements.length === 0 ? (
+                  <div className="p-8 rounded-xl bg-[#faf4e8]/60 border border-dashed border-[#d8be99] text-center text-xs text-[#7a5530]">
+                    Belum ada pengumuman baru dari panitia untuk saat ini.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {announcements.map((ann) => (
+                      <div
+                        key={ann.id}
+                        className={`p-4 rounded-xl border ${
+                          ann.is_pinned ? 'bg-amber-50/70 border-[#caa152]' : 'bg-[#faf4e8]/60 border-[#ebdcc8]'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <h4 className="font-semibold text-sm text-[#2f1e10] flex items-center gap-1.5">
+                            {ann.is_pinned && <Pin className="w-3.5 h-3.5 text-[#ba883a]" />}
+                            {ann.title}
+                          </h4>
+                          <span className="text-[10px] text-[#7a5530]">
+                            {ann.published_at ? new Date(ann.published_at).toLocaleDateString('id-ID') : ''}
+                          </span>
+                        </div>
+                        <p className="text-xs text-[#5c3e28] whitespace-pre-line leading-relaxed">{ann.body}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 4: UNGGAH KARYA */}
+            {activeTab === 'submission' && (
+              <div className="space-y-5">
+                {!isVerified ? (
+                  <div className="bg-white/95 rounded-2xl p-8 border border-[#ebdcc8] text-center space-y-2">
+                    <ShieldAlert className="w-10 h-10 text-amber-600 mx-auto" />
+                    <h3 className="font-cormorant text-2xl text-[#2f1e10]">Fitur Unggah Karya Terkunci</h3>
+                    <p className="text-xs text-[#7a5530]">
+                      Fitur ini terbuka otomatis begitu pendaftaran dan pembayaran Anda berstatus Terverifikasi Resmi.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="bg-white/95 rounded-2xl p-5 sm:p-6 border border-[#ebdcc8] shadow-2xs space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                          <h3 className="font-cormorant text-2xl font-semibold text-[#2f1e10]">Pengumpulan Karya Kompetisi</h3>
+                          <p className="text-xs text-[#7a5530]">Anda dapat mengirim maksimal 2 versi sebelum mengunci karya final.</p>
+                        </div>
+                        <span className="text-xs font-semibold text-[#ba883a]">
+                          Versi Terunggah: {registration?.submissions?.length || 0} / 2
+                        </span>
+                      </div>
+
+                      {hasFinalSub ? (
+                        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 font-medium">
+                          Karya Anda telah dikunci sebagai versi FINAL dan siap dinilai oleh Dewan Juri.
+                        </div>
+                      ) : (registration?.submissions?.length || 0) >= 2 ? (
+                        <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900">
+                          Anda telah mencapai batas maksimal 2 versi unggahan. Silakan kunci karya final pada daftar di bawah.
+                        </div>
+                      ) : (
+                        <form onSubmit={handleSubmitWork} className="space-y-4">
+                          <div className="inline-flex p-1 rounded-xl bg-[#faf4e8] border border-[#ebdcc8] gap-1">
+                            <button
+                              type="button"
+                              onClick={() => setSubMode('file')}
+                              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer ${
+                                subMode === 'file' ? 'bg-[#2f1e10] text-[#faf4e8]' : 'text-[#7a5530]'
+                              }`}
+                            >
+                              <Upload className="w-3.5 h-3.5" /> Unggah PDF
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSubMode('link')}
+                              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer ${
+                                subMode === 'link' ? 'bg-[#2f1e10] text-[#faf4e8]' : 'text-[#7a5530]'
+                              }`}
+                            >
+                              <Link2 className="w-3.5 h-3.5" /> Tautan Drive / Deck
+                            </button>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-[#2f1e10] mb-1">Judul Lengkap Karya *</label>
+                            <input
+                              type="text"
+                              required
+                              value={subTitle}
+                              onChange={(e) => setSubTitle(e.target.value)}
+                              placeholder="Masukkan judul karya naskah esai atau pitch deck..."
+                              className="w-full px-3.5 py-2 rounded-xl border border-[#d8be99] text-xs"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-[#2f1e10] mb-1">Abstrak / Ringkasan Eksekutif</label>
+                            <textarea
+                              rows={3}
+                              value={subDesc}
+                              onChange={(e) => setSubDesc(e.target.value)}
+                              placeholder="Ringkasan gagasan utama karya Anda..."
+                              className="w-full px-3.5 py-2 rounded-xl border border-[#d8be99] text-xs"
+                            />
+                          </div>
+
+                          {subMode === 'file' ? (
+                            <FileDropCard
+                              label="Unggah Dokumen Karya (PDF maks. 10 MB) *"
+                              accept=".pdf"
+                              maxSizeMb={10}
+                              helperText="Format PDF resmi sesuai ketentuan Juklak & Juknis (maks. 10 MB)"
+                              selectedFile={subFile}
+                              onFileSelect={setSubFile}
+                            />
+                          ) : (
+                            <div>
+                              <label className="block text-xs font-semibold text-[#2f1e10] mb-1">
+                                Tautan Berkas Karya (Google Drive / Pitch Deck) *
+                              </label>
+                              <input
+                                type="url"
+                                required
+                                value={subLinkUrl}
+                                onChange={(e) => setSubLinkUrl(e.target.value)}
+                                placeholder="https://drive.google.com/file/d/..."
+                                className="w-full px-3.5 py-2 rounded-xl border border-[#d8be99] text-xs"
+                              />
+                            </div>
+                          )}
+
+                          <button
+                            type="submit"
+                            disabled={saving || (subMode === 'file' ? !subFile : !subLinkUrl)}
+                            className="px-6 py-2.5 rounded-full bg-[#ba883a] text-white text-xs font-semibold hover:bg-[#a6762d] transition-colors cursor-pointer disabled:opacity-50"
+                          >
+                            {saving ? 'Mengirim Karya...' : 'Kirim Versi Karya'}
+                          </button>
+                        </form>
+                      )}
+                    </div>
+
+                    {/* Riwayat Unggahan */}
+                    {registration?.submissions?.length > 0 && (
+                      <div className="bg-white/95 rounded-2xl p-5 sm:p-6 border border-[#ebdcc8] shadow-2xs space-y-3">
+                        <h4 className="font-cormorant text-xl font-semibold text-[#2f1e10]">Riwayat Versi Karya</h4>
+                        {registration.submissions.map((sub: any) => (
+                          <div
+                            key={sub.id}
+                            className="p-4 rounded-xl bg-[#faf4e8]/70 border border-[#ebdcc8] flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                          >
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-[#2f1e10]">
+                                  Versi {sub.version}: {sub.title}
+                                </span>
+                                {sub.is_final && (
+                                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                                    TERKUNCI (FINAL)
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-[#7a5530] mt-0.5">
+                                Diunggah: {new Date(sub.submitted_at).toLocaleString('id-ID')}
+                              </p>
+                            </div>
+                            {!sub.is_final && !hasFinalSub && (
+                              <button
+                                type="button"
+                                onClick={() => handleFinalizeSubmission(sub.id)}
+                                disabled={saving}
+                                className="px-4 py-1.5 rounded-full bg-emerald-700 text-white text-xs font-semibold hover:bg-emerald-800 cursor-pointer self-start sm:self-center"
+                              >
+                                Kunci sebagai Final
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </>
+        )}
       </div>
     </DashboardLayout>
   );

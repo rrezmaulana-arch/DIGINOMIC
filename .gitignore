@@ -6,6 +6,7 @@ web/dist/
 deploy/data/
 deploy/nginx/certs/
 api/uploads/
+api/credentials/
 *.log
 .DS_Store
 

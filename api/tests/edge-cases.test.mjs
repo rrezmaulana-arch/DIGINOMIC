@@ -39,7 +39,10 @@ async function startEdgeServer() {
   });
   const repo = createMemoryRepo();
   const seeded = await seedDatabase(repo);
-  const { server } = createApp({ repo, config });
+  const { server } = createApp({ repo, config, verifyGoogleToken: async (credential) => {
+    const profile = JSON.parse(credential);
+    return { googleId: profile.email, email: profile.email, name: profile.name || 'Peserta Uji', avatarUrl: null };
+  } });
 
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   const { port } = server.address();
@@ -60,8 +63,8 @@ async function startEdgeServer() {
   }
 
   async function registerVerifiedParticipant(email, name, phone) {
-    const reg = await req('POST', '/api/auth/register', {
-      body: { email, password: 'Password123', name, privacy_accepted: true },
+    const reg = await req('POST', '/api/auth/google', {
+      body: { credential: JSON.stringify({ email, password: 'Password123', name, privacy_accepted: true }) },
     });
     const cookie = reg.cookie;
     await req('PUT', '/api/profile', {
@@ -216,7 +219,11 @@ test('Edge Cases, Lifecycle, Quota & Deadline Suite — Digiconomic Fest 2027', 
   });
 
   await t.test('E5. Ganti kata sandi (PATCH /api/auth/password) memutus sesi lama & menerbitkan cookie baru', async () => {
-    const pCookie = await ctx.registerVerifiedParticipant('pass@kampus.ac.id', 'User Sandi', '081299990000');
+    const login = await ctx.req('POST', '/api/auth/login', {
+      body: { email: 'superadmin@diginomic.id', password: 'SuperAdmin2027!' },
+    });
+    assert.equal(login.status, 200);
+    const pCookie = login.cookie;
 
     const wrongCur = await ctx.req('PATCH', '/api/auth/password', {
       cookie: pCookie,
@@ -226,7 +233,7 @@ test('Edge Cases, Lifecycle, Quota & Deadline Suite — Digiconomic Fest 2027', 
 
     const changed = await ctx.req('PATCH', '/api/auth/password', {
       cookie: pCookie,
-      body: { current_password: 'Password123', new_password: 'BaruPassword2027' },
+      body: { current_password: 'SuperAdmin2027!', new_password: 'BaruPassword2027' },
     });
     assert.equal(changed.status, 200);
     assert.ok(changed.cookie && changed.cookie !== pCookie);

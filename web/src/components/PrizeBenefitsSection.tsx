@@ -2,8 +2,7 @@ import React from 'react';
 import { Award, BadgeCheck, Lightbulb, Medal, Trophy, Users } from 'lucide-react';
 import {
   BatikKawungPattern,
-  CompassWatermark,
-  MegaMendungClouds,
+  SectionDivider,
 } from './Ornaments';
 
 const PODIUM_ITEMS = [
@@ -53,24 +52,23 @@ export const PrizeBenefitsSection: React.FC = () => {
     <section
       id="hadiah"
       aria-label="Prizes and Benefits Digiconomic Fest 2027"
-      className="relative w-full py-14 sm:py-20 md:py-24 px-4 sm:px-8 lg:px-12 overflow-hidden"
+      className="relative w-full pt-8 pb-10 sm:pt-10 sm:pb-14 md:pt-12 md:pb-16 px-4 sm:px-8 lg:px-12 overflow-hidden"
       style={{
         background: 'linear-gradient(180deg, #f3e6d3 0%, #f1e3ce 55%, #efe1cc 100%)',
       }}
     >
       <BatikKawungPattern color="#7a5530" opacity={0.045} id="kawung-prize-light" />
-      <CompassWatermark color="#7a5530" className="absolute -top-20 -left-20 w-64 h-64 opacity-[0.07]" />
-      <MegaMendungClouds color="#9c7244" className="absolute bottom-2 -right-14 w-72 sm:w-96 opacity-45" />
 
       <div className="max-w-6xl mx-auto relative z-10">
         {/* Header */}
         <div className="text-center mb-8 sm:mb-12">
-          <p className="font-edwardian text-2xl sm:text-3xl text-[#6b4725] leading-none">
+          <p className="font-sans-body text-base sm:text-lg font-medium text-[#6b4725] leading-relaxed">
             Apresiasi &amp; Pengalaman
           </p>
           <h2 className="font-abang font-normal text-3xl sm:text-5xl text-[#2f1e10] tracking-tight mt-1">
-            Prizes &amp; Benefits
+            Prizes &amp; <span className="shimmer-text">Benefits</span>
           </h2>
+          <SectionDivider variant="light" />
         </div>
 
         {/* Main Dark Espresso Glassmorphic Prize Banner */}
@@ -130,9 +128,9 @@ export const PrizeBenefitsSection: React.FC = () => {
           {BENEFITS.map((b) => (
             <div
               key={b.title}
-              className="group flex flex-col items-center text-center px-4 py-5 rounded-2xl transition-all duration-300 hover:bg-[#fffdf9]/60"
+              className="group card-modern-hover flex flex-col items-center text-center px-5 py-6 rounded-2xl bg-[#fffdf9]/40 border border-[#caa152]/25 hover:bg-[#fffdf9]/80 hover:border-[#caa152]/65"
             >
-              <div className="w-12 h-12 rounded-full bg-[#fffdf9] border-2 border-[#caa152]/70 flex items-center justify-center shadow-xs mb-3.5 transition-transform duration-300 group-hover:scale-108 group-hover:border-[#a87226]">
+              <div className="w-12 h-12 rounded-full bg-[#fffdf9] border-2 border-[#caa152]/70 flex items-center justify-center shadow-xs mb-3.5 transition-all duration-300 group-hover:scale-105 group-hover:border-[#a87226] group-hover:shadow-[0_8px_20px_-6px_rgba(202,161,82,0.45)]">
                 {b.icon}
               </div>
               <h4 className="font-poppins text-sm sm:text-base font-semibold text-[#241308]">

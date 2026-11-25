@@ -38,6 +38,8 @@ import {
   canTransitionStatus,
   isGroupLinkEligible,
 } from './utils/statusMachine.mjs';
+import { verifyGoogleIdToken, upsertGoogleUser } from './services/googleAuth.mjs';
+import { ensureRegistrationFolder, uploadFileToDrive, streamFileFromDrive } from './services/googleDrive.mjs';
 
 const JSON_LIMIT_BYTES = 256 * 1024; // 256 KB untuk body JSON
 
@@ -79,9 +81,27 @@ function sanitizeUser(u) {
     role: u.role,
     status: u.status,
     division: u.division || null,
+    assigned_competition_id: u.assigned_competition_id || null,
+    nim: u.nim || null,
+    avatar_url: u.avatar_url || null,
     privacy_accepted_at: u.privacy_accepted_at,
     created_at: u.created_at,
     last_login_at: u.last_login_at,
+  };
+}
+
+function hasDriveConfigured(config) {
+  const hasOAuth = Boolean(config.googleDriveRefreshToken && config.googleClientId && config.googleClientSecret);
+  const hasSa = Boolean(config.googleServiceAccountPath);
+  return Boolean(config.googleDriveRootFolderId && (hasOAuth || hasSa));
+}
+
+function getDriveAuth(config) {
+  return {
+    credPath: config.googleServiceAccountPath,
+    clientId: config.googleClientId,
+    clientSecret: config.googleClientSecret,
+    refreshToken: config.googleDriveRefreshToken,
   };
 }
 
@@ -106,8 +126,11 @@ function serializeRegistrationForParticipant(reg) {
     team_name: reg.team_name,
     team_members: reg.team_members || [],
     status: reg.status,
-    has_payment_proof: Boolean(reg.payment_proof_path),
+    has_payment_proof: Boolean(reg.payment_proof_drive_id || reg.payment_proof_path),
+    payment_sender_name: reg.payment_sender_name || null,
+    payment_date: reg.payment_date || null,
     reject_reason: reg.reject_reason,
+    cancel_reason: reg.cancel_reason || null,
     // BR-03: link grup hanya dikirim jika status memenuhi syarat
     group_url: eligibleForGroup ? reg.competition?.group_url || null : null,
     guidebook_url: reg.competition?.guidebook_url || null,
@@ -117,7 +140,9 @@ function serializeRegistrationForParticipant(reg) {
       id: s.id,
       title: s.title,
       link_url: s.link_url,
-      has_file: Boolean(s.file_path),
+      has_file: Boolean(s.drive_file_id || s.file_path),
+      is_final: Boolean(s.is_final),
+      finalized_at: s.finalized_at || null,
       description: s.description,
       version: s.version,
       score: s.score,
@@ -130,7 +155,19 @@ function serializeRegistrationForParticipant(reg) {
   };
 }
 
-export function createApp({ repo, config }) {
+function isParticipantProfileComplete(profile) {
+  return Boolean(
+    profile &&
+      profile.full_name &&
+      profile.institution &&
+      profile.phone_wa &&
+      (profile.student_card_drive_id || profile.student_card_path)
+  );
+}
+
+const STAFF_ROLES = new Set(['ADMIN', 'JURI', 'SUPERADMIN']);
+
+export function createApp({ repo, config, verifyGoogleToken = verifyGoogleIdToken }) {
   const rateLimiter = createRateLimiter(config);
 
   const server = http.createServer(async (req, res) => {
@@ -312,45 +349,107 @@ export function createApp({ repo, config }) {
       }
 
       // ════════════════════════════════════════════════════════════════
-      // B. AUTHENTICATION (Email + Password, tanpa Google OAuth)
+      // A2. PUBLIC NEWS ARTICLES
       // ════════════════════════════════════════════════════════════════
-      if (method === 'POST' && pathname === '/api/auth/register') {
+      if (method === 'GET' && pathname === '/api/news') {
+        const showOnHomeOnly = url.searchParams.get('home') === 'true';
+        const articles = repo.listNewsArticles
+          ? await repo.listNewsArticles({ publishedOnly: true, showOnHomeOnly })
+          : [];
+        return sendJson(res, 200, { articles });
+      }
+
+      const newsSlugMatch = pathname.match(/^\/api\/news\/([a-z0-9-]+)$/i);
+      if (method === 'GET' && newsSlugMatch) {
+        const article = repo.getNewsArticleBySlug ? await repo.getNewsArticleBySlug(newsSlugMatch[1]) : null;
+        if (!article || !article.is_published) {
+          return sendError(res, 404, 'NEWS_NOT_FOUND', 'Berita tidak ditemukan.');
+        }
+        return sendJson(res, 200, { article });
+      }
+
+      // ════════════════════════════════════════════════════════════════
+      // B. AUTHENTICATION (Email + Password & Google OAuth untuk PESERTA)
+      // ════════════════════════════════════════════════════════════════
+      if (method === 'POST' && pathname === '/api/auth/google') {
         const body = await readJsonBody(req);
-        const email = normalizeEmail(body.email);
-        const password = body.password;
-        const name = sanitizePlainText(body.name, 150);
-        const privacyAccepted = body.privacy_accepted === true;
-
-        if (!isValidEmail(email)) {
-          return sendError(res, 422, 'INVALID_EMAIL', 'Format email tidak valid.');
+        const credential = String(body.credential || '').trim();
+        if (!credential) {
+          return sendError(res, 422, 'MISSING_CREDENTIAL', 'Token Google wajib dikirim.');
         }
-        if (!isValidPassword(password)) {
-          return sendError(res, 422, 'WEAK_PASSWORD', 'Kata sandi minimal 8 karakter dan mengandung huruf serta angka.');
+        try {
+          const googleProfile = await verifyGoogleToken(credential, config.googleClientId);
+          let targetUser;
+          let isNewUser = false;
+          if (repo.pool) {
+            targetUser = await upsertGoogleUser(repo.pool, googleProfile);
+            isNewUser = Boolean(targetUser._is_new_user);
+          } else {
+            const existing = await repo.findUserByEmail(googleProfile.email);
+            if (existing) {
+              if (existing.role !== 'PESERTA') {
+                return sendError(
+                  res,
+                  403,
+                  'GOOGLE_PESERTA_ONLY',
+                  'Login Google hanya tersedia untuk peserta. Akun panitia/juri wajib menggunakan email dan kata sandi.'
+                );
+              }
+              if (existing.status === 'SUSPENDED') {
+                return sendError(res, 403, 'ACCOUNT_SUSPENDED', 'Akun Anda ditangguhkan oleh SuperAdmin.');
+              }
+              targetUser = await repo.updateUser(existing.id, {
+                google_id: googleProfile.googleId,
+                avatar_url: googleProfile.avatarUrl,
+              });
+            } else {
+              targetUser = await repo.createUser({
+                email: googleProfile.email,
+                password_hash: null,
+                name: googleProfile.name,
+                role: 'PESERTA',
+                status: 'ACTIVE',
+                google_id: googleProfile.googleId,
+                avatar_url: googleProfile.avatarUrl,
+                privacy_accepted_at: new Date().toISOString(),
+              });
+              isNewUser = true;
+            }
+          }
+          if (targetUser.role !== 'PESERTA') {
+            return sendError(res, 403, 'GOOGLE_PESERTA_ONLY', 'Login Google hanya tersedia untuk peserta. Akun panitia/juri wajib menggunakan email dan kata sandi.');
+          }
+          if (targetUser.status === 'SUSPENDED') {
+            return sendError(res, 403, 'ACCOUNT_SUSPENDED', 'Akun Anda ditangguhkan oleh SuperAdmin.');
+          }
+          const profile = await repo.getProfile(targetUser.id);
+          const cookie = await createUserSessionCookie(targetUser);
+          return sendJson(
+            res,
+            200,
+            {
+              user: sanitizeUser(targetUser),
+              is_new_user: isNewUser,
+              profile_complete: isParticipantProfileComplete(profile),
+            },
+            { 'Set-Cookie': cookie }
+          );
+        } catch (err) {
+          return sendError(
+            res,
+            err.status || 401,
+            err.code || 'GOOGLE_AUTH_FAILED',
+            err.message || 'Autentikasi Google gagal.'
+          );
         }
-        if (name.length < 2 || containsHtmlTags(name)) {
-          return sendError(res, 422, 'INVALID_NAME', 'Nama minimal 2 karakter dan tidak boleh mengandung tag HTML.');
-        }
-        if (!privacyAccepted) {
-          return sendError(res, 422, 'PRIVACY_REQUIRED', 'Anda wajib menyetujui kebijakan privasi.');
-        }
-
-        const existing = await repo.findUserByEmail(email);
-        if (existing) {
-          return sendError(res, 409, 'EMAIL_EXISTS', 'Email sudah terdaftar.');
-        }
-
-        // BR-08: Role selalu dipaksa PESERTA (abaikan input role dari klien / anti mass-assignment)
-        const created = await repo.createUser({
-          email,
-          password_hash: hashPassword(password),
-          name,
-          role: 'PESERTA',
-          status: 'ACTIVE',
-          privacy_accepted_at: new Date().toISOString(),
-        });
-
-        const cookie = await createUserSessionCookie(created);
-        return sendJson(res, 201, { user: sanitizeUser(created) }, { 'Set-Cookie': cookie });
+      }
+      if (method === 'POST' && pathname === '/api/auth/register') {
+        return sendError(
+          res,
+          410,
+          'REGISTRATION_GOOGLE_ONLY',
+          'Registrasi peserta dengan kata sandi telah ditutup. Silakan daftar menggunakan akun Google.'
+        );
       }
 
       if (method === 'POST' && pathname === '/api/auth/login') {
@@ -359,6 +458,14 @@ export function createApp({ repo, config }) {
         const password = typeof body.password === 'string' ? body.password : '';
 
         const found = await repo.findUserByEmail(email);
+        if (found && !STAFF_ROLES.has(found.role)) {
+          return sendError(
+            res,
+            403,
+            'STAFF_PASSWORD_LOGIN_ONLY',
+            'Login kata sandi hanya tersedia untuk panitia dan juri. Peserta wajib masuk menggunakan Google.'
+          );
+        }
         if (!found || !verifyPassword(password, found.password_hash)) {
           return sendError(res, 401, 'INVALID_CREDENTIALS', 'Email atau kata sandi salah.');
         }
@@ -375,7 +482,7 @@ export function createApp({ repo, config }) {
         const profile = user.role === 'PESERTA' ? await repo.getProfile(user.id) : null;
         return sendJson(res, 200, {
           user: sanitizeUser(user),
-          profile_complete: Boolean(profile && profile.full_name && profile.institution && profile.phone_wa && profile.student_card_path),
+          profile_complete: isParticipantProfileComplete(profile),
         });
       }
 
@@ -392,7 +499,7 @@ export function createApp({ repo, config }) {
       }
 
       if (method === 'PATCH' && pathname === '/api/auth/password') {
-        if (!requireLogin()) return;
+        if (!requireRoles(['ADMIN', 'JURI', 'SUPERADMIN'])) return;
         const body = await readJsonBody(req);
         if (!verifyPassword(String(body.current_password || ''), user.password_hash)) {
           return sendError(res, 401, 'WRONG_CURRENT_PASSWORD', 'Kata sandi saat ini tidak cocok.');
@@ -411,8 +518,8 @@ export function createApp({ repo, config }) {
         const email = normalizeEmail(body.email);
         const found = isValidEmail(email) ? await repo.findUserByEmail(email) : null;
 
-        // Anti user-enumeration: selalu kembalikan 200 meski email tidak ditemukan
-        if (found && found.status === 'ACTIVE') {
+        // Anti user-enumeration & batasi pemulihan kata sandi khusus akun staf
+        if (found && found.status === 'ACTIVE' && STAFF_ROLES.has(found.role)) {
           const rawResetToken = crypto.randomBytes(24).toString('hex');
           const resetHash = hashToken(rawResetToken);
           const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
@@ -438,7 +545,13 @@ export function createApp({ repo, config }) {
           return sendError(res, 422, 'INVALID_RESET_PAYLOAD', 'Token atau format kata sandi baru tidak valid.');
         }
         const found = await repo.findUserByResetTokenHash(hashToken(token));
-        if (!found || !found.reset_token_expires_at || new Date(found.reset_token_expires_at).getTime() <= Date.now()) {
+        if (
+          !found ||
+          !STAFF_ROLES.has(found.role) ||
+          found.status !== 'ACTIVE' ||
+          !found.reset_token_expires_at ||
+          new Date(found.reset_token_expires_at).getTime() <= Date.now()
+        ) {
           return sendError(res, 400, 'INVALID_OR_EXPIRED_TOKEN', 'Token reset tidak valid atau sudah kedaluwarsa.');
         }
         await repo.updateUser(found.id, {
@@ -462,7 +575,8 @@ export function createApp({ repo, config }) {
                 full_name: profile.full_name,
                 institution: profile.institution,
                 phone_wa: profile.phone_wa,
-                has_student_card: Boolean(profile.student_card_path),
+                nim: profile.nim || null,
+                has_student_card: Boolean(profile.student_card_drive_id || profile.student_card_path),
                 updated_at: profile.updated_at,
               }
             : null,
@@ -474,6 +588,7 @@ export function createApp({ repo, config }) {
         const body = await readJsonBody(req);
         const full_name = sanitizePlainText(body.full_name, 150);
         const institution = sanitizePlainText(body.institution, 180);
+        const nim = sanitizePlainText(body.nim || '', 50) || null;
         const rawPhone = String(body.phone_wa || '').trim();
 
         if (full_name.length < 2 || containsHtmlTags(full_name)) {
@@ -489,6 +604,7 @@ export function createApp({ repo, config }) {
         const saved = await repo.upsertProfile(user.id, {
           full_name,
           institution,
+          nim,
           phone_wa: normalizePhoneWa(rawPhone),
         });
         return sendJson(res, 200, {
@@ -496,7 +612,8 @@ export function createApp({ repo, config }) {
             full_name: saved.full_name,
             institution: saved.institution,
             phone_wa: saved.phone_wa,
-            has_student_card: Boolean(saved.student_card_path),
+            nim: saved.nim || null,
+            has_student_card: Boolean(saved.student_card_drive_id || saved.student_card_path),
             updated_at: saved.updated_at,
           },
         });
@@ -515,7 +632,28 @@ export function createApp({ repo, config }) {
           subFolder: 'student-cards',
           maxBytes: config.maxUploadBytes,
         });
-        await repo.upsertProfile(user.id, { student_card_path: savedFile.relativePath });
+        let driveId = null;
+        if (hasDriveConfigured(config)) {
+          try {
+            const activeReg = await repo.findActiveRegistrationByUserId(user.id);
+            const profile = await repo.getProfile(user.id);
+            const targetFolderId = activeReg?.drive_folder_id || config.googleDriveRootFolderId;
+            const driveRes = await uploadFileToDrive({
+              ...getDriveAuth(config),
+              folderId: targetFolderId,
+              fileBuffer: uploaded.buffer,
+              originalName: `KTM_${(profile?.full_name || user.name || user.id).replace(/\s+/g, '_')}.${savedFile.filename.split('.').pop()}`,
+              mimeType: savedFile.mime,
+            });
+            driveId = driveRes.fileId;
+          } catch (driveErr) {
+            console.error('[DRIVE KTM UPLOAD ERROR]', driveErr.message);
+          }
+        }
+        await repo.upsertProfile(user.id, {
+          student_card_path: savedFile.relativePath,
+          ...(driveId ? { student_card_drive_id: driveId } : {}),
+        });
         return sendJson(res, 201, { ok: true, mime: savedFile.mime, size: savedFile.size });
       }
 
@@ -543,7 +681,7 @@ export function createApp({ repo, config }) {
         if (!requireRoles(['PESERTA'])) return;
 
         const profile = await repo.getProfile(user.id);
-        if (!profile || !profile.full_name || !profile.institution || !profile.phone_wa || !profile.student_card_path) {
+        if (!profile || !profile.full_name || !profile.institution || !profile.phone_wa || !(profile.student_card_drive_id || profile.student_card_path)) {
           return sendError(res, 422, 'INCOMPLETE_PROFILE', 'Lengkapi biodata dan unggah KTM terlebih dahulu.');
         }
 
@@ -583,10 +721,11 @@ export function createApp({ repo, config }) {
             const fn = sanitizePlainText(m?.full_name, 150);
             const inst = sanitizePlainText(m?.institution, 180);
             const wa = String(m?.phone_wa || '').trim();
+            const nim = sanitizePlainText(m?.nim || '', 50) || null;
             if (fn.length < 2 || inst.length < 2 || !isValidPhoneWa(wa)) {
               return sendError(res, 422, 'INVALID_TEAM_MEMBER', 'Data anggota tim tidak lengkap atau nomor WA tidak valid.');
             }
-            teamMembers.push({ full_name: fn, institution: inst, phone_wa: normalizePhoneWa(wa) });
+            teamMembers.push({ full_name: fn, institution: inst, phone_wa: normalizePhoneWa(wa), nim });
           }
         }
 
@@ -598,6 +737,22 @@ export function createApp({ repo, config }) {
             team_members: teamMembers,
             actor_id: user.id,
           });
+          if (hasDriveConfigured(config)) {
+            try {
+              const { teamFolderId } = await ensureRegistrationFolder({
+                ...getDriveAuth(config),
+                rootFolderId: config.googleDriveRootFolderId,
+                competition: comp.slug || comp.name,
+                registrationCode: created.registration_code,
+                teamName: teamName || profile.full_name,
+                institution: profile.institution,
+              });
+              await repo.updateRegistration(created.id, { drive_folder_id: teamFolderId });
+              created.drive_folder_id = teamFolderId;
+            } catch (driveErr) {
+              console.error('[DRIVE FOLDER ERROR]', driveErr.message);
+            }
+          }
           await repo.enqueueEmail({
             to_email: user.email,
             template: 'REGISTRATION_RECEIVED',
@@ -704,7 +859,7 @@ export function createApp({ repo, config }) {
           return sendError(res, 409, 'PAYMENT_UPLOAD_LOCKED', 'Bukti bayar tidak dapat diubah setelah terverifikasi.');
         }
 
-        const { files } = await parseMultipartFormData(req, config.maxUploadBytes + 64 * 1024);
+        const { fields, files } = await parseMultipartFormData(req, config.maxUploadBytes + 64 * 1024);
         const uploaded = files.file || files.payment_proof;
         if (!uploaded) {
           return sendError(res, 422, 'MISSING_FILE', 'Field berkas bukti bayar wajib diisi.');
@@ -715,7 +870,42 @@ export function createApp({ repo, config }) {
           subFolder: 'payment-proofs',
           maxBytes: config.maxUploadBytes,
         });
-        await repo.updateRegistration(reg.id, { payment_proof_path: savedFile.relativePath });
+
+        const patch = {
+          payment_proof_path: savedFile.relativePath,
+          payment_sender_name: sanitizePlainText(fields.sender_name || '', 100) || null,
+          payment_date: sanitizePlainText(fields.payment_date || '', 50) || null,
+        };
+
+        if (hasDriveConfigured(config)) {
+          try {
+            let folderId = reg.drive_folder_id;
+            if (!folderId) {
+              const { teamFolderId } = await ensureRegistrationFolder({
+                ...getDriveAuth(config),
+                rootFolderId: config.googleDriveRootFolderId,
+                competition: reg.competition?.slug || reg.competition?.name || 'lomba',
+                registrationCode: reg.registration_code,
+                teamName: reg.team_name || reg.profile?.full_name || user.name,
+                institution: reg.profile?.institution || '',
+              });
+              folderId = teamFolderId;
+              patch.drive_folder_id = folderId;
+            }
+            const driveRes = await uploadFileToDrive({
+              ...getDriveAuth(config),
+              folderId,
+              fileBuffer: uploaded.buffer,
+              originalName: `BuktiBayar_${reg.registration_code}.${savedFile.filename.split('.').pop()}`,
+              mimeType: savedFile.mime,
+            });
+            patch.payment_proof_drive_id = driveRes.fileId;
+          } catch (driveErr) {
+            console.error('[DRIVE PAYMENT UPLOAD ERROR]', driveErr.message);
+          }
+        }
+
+        await repo.updateRegistration(reg.id, patch);
         return sendJson(res, 201, { ok: true, mime: savedFile.mime, size: savedFile.size });
       }
 
@@ -739,10 +929,20 @@ export function createApp({ repo, config }) {
           return sendError(res, 403, 'SUBMISSION_DEADLINE_PASSED', 'Batas waktu pengumpulan karya telah berakhir.');
         }
 
+        const existingSubs = await repo.listSubmissionsByRegistration(reg.id);
+        if (existingSubs.some((s) => s.is_final)) {
+          return sendError(res, 409, 'SUBMISSION_FINALIZED', 'Karya sudah dikunci (final) dan tidak dapat diubah lagi.');
+        }
+        if (existingSubs.length >= 2) {
+          return sendError(res, 409, 'SUBMISSION_LIMIT_REACHED', 'Batas maksimal unggah karya (2 versi) telah tercapai.');
+        }
+
         const contentType = req.headers['content-type'] || '';
         let title = null;
         let link_url = null;
         let file_path = null;
+        let drive_file_id = null;
+        let drive_view_url = null;
         let description = null;
 
         if (contentType.includes('multipart/form-data')) {
@@ -758,6 +958,36 @@ export function createApp({ repo, config }) {
             maxBytes: config.maxUploadBytes,
           });
           file_path = saved.relativePath;
+
+          if (hasDriveConfigured(config)) {
+            try {
+              let folderId = reg.drive_folder_id;
+              if (!folderId) {
+                const { teamFolderId } = await ensureRegistrationFolder({
+                  ...getDriveAuth(config),
+                  rootFolderId: config.googleDriveRootFolderId,
+                  competition: reg.competition?.slug || reg.competition?.name || 'lomba',
+                  registrationCode: reg.registration_code,
+                  teamName: reg.team_name || reg.profile?.full_name || user.name,
+                  institution: reg.profile?.institution || '',
+                });
+                folderId = teamFolderId;
+                await repo.updateRegistration(reg.id, { drive_folder_id: folderId });
+              }
+              const nextVer = existingSubs.length + 1;
+              const driveRes = await uploadFileToDrive({
+                ...getDriveAuth(config),
+                folderId,
+                fileBuffer: uploaded.buffer,
+                originalName: `Karya_v${nextVer}_${reg.registration_code}.${saved.filename.split('.').pop()}`,
+                mimeType: saved.mime,
+              });
+              drive_file_id = driveRes.fileId;
+              drive_view_url = driveRes.webViewLink;
+            } catch (driveErr) {
+              console.error('[DRIVE SUBMISSION UPLOAD ERROR]', driveErr.message);
+            }
+          }
         } else {
           const body = await readJsonBody(req);
           title = sanitizePlainText(body.title || '', 200);
@@ -775,10 +1005,26 @@ export function createApp({ repo, config }) {
           registration_id: reg.id,
           title,
           file_path,
+          drive_file_id,
+          drive_view_url,
           link_url,
           description,
         });
         return sendJson(res, 201, { submission: created });
+      }
+
+      const subFinalizeMatch = pathname.match(/^\/api\/registrations\/me\/submissions\/([^/]+)\/finalize$/);
+      if (method === 'POST' && subFinalizeMatch) {
+        if (!requireRoles(['PESERTA'])) return;
+        const reg = await repo.findActiveRegistrationByUserId(user.id);
+        if (!reg) return sendError(res, 404, 'REGISTRATION_NOT_FOUND', 'Belum ada pendaftaran aktif.');
+        const subId = subFinalizeMatch[1];
+        const sub = isValidUuid(subId) ? await repo.findSubmissionById(subId) : null;
+        if (!sub || sub.registration_id !== reg.id) {
+          return sendError(res, 404, 'SUBMISSION_NOT_FOUND', 'Karya tidak ditemukan.');
+        }
+        const finalized = repo.finalizeSubmission ? await repo.finalizeSubmission(sub.id) : sub;
+        return sendJson(res, 200, { submission: finalized });
       }
 
       if (method === 'GET' && pathname === '/api/announcements') {
@@ -954,6 +1200,19 @@ export function createApp({ repo, config }) {
         const reg = isValidUuid(regId) ? await repo.hydrateRegistration(regId) : null;
         if (!reg) return sendError(res, 404, 'REGISTRATION_NOT_FOUND', 'Pendaftaran tidak ditemukan.');
 
+        const driveId = kind === 'student-card' ? reg.profile?.student_card_drive_id : reg.payment_proof_drive_id;
+        if (driveId && hasDriveConfigured(config)) {
+          await repo.createAuditLog({
+            actor_id: user.id,
+            action: 'DOWNLOAD_PRIVATE_FILE',
+            target_type: kind,
+            target_id: reg.id,
+            meta: { registration_code: reg.registration_code, source: 'drive' },
+          });
+          await streamFileFromDrive({ ...getDriveAuth(config), fileId: driveId, res });
+          return;
+        }
+
         const relPath = kind === 'student-card' ? reg.profile?.student_card_path : reg.payment_proof_path;
         if (!relPath) return sendError(res, 404, 'FILE_NOT_FOUND', 'Berkas tidak ditemukan.');
 
@@ -975,18 +1234,114 @@ export function createApp({ repo, config }) {
         return;
       }
 
+      function ensureJuriAssigned() {
+        if (user.role === 'JURI' && !user.assigned_competition_id) {
+          sendError(res, 403, 'JURI_NOT_ASSIGNED', 'Akun juri belum ditugaskan ke cabang lomba manapun.');
+          return false;
+        }
+        return true;
+      }
+
+      async function ensureJuriCompetitionMatch(registrationId) {
+        if (user.role !== 'JURI') return true;
+        if (!ensureJuriAssigned()) return false;
+        const reg = await repo.hydrateRegistration(registrationId);
+        if (!reg || reg.competition_id !== user.assigned_competition_id) {
+          sendError(res, 403, 'JURI_WRONG_COMPETITION', 'Juri hanya dapat mengakses karya pada cabang lomba yang ditugaskan.');
+          return false;
+        }
+        return true;
+      }
+
       if (method === 'GET' && pathname === '/api/admin/submissions') {
-        if (!requireRoles(['ADMIN', 'SUPERADMIN'])) return;
-        const competitionId = url.searchParams.get('competition') || undefined;
+        if (!requireRoles(['ADMIN', 'SUPERADMIN', 'JURI'])) return;
+        if (!ensureJuriAssigned()) return;
+        const requestedComp = url.searchParams.get('competition') || undefined;
+        const competitionId = user.role === 'JURI' ? user.assigned_competition_id : requestedComp;
         const submissions = await repo.listAllSubmissions({ competitionId });
         return sendJson(res, 200, { submissions });
       }
 
+      if (method === 'GET' && pathname === '/api/admin/leaderboard') {
+        if (!requireRoles(['ADMIN', 'SUPERADMIN', 'JURI'])) return;
+        if (!ensureJuriAssigned()) return;
+        const requestedComp = url.searchParams.get('competition') || undefined;
+        const round = url.searchParams.get('round') === 'FINAL' ? 'FINAL' : 'TAHAP_1';
+        const competitionId = user.role === 'JURI' ? user.assigned_competition_id : requestedComp;
+        const leaderboard = repo.getLeaderboard ? await repo.getLeaderboard({ competitionId, round }) : [];
+        return sendJson(res, 200, { leaderboard });
+      }
+
+      if (method === 'POST' && pathname === '/api/admin/scores') {
+        if (!requireRoles(['ADMIN', 'SUPERADMIN', 'JURI'])) return;
+        if (!ensureJuriAssigned()) return;
+        const body = await readJsonBody(req);
+        const submissionId = String(body.submission_id || '');
+        if (!isValidUuid(submissionId)) {
+          return sendError(res, 422, 'INVALID_SUBMISSION_ID', 'ID karya tidak valid.');
+        }
+        const sub = await repo.findSubmissionById(submissionId);
+        if (!sub) return sendError(res, 404, 'SUBMISSION_NOT_FOUND', 'Karya tidak ditemukan.');
+
+        if (!(await ensureJuriCompetitionMatch(sub.registration_id))) return;
+
+        const fields = ['score_orisinalitas', 'score_analisis', 'score_inovasi', 'score_sistematika'];
+        for (const f of fields) {
+          const val = Number(body[f]);
+          if (!Number.isFinite(val) || val < 0 || val > 100) {
+            return sendError(res, 422, 'INVALID_SCORE', `Nilai ${f} harus antara 0 hingga 100.`);
+          }
+        }
+
+        const round = body.round === 'FINAL' ? 'FINAL' : 'TAHAP_1';
+        const feedback = sanitizePlainText(body.feedback || '', 1500) || null;
+        const saved = repo.upsertSubmissionScore
+          ? await repo.upsertSubmissionScore({
+              submission_id: submissionId,
+              jury_id: user.id,
+              round,
+              score_orisinalitas: body.score_orisinalitas,
+              score_analisis: body.score_analisis,
+              score_inovasi: body.score_inovasi,
+              score_sistematika: body.score_sistematika,
+              feedback,
+            })
+          : null;
+        return sendJson(res, 200, { score: saved });
+      }
+
+      const adminSubScoresMatch = pathname.match(/^\/api\/admin\/submissions\/([^/]+)\/scores$/);
+      if (method === 'GET' && adminSubScoresMatch) {
+        if (!requireRoles(['ADMIN', 'SUPERADMIN', 'JURI'])) return;
+        if (!ensureJuriAssigned()) return;
+        const subId = adminSubScoresMatch[1];
+        if (!isValidUuid(subId)) return sendError(res, 404, 'SUBMISSION_NOT_FOUND', 'Karya tidak ditemukan.');
+        const sub = await repo.findSubmissionById(subId);
+        if (!sub) return sendError(res, 404, 'SUBMISSION_NOT_FOUND', 'Karya tidak ditemukan.');
+        if (!(await ensureJuriCompetitionMatch(sub.registration_id))) return;
+        const scores = repo.getScoresBySubmission ? await repo.getScoresBySubmission(subId) : [];
+        return sendJson(res, 200, { scores });
+      }
+
       const adminSubFileMatch = pathname.match(/^\/api\/admin\/submissions\/([^/]+)\/file$/);
       if (method === 'GET' && adminSubFileMatch) {
-        if (!requireRoles(['ADMIN', 'SUPERADMIN'])) return;
+        if (!requireRoles(['ADMIN', 'SUPERADMIN', 'JURI'])) return;
+        if (!ensureJuriAssigned()) return;
         const sub = isValidUuid(adminSubFileMatch[1]) ? await repo.findSubmissionById(adminSubFileMatch[1]) : null;
-        if (!sub || !sub.file_path) return sendError(res, 404, 'FILE_NOT_FOUND', 'Berkas karya tidak ditemukan.');
+        if (!sub) return sendError(res, 404, 'FILE_NOT_FOUND', 'Berkas karya tidak ditemukan.');
+        if (!(await ensureJuriCompetitionMatch(sub.registration_id))) return;
+        if (sub.drive_file_id && hasDriveConfigured(config)) {
+          await repo.createAuditLog({
+            actor_id: user.id,
+            action: 'DOWNLOAD_SUBMISSION_FILE',
+            target_type: 'submission',
+            target_id: sub.id,
+            meta: { source: 'drive' },
+          });
+          await streamFileFromDrive({ ...getDriveAuth(config), fileId: sub.drive_file_id, res });
+          return;
+        }
+        if (!sub.file_path) return sendError(res, 404, 'FILE_NOT_FOUND', 'Berkas karya tidak ditemukan.');
         const fileData = await readPrivateFile(config.uploadDir, sub.file_path);
         await repo.createAuditLog({
           actor_id: user.id,
@@ -1041,6 +1396,7 @@ export function createApp({ repo, config }) {
           body: textBody,
           created_by: user.id,
           published_at: body.publish === false ? null : new Date().toISOString(),
+          is_pinned: Boolean(body.is_pinned),
         });
         return sendJson(res, 201, { announcement: created });
       }
@@ -1075,8 +1431,13 @@ export function createApp({ repo, config }) {
       }
 
       if (method === 'GET' && pathname === '/api/admin/competitions') {
-        if (!requireRoles(['ADMIN', 'SUPERADMIN'])) return;
-        const competitions = await repo.listCompetitions({ includeInactive: true });
+        if (!requireRoles(['ADMIN', 'SUPERADMIN', 'JURI'])) return;
+        if (!ensureJuriAssigned()) return;
+        const allComps = await repo.listCompetitions({ includeInactive: true });
+        const competitions =
+          user.role === 'JURI'
+            ? allComps.filter((c) => c.id === user.assigned_competition_id)
+            : allComps;
         return sendJson(res, 200, { competitions });
       }
 
@@ -1163,6 +1524,20 @@ export function createApp({ repo, config }) {
       // ════════════════════════════════════════════════════════════════
       // F. SUPERADMIN ENDPOINTS (SUPERADMIN ONLY)
       // ════════════════════════════════════════════════════════════════
+      if (method === 'GET' && pathname === '/api/superadmin/demographics') {
+        if (!requireRoles(['SUPERADMIN'])) return;
+        const demographics = repo.getDemographics ? await repo.getDemographics() : { by_institution: [], by_competition: [], users_by_role: [] };
+        return sendJson(res, 200, demographics);
+      }
+
+      if (method === 'GET' && pathname === '/api/superadmin/users') {
+        if (!requireRoles(['SUPERADMIN'])) return;
+        const role = url.searchParams.get('role') || null;
+        const q = url.searchParams.get('q') || null;
+        const users = repo.listAllUsers ? await repo.listAllUsers({ role, q }) : [];
+        return sendJson(res, 200, { users });
+      }
+
       if (method === 'GET' && pathname === '/api/superadmin/admins') {
         if (!requireRoles(['SUPERADMIN'])) return;
         const admins = (await repo.listAdmins()).map(sanitizeUser);
@@ -1174,8 +1549,10 @@ export function createApp({ repo, config }) {
         const body = await readJsonBody(req);
         const email = normalizeEmail(body.email);
         const name = sanitizePlainText(body.name, 150);
-        const role = body.role === 'SUPERADMIN' ? 'SUPERADMIN' : 'ADMIN';
-        const division = sanitizePlainText(body.division || 'Divisi Acara', 120);
+        const allowedRoles = ['ADMIN', 'SUPERADMIN', 'JURI'];
+        const role = allowedRoles.includes(body.role) ? body.role : 'ADMIN';
+        const division = sanitizePlainText(body.division || (role === 'JURI' ? 'Dewan Juri' : 'Divisi Acara'), 120);
+        const assigned_competition_id = role === 'JURI' && isValidUuid(body.assigned_competition_id) ? body.assigned_competition_id : null;
         const password = body.password;
 
         if (!isValidEmail(email) || name.length < 2 || !isValidPassword(password)) {
@@ -1183,29 +1560,52 @@ export function createApp({ repo, config }) {
         }
 
         const existing = await repo.findUserByEmail(email);
-        let adminUser;
         if (existing) {
-          adminUser = await repo.updateUser(existing.id, { role, division, status: 'ACTIVE' });
-        } else {
-          adminUser = await repo.createUser({
+          return sendError(res, 409, 'EMAIL_EXISTS', 'Email sudah digunakan');
+        }
+        const adminUser = await repo.createUser({
             email,
             password_hash: hashPassword(password),
             name,
             role,
             division,
+            assigned_competition_id,
             status: 'ACTIVE',
             privacy_accepted_at: new Date().toISOString(),
-          });
-        }
+        });
         await repo.upsertAdminInvite({ email, role, invited_by: user.id });
         await repo.createAuditLog({
           actor_id: user.id,
           action: 'CREATE_ADMIN',
           target_type: 'user',
           target_id: adminUser.id,
-          meta: { email, role },
+          meta: { email, role, assigned_competition_id },
         });
         return sendJson(res, 201, { admin: sanitizeUser(adminUser) });
+      }
+
+      const superAdminPasswordMatch = pathname.match(/^\/api\/superadmin\/admins\/([^/]+)\/password$/);
+      if (method === 'PATCH' && superAdminPasswordMatch) {
+        if (!requireRoles(['SUPERADMIN'])) return;
+        const targetId = superAdminPasswordMatch[1];
+        const target = isValidUuid(targetId) ? await repo.findUserById(targetId) : null;
+        if (!target || target.role === 'PESERTA') {
+          return sendError(res, 404, 'ADMIN_NOT_FOUND', 'Akun staf tidak ditemukan.');
+        }
+        const body = await readJsonBody(req);
+        if (!isValidPassword(body.new_password)) {
+          return sendError(res, 422, 'WEAK_PASSWORD', 'Kata sandi baru minimal 8 karakter dengan huruf dan angka.');
+        }
+        await repo.updateUser(target.id, { password_hash: hashPassword(body.new_password) });
+        await repo.deleteSessionsByUserId(target.id);
+        await repo.createAuditLog({
+          actor_id: user.id,
+          action: 'RESET_STAFF_PASSWORD',
+          target_type: 'user',
+          target_id: target.id,
+          meta: { email: target.email },
+        });
+        return sendJson(res, 200, { ok: true });
       }
 
       const superAdminStatusMatch = pathname.match(/^\/api\/superadmin\/admins\/([^/]+)\/status$/);
@@ -1302,6 +1702,113 @@ export function createApp({ repo, config }) {
           meta: { from_status: reg.status, to_status: toStatus, note },
         });
         return sendJson(res, 200, { registration: updated });
+      }
+
+      const superCancelMatch = pathname.match(/^\/api\/superadmin\/registrations\/([^/]+)\/cancel$/);
+      if (method === 'POST' && superCancelMatch) {
+        if (!requireRoles(['SUPERADMIN'])) return;
+        const reg = isValidUuid(superCancelMatch[1]) ? await repo.hydrateRegistration(superCancelMatch[1]) : null;
+        if (!reg) return sendError(res, 404, 'REGISTRATION_NOT_FOUND', 'Pendaftaran tidak ditemukan.');
+
+        const body = await readJsonBody(req);
+        const reason = sanitizePlainText(body.reason || '', 500);
+        if (reason.length < 5) {
+          return sendError(res, 422, 'CANCEL_REASON_REQUIRED', 'Alasan pembatalan hak peserta wajib diisi (min 5 karakter).');
+        }
+
+        const updated = await repo.updateRegistration(
+          reg.id,
+          {
+            status: 'DIBATALKAN',
+            cancelled_by: user.id,
+            cancelled_at: new Date().toISOString(),
+            cancel_reason: reason,
+          },
+          {
+            status_log: {
+              from_status: reg.status,
+              to_status: 'DIBATALKAN',
+              changed_by: user.id,
+              note: `[SUPERADMIN CANCEL] ${reason}`,
+            },
+          }
+        );
+        await repo.createAuditLog({
+          actor_id: user.id,
+          action: 'CANCEL_PARTICIPANT_RIGHTS',
+          target_type: 'registration',
+          target_id: reg.id,
+          meta: { from_status: reg.status, reason },
+        });
+        return sendJson(res, 200, { registration: updated });
+      }
+
+      if (method === 'GET' && pathname === '/api/superadmin/news') {
+        if (!requireRoles(['SUPERADMIN'])) return;
+        const articles = repo.listNewsArticles ? await repo.listNewsArticles({ publishedOnly: false }) : [];
+        return sendJson(res, 200, { articles });
+      }
+
+      if (method === 'POST' && pathname === '/api/superadmin/news') {
+        if (!requireRoles(['SUPERADMIN'])) return;
+        const body = await readJsonBody(req);
+        const title = sanitizePlainText(body.title, 300);
+        const rawSlug = String(body.slug || title)
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .slice(0, 180);
+        if (title.length < 3 || !rawSlug) {
+          return sendError(res, 422, 'INVALID_NEWS', 'Judul dan slug berita wajib valid.');
+        }
+        const allowedCats = ['Pengumuman', 'Kompetisi', 'Technical Meeting', 'UMKM & Edukasi'];
+        const category = allowedCats.includes(body.category) ? body.category : 'Pengumuman';
+        const article = await repo.createNewsArticle({
+          slug: rawSlug,
+          title,
+          category,
+          excerpt: sanitizePlainText(body.excerpt || '', 500),
+          content: String(body.content || '').trim(),
+          cover_image_url: body.cover_image_url && isValidHttpUrl(body.cover_image_url) ? body.cover_image_url : null,
+          show_on_home: Boolean(body.show_on_home),
+          is_featured: Boolean(body.is_featured),
+          is_published: body.is_published !== false,
+          created_by: user.id,
+        });
+        return sendJson(res, 201, { article });
+      }
+
+      const superNewsMatch = pathname.match(/^\/api\/superadmin\/news\/([^/]+)$/);
+      if (method === 'PATCH' && superNewsMatch) {
+        if (!requireRoles(['SUPERADMIN'])) return;
+        const newsId = superNewsMatch[1];
+        if (!isValidUuid(newsId)) return sendError(res, 404, 'NEWS_NOT_FOUND', 'Berita tidak ditemukan.');
+        const body = await readJsonBody(req);
+        const patch = {};
+        if (body.title !== undefined) patch.title = sanitizePlainText(body.title, 300);
+        if (body.slug !== undefined) patch.slug = String(body.slug).toLowerCase().replace(/[^a-z0-9-]+/g, '-');
+        if (body.category !== undefined) patch.category = body.category;
+        if (body.excerpt !== undefined) patch.excerpt = sanitizePlainText(body.excerpt, 500);
+        if (body.content !== undefined) patch.content = String(body.content);
+        if (body.cover_image_url !== undefined) patch.cover_image_url = body.cover_image_url || null;
+        if (typeof body.show_on_home === 'boolean') patch.show_on_home = body.show_on_home;
+        if (typeof body.is_featured === 'boolean') patch.is_featured = body.is_featured;
+        if (typeof body.is_published === 'boolean') {
+          patch.is_published = body.is_published;
+          patch.published_at = body.is_published ? new Date().toISOString() : null;
+        }
+        const updated = await repo.updateNewsArticle(newsId, patch);
+        if (!updated) return sendError(res, 404, 'NEWS_NOT_FOUND', 'Berita tidak ditemukan.');
+        return sendJson(res, 200, { article: updated });
+      }
+
+      if (method === 'DELETE' && superNewsMatch) {
+        if (!requireRoles(['SUPERADMIN'])) return;
+        const newsId = superNewsMatch[1];
+        if (!isValidUuid(newsId)) return sendError(res, 404, 'NEWS_NOT_FOUND', 'Berita tidak ditemukan.');
+        const ok = await repo.deleteNewsArticle(newsId);
+        if (!ok) return sendError(res, 404, 'NEWS_NOT_FOUND', 'Berita tidak ditemukan.');
+        return sendJson(res, 200, { ok: true });
       }
 
       if (method === 'GET' && pathname === '/api/superadmin/audit-logs') {

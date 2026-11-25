@@ -24,34 +24,20 @@ export function buildOpenApiSpec(serverUrl = 'http://localhost:4000') {
         responses: { 200: jsonOk('Detail lomba'), 404: { description: 'Tidak ditemukan', content: { 'application/json': { schema: errRef } } } },
       },
     },
-    '/api/auth/register': {
+    '/api/auth/google': {
       post: {
         tags: ['Autentikasi'],
-        summary: 'Registrasi akun peserta baru (role otomatis PESERTA)',
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                required: ['email', 'password', 'name', 'privacy_accepted'],
-                properties: {
-                  email: { type: 'string', format: 'email', example: 'peserta@kampus.ac.id' },
-                  password: { type: 'string', example: 'Password123' },
-                  name: { type: 'string', example: 'Budi Santoso' },
-                  privacy_accepted: { type: 'boolean', example: true },
-                },
-              },
-            },
-          },
-        },
-        responses: { 201: jsonOk('Akun dibuat + cookie sesi diset'), 409: jsonOk('Email sudah terdaftar'), 422: jsonOk('Validasi gagal') },
+        summary: 'Daftar atau login peserta menggunakan token Google terverifikasi',
+        requestBody: { required: true, content: { 'application/json': { schema: {
+          type: 'object', required: ['credential'], properties: { credential: { type: 'string' } },
+        } } } },
+        responses: { 200: jsonOk('Sesi peserta dibuat'), 401: jsonOk('Token Google tidak valid'), 403: jsonOk('Akun staf atau ditangguhkan') },
       },
     },
     '/api/auth/login': {
       post: {
         tags: ['Autentikasi'],
-        summary: 'Login email & kata sandi (mengembalikan cookie HttpOnly digi_sid)',
+        summary: 'Login staf dengan email dan kata sandi',
         requestBody: {
           required: true,
           content: {
@@ -79,7 +65,7 @@ export function buildOpenApiSpec(serverUrl = 'http://localhost:4000') {
     '/api/auth/password': {
       patch: {
         tags: ['Autentikasi'],
-        summary: 'Ganti kata sandi sendiri',
+        summary: 'Ganti kata sandi akun staf',
         security: [{ cookieAuth: [] }],
         requestBody: {
           required: true,

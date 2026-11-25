@@ -97,7 +97,8 @@ export const BatikCursorTrail: React.FC = () => {
         color: BATIK_COLORS[Math.floor(Math.random() * BATIK_COLORS.length)],
       });
 
-      if (particles.length > 36) particles.shift();
+      if (particles.length > 18) particles.shift();
+      if (!rafId) rafId = window.requestAnimationFrame(render);
     };
 
     window.addEventListener('mousemove', onMouseMove, { passive: true });
@@ -118,10 +119,8 @@ export const BatikCursorTrail: React.FC = () => {
         drawKawungMotif(ctx, p.x, p.y, p.size, p.rotation, p.alpha, p.color);
       }
 
-      rafId = window.requestAnimationFrame(render);
+      rafId = particles.length ? window.requestAnimationFrame(render) : 0;
     };
-
-    rafId = window.requestAnimationFrame(render);
 
     return () => {
       window.cancelAnimationFrame(rafId);

@@ -1,0 +1,33 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build --workspace=web",
+  "outputDirectory": "web/dist",
+  "functions": {
+    "api/index.mjs": {
+      "maxDuration": 30,
+      "includeFiles": "api/db/**"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.mjs"
+    },
+    {
+      "source": "/health",
+      "destination": "/api/index.mjs"
+    },
+    {
+      "source": "/docs",
+      "destination": "/api/index.mjs"
+    },
+    {
+      "source": "/openapi.json",
+      "destination": "/api/index.mjs"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

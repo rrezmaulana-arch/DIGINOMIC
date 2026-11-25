@@ -14,8 +14,6 @@ import {
 import { COMPETITIONS_DATA } from '../../data/competitions';
 import {
   BatikKawungPattern,
-  MegaMendungClouds,
-  CompassWatermark,
   SectionWaveTransition,
 } from '../../components/Ornaments';
 
@@ -31,13 +29,10 @@ export const CompetitionsPage: React.FC = () => {
   ];
 
   return (
-    <div className="w-full overflow-x-hidden">
+    <div className="w-full overflow-x-clip">
       {/* ── HERO HEADER ── */}
       <section className="relative pt-28 sm:pt-36 pb-16 sm:pb-22 px-4 sm:px-8 lg:px-16 bg-gradient-to-b from-[#2f1d10] via-[#26160c] to-[#1e1108] text-[#faf4e8] overflow-hidden">
         <BatikKawungPattern color="#caa152" opacity={0.07} id="kawung-comp-page-hero" />
-        <CompassWatermark color="#caa152" className="absolute -bottom-24 -right-24 w-80 h-80 opacity-[0.06]" />
-        <MegaMendungClouds color="#caa152" className="absolute top-12 -right-14 w-64 sm:w-80 opacity-45" />
-        <MegaMendungClouds color="#caa152" flip className="absolute bottom-6 -left-14 w-64 sm:w-80 opacity-40" />
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#3f2818] border border-[#caa152]/50 text-[#f3d48c] font-cinzel text-[10px] sm:text-xs tracking-[0.22em] uppercase font-semibold mb-4">
@@ -126,8 +121,8 @@ export const CompetitionsPage: React.FC = () => {
 
                   <div className="relative z-10 flex flex-wrap items-center gap-3 pt-4 border-t border-[#ebdcc8]">
                     <button
-                      onClick={() => navigate(`/daftar?lomba=${comp.id}`)}
-                      className="btn-modern-shine flex-1 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-[#ba883a] via-[#caa152] to-[#b88636] text-white font-cinzel text-xs tracking-[0.16em] uppercase font-semibold shadow-xs active:scale-95 transition-all"
+                      onClick={() => navigate(`/daftar?lomba=${comp.slug}`)}
+                      className="btn-modern-shine flex-1 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-[#ba883a] via-[#caa152] to-[#b88636] text-white font-cinzel text-xs tracking-[0.16em] uppercase font-semibold shadow-xs active:scale-95 transition-all cursor-pointer"
                     >
                       <span>Daftar Lomba</span>
                       <ArrowRight className="w-3.5 h-3.5" />

@@ -1,32 +1,32 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { DashboardLayout, SidebarNavItem } from '../../layouts/DashboardLayout';
-import { Registration, RegistrationStatus, UserProfile } from '../../types';
-import { RegistrationService } from '../../services/registrationService';
+import { AdminApi } from '../../services/apiService';
+import type { AnnouncementItem, LeaderboardEntry, RegistrationStatus, UserProfile } from '../../types';
 import {
-  ShieldCheck,
-  Search,
-  Filter,
-  Download,
-  Check,
-  X,
-  MessageSquare,
-  ExternalLink,
-  FileText,
-  Award,
-  PieChart,
-  Send,
+  FileCheck,
   Users,
-  Clock,
-  Eye,
+  Award,
+  Megaphone,
+  Download,
+  Search,
   CheckCircle2,
+  XCircle,
+  ExternalLink,
+  BarChart3,
+  Pin,
+  Trash2,
+  Loader2,
   AlertCircle,
-  HelpCircle
+  Trophy,
+  ArrowUpRight,
+  RefreshCw,
+  Clock,
 } from 'lucide-react';
 
 interface AdminDashboardPageProps {
   currentUser: UserProfile;
   onLogout: () => void;
-  onSwitchRole?: (role: 'PESERTA' | 'ADMIN' | 'SUPERADMIN') => void;
+  onSwitchRole?: (role: 'PESERTA' | 'ADMIN' | 'JURI' | 'SUPERADMIN') => void;
 }
 
 export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
@@ -34,850 +34,812 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   onLogout,
   onSwitchRole,
 }) => {
-  const [registrations, setRegistrations] = useState<Registration[]>(() => RegistrationService.getAll());
-  const [activeTab, setActiveTab] = useState<'VERIFIKASI' | 'PENJURIAN' | 'REKAP' | 'BROADCAST'>('VERIFIKASI');
+  const isJuri = currentUser.role === 'JURI';
+  const [activeTab, setActiveTab] = useState(isJuri ? 'penjurian' : 'verif-esai');
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
 
-  // Filters for Verifikasi tab
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('ALL');
-  const [competitionFilter, setCompetitionFilter] = useState<string>('ALL');
+  const [competitions, setCompetitions] = useState<any[]>([]);
+  const [summary, setSummary] = useState<{ total: number; by_status: Record<string, number> } | null>(null);
+  const [registrations, setRegistrations] = useState<any[]>([]);
+  const [announcements, setAnnouncements] = useState<AnnouncementItem[]>([]);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
 
-  // Modals
-  const [selectedReg, setSelectedReg] = useState<Registration | null>(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [showRejectModal, setShowRejectModal] = useState(false);
+  // Filter & Search
+  const [searchQ, setSearchQ] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [rejectTarget, setRejectTarget] = useState<any>(null);
   const [rejectReason, setRejectReason] = useState('');
 
-  // Scoring Modal
-  const [showScoreModal, setShowScoreModal] = useState(false);
-  const [scoreTargetReg, setScoreTargetReg] = useState<Registration | null>(null);
-  const [inputScore, setInputScore] = useState<number>(85);
-  const [inputRound, setInputRound] = useState<'TAHAP_1' | 'FINAL'>('TAHAP_1');
-  const [inputFeedback, setInputFeedback] = useState('');
+  // Penjurian state
+  const [selectedJuryCompId, setSelectedJuryCompId] = useState<string>(
+    currentUser.assignedCompetitionId || ''
+  );
+  const [juryRound, setJuryRound] = useState<'TAHAP_1' | 'FINAL'>('TAHAP_1');
+  const [scoringEntry, setScoringEntry] = useState<LeaderboardEntry | null>(null);
+  const [scoreOrisinalitas, setScoreOrisinalitas] = useState(80);
+  const [scoreAnalisis, setScoreAnalisis] = useState(80);
+  const [scoreInovasi, setScoreInovasi] = useState(80);
+  const [scoreSistematika, setScoreSistematika] = useState(80);
+  const [scoreFeedback, setScoreFeedback] = useState('');
 
-  // Broadcast WA State
-  const [broadcastTargetId, setBroadcastTargetId] = useState<string>('');
-  const [broadcastType, setBroadcastType] = useState<'REMINDER_SUBMIT' | 'LOLOS_TAHAP_1' | 'PANGGILAN_FINAL'>('REMINDER_SUBMIT');
+  // Broadcast state
+  const [annTitle, setAnnTitle] = useState('');
+  const [annBody, setAnnBody] = useState('');
+  const [annCompId, setAnnCompId] = useState<string>('');
+  const [annPinned, setAnnPinned] = useState(false);
 
-  const settings = RegistrationService.getSettings();
+  const loadBaseData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const compRes = await AdminApi.listCompetitions();
+      const comps = compRes.competitions || [];
+      setCompetitions(comps);
 
-  // Filtered registrations
-  const filteredRegistrations = registrations.filter((r) => {
-    const matchesSearch =
-      r.participantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.registrationCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.institution.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (r.teamName && r.teamName.toLowerCase().includes(searchQuery.toLowerCase()));
-
-    const matchesStatus = statusFilter === 'ALL' || r.status === statusFilter;
-    const matchesComp = competitionFilter === 'ALL' || r.competitionId === competitionFilter;
-
-    return matchesSearch && matchesStatus && matchesComp;
-  });
-
-  // Submitted works list
-  const submittedWorks = registrations.filter((r) => r.submission && r.submission.driveLink);
-
-  // Statistics
-  const totalCount = registrations.length;
-  const pendingCount = registrations.filter((r) => r.status === 'MENUNGGU_VERIFIKASI').length;
-  const verifiedCount = registrations.filter((r) => r.status === 'TERVERIFIKASI').length;
-  const rejectedCount = registrations.filter((r) => r.status === 'DITOLAK').length;
-  const submittedCount = submittedWorks.length;
-
-  const esaiCount = registrations.filter((r) => r.competitionId === 'comp-1').length;
-  const caseCount = registrations.filter((r) => r.competitionId === 'comp-2').length;
-
-  // Actions
-  const handleApprove = (regId: string) => {
-    const updated = RegistrationService.updateStatus(regId, 'TERVERIFIKASI', undefined, currentUser.name);
-    setRegistrations(updated);
-  };
-
-  const handleRejectSubmit = () => {
-    if (!selectedReg || !rejectReason.trim()) {
-      alert('Mohon tuliskan alasan penolakan atau instruksi perbaikan.');
-      return;
+      if (isJuri) {
+        const compId = currentUser.assignedCompetitionId || comps[0]?.id || '';
+        setSelectedJuryCompId(compId);
+        if (compId) {
+          const lbRes = await AdminApi.getLeaderboard(compId, juryRound);
+          setLeaderboard(lbRes.leaderboard || []);
+        }
+      } else {
+        const defaultCompId = selectedJuryCompId || comps[0]?.id || '';
+        if (!selectedJuryCompId && defaultCompId) {
+          setSelectedJuryCompId(defaultCompId);
+        }
+        const [sumRes, regRes, annRes, lbRes] = await Promise.all([
+          AdminApi.getSummary(),
+          AdminApi.listRegistrations({ page: 1, page_size: 100 }),
+          AdminApi.listAnnouncements(),
+          defaultCompId ? AdminApi.getLeaderboard(defaultCompId, juryRound) : Promise.resolve({ leaderboard: [] }),
+        ]);
+        setSummary(sumRes);
+        setRegistrations(regRes.items || []);
+        setAnnouncements(annRes.announcements || []);
+        setLeaderboard(lbRes.leaderboard || []);
+      }
+    } catch (err: any) {
+      setFeedback({ type: 'error', msg: err?.message || 'Gagal memuat data panel.' });
+    } finally {
+      setLoading(false);
     }
-    const updated = RegistrationService.updateStatus(selectedReg.id, 'DITOLAK', rejectReason, currentUser.name);
-    setRegistrations(updated);
-    setShowRejectModal(false);
-    setRejectReason('');
+  }, [isJuri, currentUser.assignedCompetitionId, juryRound, selectedJuryCompId]);
+
+  useEffect(() => {
+    loadBaseData();
+  }, [loadBaseData]);
+
+  const esaiComp = competitions.find((c) => c.slug?.includes('esai') || c.name?.toLowerCase().includes('esai'));
+  const caseComp = competitions.find((c) => !c.slug?.includes('esai') && !c.name?.toLowerCase().includes('esai'));
+
+  const navItems: SidebarNavItem[] = isJuri
+    ? [{ id: 'penjurian', label: 'Penjurian & Peringkat', icon: <Award className="w-4 h-4" /> }]
+    : [
+        {
+          id: 'verif-esai',
+          label: 'Verifikasi Esai',
+          icon: <FileCheck className="w-4 h-4" />,
+          badge:
+            registrations.filter((r) => r.competition_id === esaiComp?.id && r.status === 'MENUNGGU_VERIFIKASI').length ||
+            undefined,
+        },
+        {
+          id: 'verif-case',
+          label: 'Verifikasi Mini Case',
+          icon: <Users className="w-4 h-4" />,
+          badge:
+            registrations.filter((r) => r.competition_id === caseComp?.id && r.status === 'MENUNGGU_VERIFIKASI').length ||
+            undefined,
+        },
+        { id: 'penjurian', label: 'Penjurian & Peringkat', icon: <Award className="w-4 h-4" /> },
+        {
+          id: 'broadcast',
+          label: 'Broadcast Pengumuman',
+          icon: <Megaphone className="w-4 h-4" />,
+          badge: announcements.length || undefined,
+        },
+        { id: 'export', label: 'Rekap Data CSV', icon: <Download className="w-4 h-4" /> },
+      ];
+
+  const handleStatusChange = async (regId: string, status: RegistrationStatus, reason?: string) => {
+    setActionLoading(true);
+    setFeedback(null);
+    try {
+      await AdminApi.updateRegistrationStatus(regId, status, reason);
+      setRejectTarget(null);
+      setRejectReason('');
+      setFeedback({ type: 'success', msg: `Status pendaftaran berhasil diperbarui menjadi ${status}.` });
+      await loadBaseData();
+    } catch (err: any) {
+      setFeedback({ type: 'error', msg: err?.message || 'Gagal mengubah status.' });
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  const handleScoreSubmit = (e: React.FormEvent) => {
+  const handleCreateBroadcast = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!scoreTargetReg) return;
-    const updated = RegistrationService.scoreSubmission(
-      scoreTargetReg.id,
-      inputScore,
-      inputRound,
-      inputFeedback,
-      currentUser.name
+    setActionLoading(true);
+    setFeedback(null);
+    try {
+      await AdminApi.createAnnouncement({
+        competition_id: annCompId || null,
+        title: annTitle,
+        body: annBody,
+        is_pinned: annPinned,
+      });
+      setAnnTitle('');
+      setAnnBody('');
+      setAnnPinned(false);
+      setFeedback({ type: 'success', msg: 'Broadcast pengumuman berhasil dikirim ke portal peserta!' });
+      await loadBaseData();
+    } catch (err: any) {
+      setFeedback({ type: 'error', msg: err?.message || 'Gagal mengirim broadcast.' });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleSubmitScore = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!scoringEntry) return;
+    setActionLoading(true);
+    setFeedback(null);
+    try {
+      await AdminApi.submitScore({
+        submission_id: scoringEntry.submission_id,
+        round: juryRound,
+        score_orisinalitas: scoreOrisinalitas,
+        score_analisis: scoreAnalisis,
+        score_inovasi: scoreInovasi,
+        score_sistematika: scoreSistematika,
+        feedback: scoreFeedback,
+      });
+      setScoringEntry(null);
+      setScoreFeedback('');
+      setFeedback({
+        type: 'success',
+        msg: `Nilai rubrik untuk ${scoringEntry.team_name || scoringEntry.leader_name} berhasil disimpan.`,
+      });
+      const lbRes = await AdminApi.getLeaderboard(selectedJuryCompId, juryRound);
+      setLeaderboard(lbRes.leaderboard || []);
+    } catch (err: any) {
+      setFeedback({ type: 'error', msg: err?.message || 'Gagal menyimpan nilai juri.' });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const renderVerificationList = (compId?: string, title?: string) => {
+    const filtered = registrations.filter((r) => {
+      if (compId && r.competition_id !== compId) return false;
+      if (statusFilter && r.status !== statusFilter) return false;
+      if (searchQ) {
+        const q = searchQ.toLowerCase();
+        const match =
+          r.registration_code?.toLowerCase().includes(q) ||
+          r.user?.name?.toLowerCase().includes(q) ||
+          r.team_name?.toLowerCase().includes(q) ||
+          r.profile?.institution?.toLowerCase().includes(q);
+        if (!match) return false;
+      }
+      return true;
+    });
+
+    return (
+      <div className="space-y-4">
+        <div className="bg-white/95 rounded-2xl p-5 border border-[#ebdcc8] shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 className="font-cormorant text-2xl font-semibold text-[#2f1e10]">{title}</h2>
+            <p className="text-xs text-[#7a5530]">Periksa keaslian KTM dan bukti pembayaran QRIS sebelum menyetujui peserta.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#7a5530]" />
+              <input
+                type="text"
+                value={searchQ}
+                onChange={(e) => setSearchQ(e.target.value)}
+                placeholder="Cari kode / nama / kampus..."
+                className="pl-8 pr-3 py-1.5 rounded-xl border border-[#d8be99] text-xs bg-[#faf4e8]/50 focus:bg-white focus:outline-none"
+              />
+            </div>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-[#d8be99] text-xs bg-white"
+            >
+              <option value="">Semua Status</option>
+              <option value="MENUNGGU_VERIFIKASI">Menunggu Verifikasi</option>
+              <option value="TERVERIFIKASI">Terverifikasi</option>
+              <option value="DITOLAK">Ditolak (Perlu Revisi)</option>
+              <option value="LOLOS_TAHAP_1">Lolos Tahap 1</option>
+              <option value="FINALIS">Finalis</option>
+              <option value="JUARA">Juara</option>
+              <option value="DIBATALKAN">Dibatalkan</option>
+            </select>
+          </div>
+        </div>
+
+        {filtered.length === 0 ? (
+          <div className="bg-white/95 rounded-2xl p-10 border border-[#ebdcc8] text-center space-y-1">
+            <p className="font-cormorant text-xl text-[#2f1e10]">Belum Ada Data Pendaftar</p>
+            <p className="text-xs text-[#7a5530]">Tidak ada pendaftaran yang sesuai dengan filter pada cabang lomba ini.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filtered.map((reg) => (
+              <div key={reg.id} className="bg-white/95 rounded-2xl p-4 sm:p-5 border border-[#ebdcc8] shadow-2xs space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono text-xs font-bold text-[#ba883a]">{reg.registration_code}</span>
+                      <span className="font-semibold text-sm text-[#2f1e10]">
+                        {reg.team_name ? `${reg.team_name} (${reg.user?.name})` : reg.user?.name}
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#faf4e8] border border-[#ebdcc8]">
+                        {reg.status}
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#7a5530]">
+                      {reg.profile?.institution || '-'} • NIM: {reg.profile?.nim || '-'} • WA: {reg.profile?.phone_wa || '-'}
+                    </p>
+                    {reg.payment_sender_name && (
+                      <p className="text-[11px] text-emerald-800 font-medium">
+                        Pengirim QRIS: {reg.payment_sender_name} {reg.payment_date ? `(${reg.payment_date})` : ''}
+                      </p>
+                    )}
+                    {reg.team_members?.length > 0 && (
+                      <p className="text-[11px] text-[#5c3e28]">
+                        Anggota Tim: {reg.team_members.map((m: any) => `${m.full_name} (${m.nim || '-'})`).join(', ')}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <a
+                      href={AdminApi.getRegFileUrl(reg.id, 'student-card')}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[#ebdcc8] text-xs hover:bg-[#faf4e8]"
+                    >
+                      <span>Lihat KTM</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                    {(reg.payment_proof_drive_id || reg.payment_proof_path) ? (
+                      <a
+                        href={AdminApi.getRegFileUrl(reg.id, 'payment-proof')}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-emerald-300 bg-emerald-50/50 text-emerald-900 text-xs hover:bg-emerald-50"
+                      >
+                        <span>Bukti QRIS</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200 text-[11px] text-amber-800">
+                        <Clock className="w-3 h-3" /> Belum unggah bayar
+                      </span>
+                    )}
+
+                    {reg.status === 'MENUNGGU_VERIFIKASI' && (
+                      <>
+                        <button
+                          type="button"
+                          disabled={actionLoading}
+                          onClick={() => handleStatusChange(reg.id, 'TERVERIFIKASI')}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-700 text-white text-xs font-semibold hover:bg-emerald-800 cursor-pointer"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Setujui
+                        </button>
+                        <button
+                          type="button"
+                          disabled={actionLoading}
+                          onClick={() => setRejectTarget(reg)}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700 cursor-pointer"
+                        >
+                          <XCircle className="w-3.5 h-3.5" /> Tolak
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     );
-    setRegistrations(updated);
-    setShowScoreModal(false);
   };
-
-  const handleExportCSV = () => {
-    RegistrationService.exportToCSV(registrations);
-  };
-
-  const handleChatWA = (reg: Registration, customMsg?: string) => {
-    const defaultMsg = `Halo Kak ${reg.participantName}, kami dari Panitia Digiconomic Fest 2027 terkait pendaftaran Anda (#${reg.registrationCode}) untuk cabang ${reg.competitionTitle}.`;
-    const url = RegistrationService.buildWhatsAppChatUrl(reg.phoneWa, customMsg || defaultMsg);
-    window.open(url, '_blank');
-  };
-
-  const adminNavItems: SidebarNavItem[] = [
-    { id: 'VERIFIKASI', label: 'Verifikasi Berkas', icon: <ShieldCheck className="w-4 h-4" />, badge: pendingCount },
-    { id: 'PENJURIAN', label: 'Penjurian Karya', icon: <Award className="w-4 h-4" />, badge: submittedCount },
-    { id: 'REKAP', label: 'Rekap & Kuota', icon: <PieChart className="w-4 h-4" /> },
-    { id: 'BROADCAST', label: 'Broadcast WhatsApp', icon: <Send className="w-4 h-4" /> },
-  ];
 
   return (
     <DashboardLayout
       currentUser={currentUser}
       onLogout={onLogout}
       onSwitchRole={onSwitchRole}
-      navItems={adminNavItems}
+      navItems={navItems}
       activeTab={activeTab}
-      onSelectTab={(tabId) => setActiveTab(tabId as any)}
+      onSelectTab={(t) => {
+        setFeedback(null);
+        setActiveTab(t);
+      }}
     >
-      <div className="space-y-6 animate-in fade-in">
-
-        {/* ================= 1. HEADER & METRICS SUMMARY ================= */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-[#ebdcc8] gap-4">
+      <div className="max-w-6xl mx-auto space-y-5">
+        {/* Header Bar + Refresh */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/95 rounded-2xl p-5 border border-[#ebdcc8] shadow-2xs">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="font-cinzel text-[10px] font-semibold uppercase tracking-widest text-[#7a5530]">
-                Internal Panitia Pelaksana
-              </span>
-              <span className="text-[10px] text-[#caa152]">✦</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#2f1e10] font-sans">
-              Dashboard Administrasi & Verifikasi Lomba
-            </h1>
-            <p className="text-xs text-[#5c3e28]">
-              Kendali terpusat verifikasi pendaftar, penilaian naskah kompetisi, monitoring kuota, dan korespondensi WhatsApp.
+            <p className="text-[10px] font-cinzel uppercase tracking-[0.2em] text-[#ba883a] font-semibold">
+              {isJuri ? 'Portal Evaluasi Karya Resmi' : 'Portal Operasional Panitia'}
             </p>
+            <h1 className="font-cormorant text-2xl sm:text-3xl text-[#2f1e10] font-semibold mt-0.5">
+              {navItems.find((n) => n.id === activeTab)?.label || 'Panel Panitia'}
+            </h1>
           </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleExportCSV}
-              className="px-4 py-2.5 rounded-full bg-[#faf4e8] hover:bg-[#f0e3cc] text-[#2f1e10] text-xs font-semibold font-sans tracking-wider flex items-center gap-2 border border-[#caa152] shadow-2xs transition-all"
-            >
-              <Download className="w-3.5 h-3.5 text-[#7a5530]" />
-              <span>Ekspor CSV Rekap</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={loadBaseData}
+            disabled={loading}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#faf4e8] hover:bg-[#f0e3cc] border border-[#caa152]/60 text-xs font-semibold text-[#2f1e10] transition-colors self-start sm:self-auto cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-[#ba883a] ${loading ? 'animate-spin' : ''}`} />
+            <span>Segarkan</span>
+          </button>
         </div>
 
-        {/* 4 Stat Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <div className="p-4 rounded-2xl bg-[#fffdf9] border border-[#ebdcc8] shadow-2xs">
-            <p className="text-[11px] uppercase font-semibold text-[#7a5530] font-sans tracking-wider">Total Pendaftar</p>
-            <p className="text-2xl font-bold font-sans text-[#2f1e10] mt-1">{totalCount}</p>
-            <span className="text-[10px] text-[#7a5530]">Esai: {esaiCount} • Case: {caseCount}</span>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-[#faf4e8] border-2 border-[#caa152] shadow-2xs">
-            <p className="text-[11px] uppercase font-semibold text-[#7a5530] font-sans tracking-wider">Menunggu Verifikasi</p>
-            <p className="text-2xl font-bold font-sans text-[#ba883a] mt-1">{pendingCount}</p>
-            <span className="text-[10px] text-[#ba883a] font-medium">Perlu review berkas</span>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-[#fffdf9] border border-[#ebdcc8] shadow-2xs">
-            <p className="text-[11px] uppercase font-semibold text-[#7a5530] font-sans tracking-wider">Terverifikasi</p>
-            <p className="text-2xl font-bold font-sans text-[#2f1e10] mt-1">{verifiedCount}</p>
-            <span className="text-[10px] text-[#7a5530]">Siap kumpul karya</span>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-[#fffdf9] border border-[#ebdcc8] shadow-2xs">
-            <p className="text-[11px] uppercase font-semibold text-[#7a5530] font-sans tracking-wider">Karya Terkumpul</p>
-            <p className="text-2xl font-bold font-sans text-[#7a5530] mt-1">{submittedCount}</p>
-            <span className="text-[10px] text-[#7a5530]">Menunggu / sudah dinilai</span>
-          </div>
-        </div>
-
-
-
-        {/* ================= TAB 1: VERIFIKASI BERKAS & PEMBAYARAN ================= */}
-        {activeTab === 'VERIFIKASI' && (
-          <div className="space-y-4">
-
-            {/* Search & Filters */}
-            <div className="bg-[#fffdf9] p-4 rounded-2xl border border-[#ebdcc8] flex flex-col md:flex-row gap-3 items-center justify-between">
-              <div className="relative flex-1 w-full">
-                <Search className="w-4 h-4 absolute left-3.5 top-3 text-[#7a5530]" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Cari nama peserta, ID registrasi, kampus, atau nama tim..."
-                  className="w-full pl-10 pr-3 py-2 rounded-xl bg-[#faf4e8]/60 border border-[#ebdcc8] text-xs text-[#2f1e10] focus:outline-none focus:border-[#caa152] focus:bg-white"
-                />
-              </div>
-
-              <div className="flex items-center gap-2 w-full md:w-auto">
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="py-2 px-3 rounded-xl bg-white border border-[#ebdcc8] text-xs font-cinzel font-semibold text-[#2f1e10] focus:outline-none"
-                >
-                  <option value="ALL">Semua Status</option>
-                  <option value="MENUNGGU_VERIFIKASI">Menunggu Verifikasi</option>
-                  <option value="TERVERIFIKASI">Terverifikasi</option>
-                  <option value="LOLOS_TAHAP_1">Lolos Tahap 1</option>
-                  <option value="FINALIS">Finalis</option>
-                  <option value="JUARA">Juara</option>
-                  <option value="DITOLAK">Ditolak / Revisi</option>
-                </select>
-
-                <select
-                  value={competitionFilter}
-                  onChange={(e) => setCompetitionFilter(e.target.value)}
-                  className="py-2 px-3 rounded-xl bg-white border border-[#ebdcc8] text-xs font-cinzel font-semibold text-[#2f1e10] focus:outline-none"
-                >
-                  <option value="ALL">Semua Cabang</option>
-                  <option value="comp-1">Esai Nasional</option>
-                  <option value="comp-2">Mini Case Competition</option>
-                </select>
-              </div>
+        {/* Ringkasan Cepat khusus Admin */}
+        {!isJuri && summary && (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+            <div className="bg-white/95 rounded-2xl p-4 border border-[#ebdcc8]">
+              <p className="text-[11px] text-[#7a5530] font-medium">Total Pendaftaran</p>
+              <p className="font-cormorant text-2xl sm:text-3xl font-semibold text-[#2f1e10] mt-0.5">{summary.total}</p>
             </div>
-
-            {/* Table */}
-            <div className="bg-[#fffdf9] rounded-2xl border border-[#ebdcc8] overflow-hidden shadow-2xs">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="bg-[#faf4e8] border-b border-[#ebdcc8] text-[#7a5530] font-cinzel font-semibold text-[10px] tracking-wider uppercase">
-                      <th className="py-3 px-4">ID & Tanggal</th>
-                      <th className="py-3 px-4">Nama Peserta / Tim</th>
-                      <th className="py-3 px-4">Cabang Lomba</th>
-                      <th className="py-3 px-4">Institusi & Kontak</th>
-                      <th className="py-3 px-4 text-center">Status</th>
-                      <th className="py-3 px-4 text-center">Aksi Verifikasi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#f5ede0]">
-                    {filteredRegistrations.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="py-10 text-center text-[#7a5530] font-sans">
-                          Tidak ditemukan data pendaftar yang cocok dengan filter pencarian.
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredRegistrations.map((reg) => (
-                        <tr key={reg.id} className="hover:bg-[#faf4e8]/60 transition-colors">
-                          <td className="py-3.5 px-4">
-                            <span className="font-mono font-bold text-[#7a5530] text-[11px] block">
-                              #{reg.registrationCode}
-                            </span>
-                            <span className="text-[10px] text-[#7a5530] block">{reg.registeredAt}</span>
-                          </td>
-
-                          <td className="py-3.5 px-4">
-                            <span className="font-medium text-sm text-[#2f1e10] block">{reg.participantName}</span>
-                            {reg.isTeam && (
-                              <span className="text-[10px] text-[#ba883a] font-cinzel uppercase tracking-wider block">
-                                Tim: {reg.teamName || 'Tim'} ({reg.teamMembers?.length ? reg.teamMembers.length + 1 : 1} orang)
-                              </span>
-                            )}
-                          </td>
-
-                          <td className="py-3.5 px-4">
-                            <span className="font-medium text-[#2f1e10] block">{reg.competitionTitle}</span>
-                            <span className="text-[10px] font-mono text-[#7a5530]">
-                              Rp {reg.fee.toLocaleString('id-ID')}
-                            </span>
-                          </td>
-
-                          <td className="py-3.5 px-4">
-                            <span className="block text-[#2f1e10]">{reg.institution}</span>
-                            <button
-                              onClick={() => handleChatWA(reg)}
-                              className="text-[10px] text-[#7a5530] font-semibold hover:underline flex items-center gap-1 mt-0.5"
-                            >
-                              <MessageSquare className="w-3 h-3 text-[#caa152]" />
-                              <span>{reg.phoneWa} (Chat WA)</span>
-                            </button>
-                          </td>
-
-                          <td className="py-3.5 px-4 text-center">
-                            <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-cinzel font-semibold tracking-wider ${reg.status === 'TERVERIFIKASI'
-                              ? 'bg-[#f0e3cc] text-[#2f1e10] border border-[#caa152]'
-                              : reg.status === 'MENUNGGU_VERIFIKASI'
-                                ? 'bg-[#faf4e8] text-[#7a5530] border border-[#ebdcc8]'
-                                : reg.status === 'DITOLAK'
-                                  ? 'bg-[#f5ede0] text-[#7a5530] border border-[#d8be99]'
-                                  : 'bg-[#2f1e10] text-[#caa152] border border-[#caa152]'
-                              }`}>
-                              {reg.status}
-                            </span>
-                          </td>
-
-                          <td className="py-3.5 px-4 text-center">
-                            <div className="flex items-center justify-center gap-1.5">
-                              {/* Detail Button */}
-                              <button
-                                onClick={() => {
-                                  setSelectedReg(reg);
-                                  setShowDetailModal(true);
-                                }}
-                                className="p-1.5 rounded-lg bg-[#faf4e8] text-[#7a5530] hover:text-[#2f1e10] hover:bg-[#f0e3cc] transition-colors border border-[#ebdcc8]"
-                                title="Lihat Berkas & Detail"
-                              >
-                                <Eye className="w-3.5 h-3.5" />
-                              </button>
-
-                              {reg.status === 'MENUNGGU_VERIFIKASI' ? (
-                                <>
-                                  <button
-                                    onClick={() => handleApprove(reg.id)}
-                                    className="px-3 py-1 rounded-lg bg-[#2f1e10] hover:bg-[#7a5530] text-[#f5eee2] font-cinzel text-[10px] font-semibold tracking-wider border border-[#caa152] shadow-2xs flex items-center gap-1"
-                                    title="Setujui Pendaftaran"
-                                  >
-                                    <Check className="w-3 h-3 text-[#caa152]" />
-                                    <span>Setujui</span>
-                                  </button>
-
-                                  <button
-                                    onClick={() => {
-                                      setSelectedReg(reg);
-                                      setShowRejectModal(true);
-                                    }}
-                                    className="px-2.5 py-1 rounded-lg bg-[#faf4e8] hover:bg-[#f5ede0] text-[#7a5530] font-cinzel text-[10px] font-semibold tracking-wider border border-[#7a5530]"
-                                    title="Tolak / Minta Revisi"
-                                  >
-                                    Tolak
-                                  </button>
-                                </>
-                              ) : (
-                                <select
-                                  value={reg.status}
-                                  onChange={(e) => {
-                                    const updated = RegistrationService.updateStatus(reg.id, e.target.value as RegistrationStatus, undefined, currentUser.name);
-                                    setRegistrations(updated);
-                                  }}
-                                  className="bg-[#faf4e8] text-[10px] font-cinzel font-semibold px-2 py-1 rounded-lg border border-[#caa152] text-[#2f1e10] focus:outline-none"
-                                >
-                                  <option value="TERVERIFIKASI">Terverifikasi</option>
-                                  <option value="LOLOS_TAHAP_1">Lolos Tahap 1</option>
-                                  <option value="FINALIS">Finalis</option>
-                                  <option value="JUARA">Juara</option>
-                                  <option value="DITOLAK">Ditolak</option>
-                                </select>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+            <div className="bg-white/95 rounded-2xl p-4 border border-amber-200">
+              <p className="text-[11px] text-amber-800 font-medium">Menunggu Verifikasi</p>
+              <p className="font-cormorant text-2xl sm:text-3xl font-semibold text-amber-900 mt-0.5">
+                {summary.by_status?.MENUNGGU_VERIFIKASI || 0}
+              </p>
             </div>
-
+            <div className="bg-white/95 rounded-2xl p-4 border border-emerald-200">
+              <p className="text-[11px] text-emerald-800 font-medium">Terverifikasi Resmi</p>
+              <p className="font-cormorant text-2xl sm:text-3xl font-semibold text-emerald-900 mt-0.5">
+                {summary.by_status?.TERVERIFIKASI || 0}
+              </p>
+            </div>
+            <div className="bg-white/95 rounded-2xl p-4 border border-indigo-200">
+              <p className="text-[11px] text-indigo-800 font-medium">Lolos / Finalis</p>
+              <p className="font-cormorant text-2xl sm:text-3xl font-semibold text-indigo-900 mt-0.5">
+                {(summary.by_status?.LOLOS_TAHAP_1 || 0) + (summary.by_status?.FINALIS || 0) + (summary.by_status?.JUARA || 0)}
+              </p>
+            </div>
           </div>
         )}
 
-        {/* ================= TAB 2: MANAJEMEN KARYA & PENJURIAN ================= */}
-        {activeTab === 'PENJURIAN' && (
-          <div className="space-y-4">
-            <div className="p-4 rounded-2xl bg-[#fffdf9] border border-[#ebdcc8] flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-bold font-sans text-[#2f1e10]">
-                  Daftar Naskah & Pengumpulan Karya
-                </h3>
-                <p className="text-xs text-[#5c3e28]">
-                  Dewan juri dapat membuka tautan Google Drive peserta dan memberikan skor penilaian serta umpan balik ilmiah.
-                </p>
-              </div>
-              <span className="text-xs font-semibold font-sans text-[#7a5530] bg-[#faf4e8] px-3 py-1 rounded-full border border-[#ebdcc8]">
-                {submittedWorks.length} Naskah Terkumpul
-              </span>
-            </div>
+        {feedback && (
+          <div
+            className={`p-3.5 rounded-xl border text-xs flex items-start gap-2.5 ${
+              feedback.type === 'success'
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                : 'bg-red-50 border-red-200 text-red-900'
+            }`}
+          >
+            {feedback.type === 'success' ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            ) : (
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+            )}
+            <span>{feedback.msg}</span>
+          </div>
+        )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {submittedWorks.length === 0 ? (
-                <div className="col-span-2 py-12 text-center text-[#7a5530] bg-[#fffdf9] rounded-2xl border border-[#ebdcc8]">
-                  Belum ada peserta yang mengumpulkan naskah karya.
-                </div>
-              ) : (
-                submittedWorks.map((reg) => (
-                  <div key={reg.id} className="p-5 rounded-2xl bg-[#fffdf9] border-2 border-[#caa152] shadow-xs space-y-3 relative">
-                    <div className="flex items-start justify-between gap-2">
+        {loading ? (
+          <div className="bg-white/80 rounded-2xl p-12 border border-[#ebdcc8] flex flex-col items-center justify-center gap-3">
+            <Loader2 className="w-7 h-7 animate-spin text-[#caa152]" />
+            <p className="text-xs text-[#7a5530]">Memuat data...</p>
+          </div>
+        ) : (
+          <>
+            {!isJuri && activeTab === 'verif-esai' && renderVerificationList(esaiComp?.id, 'Verifikasi Pendaftar — Esai Nasional')}
+            {!isJuri && activeTab === 'verif-case' && renderVerificationList(caseComp?.id, 'Verifikasi Pendaftar — Mini Case Competition')}
+
+            {/* PENJURIAN & PERINGKAT */}
+            {activeTab === 'penjurian' && (
+              <div className="space-y-5">
+                {!isJuri && competitions.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {competitions.map((comp) => (
+                      <button
+                        key={comp.id}
+                        type="button"
+                        onClick={() => setSelectedJuryCompId(comp.id)}
+                        className={`p-5 rounded-2xl border-2 text-left transition-all cursor-pointer ${
+                          selectedJuryCompId === comp.id
+                            ? 'bg-[#2f1e10] text-[#faf4e8] border-[#caa152]'
+                            : 'bg-white/95 text-[#2f1e10] border-[#ebdcc8] hover:border-[#caa152]'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-cormorant text-xl font-semibold">{comp.name}</span>
+                          <BarChart3 className="w-5 h-5 text-[#caa152]" />
+                        </div>
+                        <p className={`text-xs mt-1 ${selectedJuryCompId === comp.id ? 'text-[#ebdcc8]' : 'text-[#7a5530]'}`}>
+                          Klik untuk membuka papan peringkat &amp; penilaian juri
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {selectedJuryCompId && (
+                  <div className="bg-white/95 rounded-2xl p-5 sm:p-6 border border-[#ebdcc8] shadow-2xs space-y-5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div>
-                        <span className="font-cinzel text-[10px] font-semibold text-[#7a5530] uppercase">
-                          {reg.competitionTitle} • #{reg.registrationCode}
-                        </span>
-                        <h4 className="text-xl font-bold font-sans text-[#2f1e10] leading-snug">
-                          "{reg.submission?.title}"
-                        </h4>
+                        <h3 className="font-cormorant text-2xl font-semibold text-[#2f1e10] flex items-center gap-2">
+                          <Trophy className="w-5 h-5 text-[#caa152]" />
+                          Peringkat &amp; Penjurian ({competitions.find((c) => c.id === selectedJuryCompId)?.name || 'Cabang Lomba'})
+                        </h3>
                         <p className="text-xs text-[#7a5530]">
-                          Oleh: <strong>{reg.participantName}</strong> ({reg.institution})
+                          Nilai otomatis dirata-ratakan dari seluruh akun dewan juri yang menilai karya.
                         </p>
                       </div>
-
-                      {reg.submission?.score ? (
-                        <div className="text-center bg-[#faf4e8] p-2 rounded-xl border border-[#caa152] shrink-0">
-                          <span className="font-cinzel text-[8px] uppercase tracking-wider text-[#7a5530] block">Skor Juri</span>
-                          <span className="font-cormorant text-2xl font-bold text-[#ba883a] block leading-none">
-                            {reg.submission.score}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-[10px] font-cinzel text-[#7a5530] bg-[#faf4e8] px-2 py-1 rounded border border-[#ebdcc8] shrink-0">
-                          Belum Dinilai
-                        </span>
-                      )}
+                      <div className="flex gap-2">
+                        {(['TAHAP_1', 'FINAL'] as const).map((r) => (
+                          <button
+                            key={r}
+                            type="button"
+                            onClick={() => setJuryRound(r)}
+                            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold cursor-pointer ${
+                              juryRound === r
+                                ? 'bg-[#ba883a] text-white'
+                                : 'bg-[#faf4e8] text-[#7a5530] border border-[#ebdcc8]'
+                            }`}
+                          >
+                            {r === 'TAHAP_1' ? 'Penyisihan (Tahap 1)' : 'Babak Final'}
+                          </button>
+                        ))}
+                      </div>
                     </div>
 
-                    {reg.submission?.description && (
-                      <p className="text-xs text-[#5c3e28] bg-[#faf4e8]/60 p-3 rounded-xl border border-[#ebdcc8] font-sans">
-                        "{reg.submission.description}"
-                      </p>
+                    {leaderboard.length > 0 && (
+                      <div className="p-4 rounded-xl bg-[#faf4e8]/70 border border-[#ebdcc8] space-y-2.5">
+                        <p className="text-xs font-semibold text-[#2f1e10]">Grafik Peringkat Sementara (Top 10)</p>
+                        {leaderboard.slice(0, 10).map((entry, idx) => {
+                          const score = Number(entry.avg_score || 0);
+                          return (
+                            <div key={entry.submission_id} className="space-y-1">
+                              <div className="flex justify-between text-[11px]">
+                                <span className="font-semibold text-[#2f1e10]">
+                                  #{idx + 1} {entry.team_name || entry.leader_name} ({entry.institution || '-'})
+                                </span>
+                                <span className="font-bold text-[#ba883a]">
+                                  {score > 0 ? `${score} (${entry.jury_count} juri)` : 'Belum dinilai'}
+                                </span>
+                              </div>
+                              <div className="w-full h-2.5 rounded-full bg-white border border-[#ebdcc8] overflow-hidden">
+                                <div
+                                  className="h-full bg-gradient-to-r from-[#ba883a] to-[#caa152] transition-all"
+                                  style={{ width: `${Math.min(100, score)}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     )}
 
-                    <div className="pt-2 border-t border-[#ebdcc8] flex items-center justify-between gap-2">
-                      <a
-                        href={reg.submission?.driveLink}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-xs font-cinzel text-[#7a5530] hover:text-[#2f1e10] flex items-center gap-1.5 underline"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5 text-[#caa152]" />
-                        <span>Buka Naskah (Drive)</span>
-                      </a>
+                    {leaderboard.length === 0 ? (
+                      <div className="p-8 rounded-xl bg-[#faf4e8]/50 border border-dashed border-[#d8be99] text-center text-xs text-[#7a5530]">
+                        Belum ada karya peserta yang diunggah pada cabang lomba ini.
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {leaderboard.map((entry, idx) => (
+                          <div
+                            key={entry.submission_id}
+                            className="p-4 rounded-xl border border-[#ebdcc8] flex flex-col md:flex-row md:items-center justify-between gap-3"
+                          >
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="px-2 py-0.5 rounded bg-[#2f1e10] text-[#caa152] text-[10px] font-bold">
+                                  #{idx + 1}
+                                </span>
+                                <span className="font-semibold text-sm text-[#2f1e10]">
+                                  {entry.submission_title || 'Tanpa Judul'}
+                                </span>
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#faf4e8] border border-[#ebdcc8]">
+                                  {entry.registration_status}
+                                </span>
+                              </div>
+                              <p className="text-xs text-[#7a5530] mt-1">
+                                {entry.registration_code} • {entry.team_name || entry.leader_name} ({entry.institution || '-'}) • Rata-rata:{' '}
+                                <strong>{entry.avg_score || '-'}</strong>
+                              </p>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              {entry.link_url ? (
+                                <a
+                                  href={entry.link_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[#ebdcc8] text-xs hover:bg-[#faf4e8]"
+                                >
+                                  <span>Tautan Karya</span>
+                                  <ExternalLink className="w-3 h-3" />
+                                </a>
+                              ) : null}
+                              <a
+                                href={AdminApi.getSubmissionFileUrl(entry.submission_id)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[#ebdcc8] text-xs hover:bg-[#faf4e8]"
+                              >
+                                <span>Berkas PDF</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                              <button
+                                type="button"
+                                onClick={() => setScoringEntry(entry)}
+                                className="px-3.5 py-1.5 rounded-lg bg-[#ba883a] text-white text-xs font-semibold hover:bg-[#a6762d] cursor-pointer"
+                              >
+                                Nilai Karya
+                              </button>
+                              {!isJuri && entry.registration_status === 'TERVERIFIKASI' && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleStatusChange(entry.registration_id, 'LOLOS_TAHAP_1')}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-700 text-white text-xs font-semibold hover:bg-indigo-800 cursor-pointer"
+                                >
+                                  Loloskan <ArrowUpRight className="w-3 h-3" />
+                                </button>
+                              )}
+                              {!isJuri && entry.registration_status === 'LOLOS_TAHAP_1' && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleStatusChange(entry.registration_id, 'FINALIS')}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-purple-700 text-white text-xs font-semibold hover:bg-purple-800 cursor-pointer"
+                                >
+                                  Finalis <ArrowUpRight className="w-3 h-3" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
-                      <button
-                        onClick={() => {
-                          setScoreTargetReg(reg);
-                          setInputScore(reg.submission?.score || 85);
-                          setInputRound(reg.submission?.round || 'TAHAP_1');
-                          setInputFeedback(reg.submission?.juryFeedback || '');
-                          setShowScoreModal(true);
-                        }}
-                        className="px-4 py-1.5 rounded-full bg-[#2f1e10] hover:bg-[#7a5530] text-[#f5eee2] text-xs font-semibold font-sans tracking-wider border border-[#caa152] transition-all flex items-center gap-1"
+            {/* BROADCAST PENGUMUMAN */}
+            {!isJuri && activeTab === 'broadcast' && (
+              <div className="space-y-5">
+                <form onSubmit={handleCreateBroadcast} className="bg-white/95 rounded-2xl p-5 sm:p-6 border border-[#ebdcc8] shadow-2xs space-y-4">
+                  <h3 className="font-cormorant text-2xl font-semibold text-[#2f1e10]">Kirim Broadcast Pengumuman Peserta</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#2f1e10] mb-1">Judul Pengumuman *</label>
+                      <input
+                        type="text"
+                        required
+                        value={annTitle}
+                        onChange={(e) => setAnnTitle(e.target.value)}
+                        placeholder="Contoh: Tautan Zoom Technical Meeting"
+                        className="w-full px-3.5 py-2 rounded-xl border border-[#d8be99] text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-[#2f1e10] mb-1">Target Cabang Lomba</label>
+                      <select
+                        value={annCompId}
+                        onChange={(e) => setAnnCompId(e.target.value)}
+                        className="w-full px-3.5 py-2 rounded-xl border border-[#d8be99] text-xs bg-white"
                       >
-                        <Award className="w-3.5 h-3.5 text-[#caa152]" />
-                        <span>{reg.submission?.score ? 'Ubah Nilai' : 'Beri Nilai & Seleksi'}</span>
-                      </button>
+                        <option value="">Semua Cabang Lomba</option>
+                        {competitions.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
-                ))
-              )}
-            </div>
-          </div>
-        )}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#2f1e10] mb-1">Isi Pengumuman (Teks Murni) *</label>
+                    <textarea
+                      rows={4}
+                      required
+                      value={annBody}
+                      onChange={(e) => setAnnBody(e.target.value)}
+                      placeholder="Tulis pengumuman yang akan muncul langsung di Dashboard Peserta..."
+                      className="w-full px-3.5 py-2 rounded-xl border border-[#d8be99] text-xs"
+                    />
+                  </div>
+                  <label className="flex items-center gap-2 text-xs text-[#2f1e10] cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={annPinned}
+                      onChange={(e) => setAnnPinned(e.target.checked)}
+                      className="accent-[#ba883a]"
+                    />
+                    <span>Sematkan (Pin) sebagai pengumuman prioritas</span>
+                  </label>
+                  <button
+                    type="submit"
+                    disabled={actionLoading}
+                    className="px-5 py-2.5 rounded-full bg-[#ba883a] text-white text-xs font-semibold hover:bg-[#a6762d] cursor-pointer"
+                  >
+                    {actionLoading ? 'Mengirim...' : 'Kirim Broadcast Sekarang'}
+                  </button>
+                </form>
 
-        {/* ================= TAB 3: REKAPITULASI & KUOTA LOMBA ================= */}
-        {activeTab === 'REKAP' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-              {/* Kuota Esai Nasional */}
-              <div className="p-6 rounded-3xl bg-[#fffdf9] border-2 border-[#caa152] shadow-xs space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="font-cinzel text-[10px] font-semibold text-[#7a5530] uppercase">
-                    Monitoring Kuota 01
-                  </span>
-                  <span className="font-mono text-xs font-bold text-[#ba883a]">
-                    {esaiCount} / {settings.maxQuotaEsai} Peserta
-                  </span>
-                </div>
-                <h3 className="text-xl font-bold font-sans text-[#2f1e10]">
-                  Esai Nasional (Individu)
-                </h3>
-
-                {/* Progress bar */}
-                <div className="w-full bg-[#faf4e8] h-3 rounded-full border border-[#ebdcc8] overflow-hidden">
-                  <div
-                    className="btn-modern-shine bg-gradient-to-r from-[#ba883a] to-[#caa152] h-full rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min(100, (esaiCount / settings.maxQuotaEsai) * 100)}%` }}
-                  />
-                </div>
-
-                <div className="flex justify-between text-xs text-[#7a5530]">
-                  <span>Sisa Kuota: <strong>{Math.max(0, settings.maxQuotaEsai - esaiCount)} kursi</strong></span>
-                  <span>Biaya: Rp 35.000 / orang</span>
-                </div>
-              </div>
-
-              {/* Kuota Mini Case Competition */}
-              <div className="p-6 rounded-3xl bg-[#fffdf9] border-2 border-[#caa152] shadow-xs space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="font-cinzel text-[10px] font-semibold text-[#7a5530] uppercase">
-                    Monitoring Kuota 02
-                  </span>
-                  <span className="font-mono text-xs font-bold text-[#ba883a]">
-                    {caseCount} / {settings.maxQuotaCase} Tim
-                  </span>
-                </div>
-                <h3 className="text-xl font-bold font-sans text-[#2f1e10]">
-                  Mini Case Competition (Tim)
-                </h3>
-
-                {/* Progress bar */}
-                <div className="w-full bg-[#faf4e8] h-3 rounded-full border border-[#ebdcc8] overflow-hidden">
-                  <div
-                    className="btn-modern-shine bg-gradient-to-r from-[#ba883a] to-[#caa152] h-full rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min(100, (caseCount / settings.maxQuotaCase) * 100)}%` }}
-                  />
-                </div>
-
-                <div className="flex justify-between text-xs text-[#7a5530]">
-                  <span>Sisa Kuota: <strong>{Math.max(0, settings.maxQuotaCase - caseCount)} tim</strong></span>
-                  <span>Biaya: Rp 50.000 / tim</span>
+                <div className="bg-white/95 rounded-2xl p-5 sm:p-6 border border-[#ebdcc8] shadow-2xs space-y-3">
+                  <h4 className="font-cormorant text-xl font-semibold text-[#2f1e10]">Riwayat Broadcast ({announcements.length})</h4>
+                  {announcements.length === 0 ? (
+                    <div className="p-6 rounded-xl bg-[#faf4e8]/60 border border-dashed border-[#d8be99] text-center text-xs text-[#7a5530]">
+                      Belum ada pengumuman yang dikirim ke peserta.
+                    </div>
+                  ) : (
+                    announcements.map((a) => (
+                      <div
+                        key={a.id}
+                        className="p-3.5 rounded-xl bg-[#faf4e8]/60 border border-[#ebdcc8] flex items-start justify-between gap-3"
+                      >
+                        <div>
+                          <p className="text-xs font-bold text-[#2f1e10] flex items-center gap-1.5">
+                            {a.is_pinned && <Pin className="w-3 h-3 text-[#ba883a]" />}
+                            {a.title}
+                          </p>
+                          <p className="text-xs text-[#5c3e28] mt-1 whitespace-pre-line">{a.body}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            await AdminApi.deleteAnnouncement(a.id);
+                            await loadBaseData();
+                          }}
+                          className="p-1.5 text-gray-400 hover:text-red-600 cursor-pointer"
+                          title="Hapus"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
+            )}
 
-            </div>
-
-            {/* Financial Overview Banner */}
-            <div className="p-6 rounded-3xl bg-[#faf4e8] border border-[#ebdcc8] flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="space-y-1 text-center sm:text-left">
-                <h4 className="text-xl font-bold font-sans text-[#2f1e10]">
-                  Unduh Dokumen Rekapitulasi Lengkap
-                </h4>
-                <p className="text-xs text-[#5c3e28]">
-                  File CSV memuat seluruh data pendaftar, kontak WhatsApp, nomor registrasi, link karya, dan status verifikasi.
+            {/* REKAP CSV */}
+            {!isJuri && activeTab === 'export' && (
+              <div className="bg-white/95 rounded-2xl p-6 border border-[#ebdcc8] shadow-2xs space-y-4">
+                <h3 className="font-cormorant text-2xl font-semibold text-[#2f1e10]">Ekspor Rekap Data Peserta (CSV)</h3>
+                <p className="text-xs text-[#7a5530]">
+                  Unduh rekapitulasi peserta lengkap beserta asal perguruan tinggi, kontak WhatsApp, status verifikasi, dan skor juri.
                 </p>
+                <div className="flex flex-wrap gap-3">
+                  <a
+                    href={AdminApi.getExportCsvUrl()}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#2f1e10] text-[#faf4e8] text-xs font-semibold hover:bg-[#462d18]"
+                  >
+                    <Download className="w-4 h-4" /> Unduh Semua Lomba (CSV)
+                  </a>
+                  {competitions.map((c) => (
+                    <a
+                      key={c.id}
+                      href={AdminApi.getExportCsvUrl(c.id)}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-[#caa152] text-[#2f1e10] text-xs font-semibold hover:bg-[#faf4e8]"
+                    >
+                      <Download className="w-4 h-4" /> Rekap {c.name}
+                    </a>
+                  ))}
+                </div>
               </div>
+            )}
+          </>
+        )}
+      </div>
 
+      {/* Modal Tolak Pendaftaran */}
+      {rejectTarget && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 border border-[#caa152] shadow-2xl">
+            <h4 className="font-cormorant text-2xl font-semibold text-[#2f1e10]">Tolak / Minta Revisi Berkas</h4>
+            <p className="text-xs text-[#7a5530]">
+              Peserta: <strong>{rejectTarget.team_name || rejectTarget.user?.name}</strong> ({rejectTarget.registration_code})
+            </p>
+            <textarea
+              rows={3}
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="Tuliskan alasan penolakan (contoh: Nominal bukti QRIS tidak sesuai / KTM buram)..."
+              className="w-full px-3.5 py-2 rounded-xl border border-[#d8be99] text-xs"
+            />
+            <div className="flex justify-end gap-2">
               <button
-                onClick={handleExportCSV}
-                className="px-6 py-3 rounded-full bg-[#2f1e10] hover:bg-[#7a5530] text-[#f5eee2] text-xs font-semibold font-sans tracking-wider flex items-center gap-2 border border-[#caa152] transition-all shrink-0"
+                type="button"
+                onClick={() => setRejectTarget(null)}
+                className="px-4 py-2 rounded-lg text-xs text-[#7a5530] hover:bg-gray-100 cursor-pointer"
               >
-                <Download className="w-4 h-4 text-[#caa152]" />
-                <span>DOWNLOAD FILE REKAP CSV</span>
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={actionLoading || rejectReason.trim().length < 3}
+                onClick={() => handleStatusChange(rejectTarget.id, 'DITOLAK', rejectReason.trim())}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700 disabled:opacity-50 cursor-pointer"
+              >
+                Kirim Catatan Revisi
               </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* ================= TAB 4: KOMUNIKASI & BROADCAST WA ================= */}
-        {activeTab === 'BROADCAST' && (
-          <div className="space-y-4">
-            <div className="p-6 rounded-3xl bg-[#fffdf9] border-2 border-[#caa152] shadow-xs space-y-4">
-              <div className="border-b border-[#ebdcc8] pb-3">
-                <span className="font-cinzel text-[10px] font-semibold text-[#7a5530] uppercase">
-                  Korespondensi Cepat
-                </span>
-                <h3 className="text-xl font-bold font-sans text-[#2f1e10]">
-                  Template Siap Kirim WhatsApp Peserta
-                </h3>
-                <p className="text-xs text-[#5c3e28]">
-                  Pilih peserta dan jenis pengumuman untuk langsung membuka pesan terformat di WhatsApp Web.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-cinzel font-semibold text-[#2f1e10] uppercase mb-1">
-                    Pilih Target Peserta:
-                  </label>
-                  <select
-                    value={broadcastTargetId}
-                    onChange={(e) => setBroadcastTargetId(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-[#ebdcc8] bg-white text-xs text-[#2f1e10]"
-                  >
-                    <option value="">-- Pilih Peserta --</option>
-                    {registrations.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.participantName} (#{r.registrationCode}) - {r.status}
-                      </option>
-                    ))}
-                  </select>
+      {/* Modal Input Nilai Rubrik Juri */}
+      {scoringEntry && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <form onSubmit={handleSubmitScore} className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 border border-[#caa152] shadow-2xl">
+            <h4 className="font-cormorant text-2xl font-semibold text-[#2f1e10]">Lembar Penilaian Juri ({juryRound})</h4>
+            <p className="text-xs text-[#7a5530]">
+              {scoringEntry.submission_title} — <strong>{scoringEntry.team_name || scoringEntry.leader_name}</strong>
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: 'Orisinalitas (0–100)', val: scoreOrisinalitas, set: setScoreOrisinalitas },
+                { label: 'Ketajaman Analisis (0–100)', val: scoreAnalisis, set: setScoreAnalisis },
+                { label: 'Inovasi & Kelayakan (0–100)', val: scoreInovasi, set: setScoreInovasi },
+                { label: 'Sistematika Penulisan (0–100)', val: scoreSistematika, set: setScoreSistematika },
+              ].map((item, i) => (
+                <div key={i}>
+                  <label className="block text-xs font-semibold text-[#2f1e10] mb-1">{item.label}</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    required
+                    value={item.val}
+                    onChange={(e) => item.set(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-xl border border-[#d8be99] text-xs"
+                  />
                 </div>
-
-                <div>
-                  <label className="block text-xs font-cinzel font-semibold text-[#2f1e10] uppercase mb-1">
-                    Pilih Jenis Notifikasi:
-                  </label>
-                  <select
-                    value={broadcastType}
-                    onChange={(e) => setBroadcastType(e.target.value as any)}
-                    className="w-full p-2.5 rounded-xl border border-[#ebdcc8] bg-white text-xs text-[#2f1e10]"
-                  >
-                    <option value="REMINDER_SUBMIT">Pengingat Pengumpulan Karya</option>
-                    <option value="LOLOS_TAHAP_1">Pemberitahuan Lolos Seleksi Tahap 1</option>
-                    <option value="PANGGILAN_FINAL">Undangan Babak Final & Presentasi</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Message Preview */}
-              {broadcastTargetId && (
-                <div className="p-4 rounded-2xl bg-[#faf4e8] border border-[#ebdcc8] space-y-2">
-                  <span className="font-cinzel text-[10px] font-semibold text-[#7a5530] uppercase">
-                    Preview Teks Pesan:
-                  </span>
-                  <div className="p-3 bg-white rounded-xl border border-[#ebdcc8] font-mono text-xs text-[#2f1e10] whitespace-pre-wrap">
-                    {(() => {
-                      const target = registrations.find((r) => r.id === broadcastTargetId);
-                      if (!target) return '';
-                      if (broadcastType === 'REMINDER_SUBMIT') {
-                        return `Halo Kak ${target.participantName},\nKami dari Panitia Digiconomic Fest 2027 mengingatkan bahwa batas akhir pengumpulan karya ${target.competitionTitle} adalah ${settings.submissionDeadline}.\nMohon segera unggah tautan karya Anda di portal peserta. Terima kasih!`;
-                      } else if (broadcastType === 'LOLOS_TAHAP_1') {
-                        return `Selamat Kak ${target.participantName}!\nNaskah Anda untuk cabang ${target.competitionTitle} dinyatakan LOLOS TAHAP 1 Seleksi Ilmiah Digiconomic Fest 2027. Silakan cek portal peserta untuk detail berikutnya.`;
-                      } else {
-                        return `Kabar Gembira Kak ${target.participantName}!\nAnda resmi terpilih sebagai FINALIS Digiconomic Fest 2027. Jadwal presentasi babak final dan gladi resik akan diinfokan di grup WhatsApp peserta.`;
-                      }
-                    })()}
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      const target = registrations.find((r) => r.id === broadcastTargetId);
-                      if (!target) return;
-                      let msg = '';
-                      if (broadcastType === 'REMINDER_SUBMIT') {
-                        msg = `Halo Kak ${target.participantName},\nKami dari Panitia Digiconomic Fest 2027 mengingatkan bahwa batas akhir pengumpulan karya ${target.competitionTitle} adalah ${settings.submissionDeadline}.\nMohon segera unggah tautan karya Anda di portal peserta. Terima kasih!`;
-                      } else if (broadcastType === 'LOLOS_TAHAP_1') {
-                        msg = `Selamat Kak ${target.participantName}!\nNaskah Anda untuk cabang ${target.competitionTitle} dinyatakan LOLOS TAHAP 1 Seleksi Ilmiah Digiconomic Fest 2027. Silakan cek portal peserta untuk detail berikutnya.`;
-                      } else {
-                        msg = `Kabar Gembira Kak ${target.participantName}!\nAnda resmi terpilih sebagai FINALIS Digiconomic Fest 2027. Jadwal presentasi babak final dan gladi resik akan diinfokan di grup WhatsApp peserta.`;
-                      }
-                      handleChatWA(target, msg);
-                    }}
-                    className="mt-2 px-5 py-2.5 rounded-full bg-[#2f1e10] hover:bg-[#7a5530] text-[#f5eee2] text-xs font-semibold font-sans tracking-wider flex items-center gap-2 border border-[#caa152] transition-all"
-                  >
-                    <Send className="w-3.5 h-3.5 text-[#caa152]" />
-                    <span>KIRIM SEKARANG VIA WHATSAPP</span>
-                  </button>
-                </div>
-              )}
+              ))}
             </div>
-          </div>
-        )}
-
-        {/* ================= MODAL DETAIL BERKAS & KTM ================= */}
-        {showDetailModal && selectedReg && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-2xs">
-            <div className="bg-[#fffdf9] rounded-3xl p-6 sm:p-8 max-w-lg w-full border-2 border-[#caa152] shadow-2xl space-y-4 relative">
-              <div className="flex items-center justify-between pb-3 border-b border-[#ebdcc8]">
-                <h3 className="text-xl font-bold font-sans text-[#2f1e10]">
-                  Detail Berkas Pendaftar
-                </h3>
-                <button
-                  onClick={() => setShowDetailModal(false)}
-                  className="w-7 h-7 rounded-full bg-[#faf4e8] text-[#7a5530] hover:bg-[#2f1e10] hover:text-[#f5eee2] flex items-center justify-center font-bold"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="space-y-2 text-xs text-[#5c3e28]">
-                <div className="flex justify-between py-1 border-b border-[#ebdcc8]">
-                  <span>ID Registrasi:</span>
-                  <span className="font-mono font-bold text-[#2f1e10]">#{selectedReg.registrationCode}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-[#ebdcc8]">
-                  <span>Nama Lengkap:</span>
-                  <span className="font-bold text-[#2f1e10]">{selectedReg.participantName}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-[#ebdcc8]">
-                  <span>Asal Kampus / Sekolah:</span>
-                  <span className="text-[#2f1e10]">{selectedReg.institution}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-[#ebdcc8]">
-                  <span>Nomor WhatsApp:</span>
-                  <span className="font-mono text-[#2f1e10]">{selectedReg.phoneWa}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-[#ebdcc8]">
-                  <span>Email:</span>
-                  <span className="text-[#2f1e10]">{selectedReg.email}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-[#ebdcc8]">
-                  <span>Cabang Kompetisi:</span>
-                  <span className="font-semibold text-[#2f1e10]">{selectedReg.competitionTitle}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-[#ebdcc8]">
-                  <span>Dokumen KTM / Pelajar:</span>
-                  <span className="font-mono text-[#caa152] font-semibold">{selectedReg.studentCardName || 'KTM_Peserta.pdf'}</span>
-                </div>
-
-                {selectedReg.isTeam && selectedReg.teamMembers && (
-                  <div className="pt-2">
-                    <p className="font-cinzel text-[10px] font-semibold text-[#7a5530] uppercase mb-1">
-                      Anggota Tim ({selectedReg.teamName}):
-                    </p>
-                    <ul className="list-disc pl-5 space-y-0.5 text-[11px]">
-                      {selectedReg.teamMembers.map((m, i) => (
-                        <li key={i}>
-                          {m.fullName} - {m.institution} ({m.phoneWa})
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-
-              <div className="pt-3 border-t border-[#ebdcc8] flex justify-end gap-2">
-                <button
-                  onClick={() => setShowDetailModal(false)}
-                  className="px-4 py-2 rounded-full border border-[#ebdcc8] text-xs font-cinzel font-semibold text-[#7a5530] hover:bg-[#faf4e8]"
-                >
-                  TUTUP
-                </button>
-                {selectedReg.status === 'MENUNGGU_VERIFIKASI' && (
-                  <button
-                    onClick={() => {
-                      handleApprove(selectedReg.id);
-                      setShowDetailModal(false);
-                    }}
-                    className="px-5 py-2 rounded-full bg-[#2f1e10] hover:bg-[#7a5530] text-[#f5eee2] text-xs font-cinzel font-semibold border border-[#caa152]"
-                  >
-                    SETUJUI SEKARANG
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ================= MODAL TOLAK / REVISI ================= */}
-        {showRejectModal && selectedReg && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-2xs">
-            <div className="bg-[#fffdf9] rounded-3xl p-6 max-w-md w-full border-2 border-[#caa152] shadow-2xl space-y-3 relative">
-              <h3 className="text-xl font-bold font-sans text-[#2f1e10]">
-                Tolak / Minta Revisi Berkas
-              </h3>
-              <p className="text-xs text-[#7a5530]">
-                Peserta: <strong>{selectedReg.participantName}</strong> (#{selectedReg.registrationCode})
-              </p>
+            <div>
+              <label className="block text-xs font-semibold text-[#2f1e10] mb-1">Catatan / Evaluasi Juri</label>
               <textarea
                 rows={3}
-                required
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-                placeholder="Tuliskan alasan spesifik (misal: Bukti transfer terpotong, KTM tidak terbaca jelas)..."
-                className="w-full p-3 rounded-xl border border-[#ebdcc8] text-xs bg-[#faf4e8] text-[#2f1e10] focus:outline-none focus:border-[#caa152]"
+                value={scoreFeedback}
+                onChange={(e) => setScoreFeedback(e.target.value)}
+                placeholder="Masukkan evaluasi konstruktif untuk peserta..."
+                className="w-full px-3 py-2 rounded-xl border border-[#d8be99] text-xs"
               />
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  onClick={() => setShowRejectModal(false)}
-                  className="px-4 py-2 rounded-full border border-[#ebdcc8] text-xs font-cinzel font-semibold text-[#7a5530] hover:bg-[#faf4e8]"
-                >
-                  BATAL
-                </button>
-                <button
-                  onClick={handleRejectSubmit}
-                  className="px-5 py-2 rounded-full bg-[#2f1e10] hover:bg-[#7a5530] text-[#f5eee2] text-xs font-cinzel font-semibold border border-[#caa152]"
-                >
-                  KIRIM REVISI
-                </button>
-              </div>
             </div>
-          </div>
-        )}
-
-        {/* ================= MODAL PENILAIAN JURI ================= */}
-        {showScoreModal && scoreTargetReg && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-2xs">
-            <form onSubmit={handleScoreSubmit} className="bg-[#fffdf9] rounded-3xl p-6 sm:p-7 max-w-md w-full border-2 border-[#caa152] shadow-2xl space-y-4 relative">
-              <div className="flex items-center justify-between pb-2 border-b border-[#ebdcc8]">
-                <h3 className="text-xl font-bold font-sans text-[#2f1e10]">
-                  Formulir Penilaian Karya Juri
-                </h3>
+            <div className="flex items-center justify-between pt-2">
+              <span className="text-xs font-semibold text-[#ba883a]">
+                Rata-rata: {((scoreOrisinalitas + scoreAnalisis + scoreInovasi + scoreSistematika) / 4).toFixed(2)}
+              </span>
+              <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowScoreModal(false)}
-                  className="w-7 h-7 rounded-full bg-[#faf4e8] text-[#7a5530] flex items-center justify-center font-bold"
+                  onClick={() => setScoringEntry(null)}
+                  className="px-4 py-2 rounded-lg text-xs text-[#7a5530] hover:bg-gray-100 cursor-pointer"
                 >
-                  ✕
-                </button>
-              </div>
-
-              <div>
-                <p className="text-xs text-[#7a5530]">
-                  Peserta: <strong>{scoreTargetReg.participantName}</strong>
-                </p>
-                <p className="text-xs text-[#2f1e10] font-medium mt-0.5">
-                  "{scoreTargetReg.submission?.title}"
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-cinzel font-semibold text-[#2f1e10] uppercase mb-1">
-                  Skor Penilaian (Skala 0 - 100):
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  required
-                  value={inputScore}
-                  onChange={(e) => setInputScore(Number(e.target.value))}
-                  className="w-full p-2.5 rounded-xl border border-[#ebdcc8] bg-white text-base font-bold text-[#ba883a]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-cinzel font-semibold text-[#2f1e10] uppercase mb-1">
-                  Tentukan Kelulusan Babak:
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setInputRound('TAHAP_1')}
-                    className={`py-2 text-xs font-cinzel font-semibold rounded-xl border ${inputRound === 'TAHAP_1'
-                      ? 'bg-[#2f1e10] text-[#f5eee2] border-[#caa152]'
-                      : 'bg-white text-[#7a5530] border-[#ebdcc8]'
-                      }`}
-                  >
-                    Lolos Tahap 1
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setInputRound('FINAL')}
-                    className={`py-2 text-xs font-cinzel font-semibold rounded-xl border ${inputRound === 'FINAL'
-                      ? 'bg-[#2f1e10] text-[#caa152] border-[#caa152]'
-                      : 'bg-white text-[#7a5530] border-[#ebdcc8]'
-                      }`}
-                  >
-                    Finalis Juara
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-cinzel font-semibold text-[#2f1e10] uppercase mb-1">
-                  Catatan / Feedback Evaluasi Dewan Juri:
-                </label>
-                <textarea
-                  rows={2}
-                  value={inputFeedback}
-                  onChange={(e) => setInputFeedback(e.target.value)}
-                  placeholder="Catatan mengenai orisinalitas, kedalaman analisis, atau kelayakan implementasi..."
-                  className="w-full p-2.5 rounded-xl border border-[#ebdcc8] text-xs bg-white text-[#2f1e10]"
-                />
-              </div>
-
-              <div className="pt-2 border-t border-[#ebdcc8] flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowScoreModal(false)}
-                  className="px-4 py-2 rounded-full border border-[#ebdcc8] text-xs font-cinzel font-semibold text-[#7a5530]"
-                >
-                  BATAL
+                  Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-full bg-[#2f1e10] hover:bg-[#7a5530] text-[#f5eee2] text-xs font-cinzel font-semibold border border-[#caa152]"
+                  disabled={actionLoading}
+                  className="px-4 py-2 rounded-lg bg-[#ba883a] text-white text-xs font-semibold hover:bg-[#a6762d] cursor-pointer"
                 >
-                  SIMPAN PENILAIAN
+                  {actionLoading ? 'Menyimpan...' : 'Simpan Nilai'}
                 </button>
               </div>
-            </form>
-          </div>
-        )}
-
-      </div>
+            </div>
+          </form>
+        </div>
+      )}
     </DashboardLayout>
   );
 };

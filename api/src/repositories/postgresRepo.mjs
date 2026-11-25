@@ -6,17 +6,20 @@ import { generateRegistrationCode } from '../utils/crypto.mjs';
  */
 export async function createPostgresRepo(databaseUrl) {
   const { Pool } = await import('pg');
+  const needsSsl = /supabase\.com|sslmode=require/i.test(databaseUrl);
   const pool = new Pool({
     connectionString: databaseUrl,
+    ...(needsSsl ? { ssl: { rejectUnauthorized: false } } : {}),
     max: 10, // Sesuai PRD Bagian 9.9 untuk VPS 2 GB
     idleTimeoutMillis: 30_000,
   });
 
   const ALLOWED_COLUMNS = {
-    users: new Set(['name', 'password_hash', 'role', 'status', 'division', 'privacy_accepted_at', 'reset_token_hash', 'reset_token_expires_at', 'last_login_at']),
+    users: new Set(['name', 'password_hash', 'role', 'status', 'division', 'assigned_competition_id', 'nim', 'google_id', 'avatar_url', 'privacy_accepted_at', 'reset_token_hash', 'reset_token_expires_at', 'last_login_at']),
     competitions: new Set(['name', 'fee', 'is_team', 'max_team_size', 'max_quota', 'reg_open_at', 'reg_close_at', 'submission_deadline', 'group_url', 'guidebook_url', 'is_active']),
-    registrations: new Set(['team_name', 'status', 'payment_proof_path', 'reject_reason', 'verified_by', 'verified_at']),
-    announcements: new Set(['title', 'body', 'published_at', 'competition_id']),
+    registrations: new Set(['team_name', 'status', 'payment_proof_path', 'payment_proof_drive_id', 'payment_sender_name', 'payment_date', 'drive_folder_id', 'reject_reason', 'verified_by', 'verified_at', 'cancelled_by', 'cancelled_at', 'cancel_reason']),
+    announcements: new Set(['title', 'body', 'published_at', 'competition_id', 'is_pinned']),
+    news_articles: new Set(['slug', 'title', 'category', 'excerpt', 'content', 'cover_image_url', 'show_on_home', 'is_featured', 'is_published', 'published_at']),
     email_outbox: new Set(['status', 'attempts', 'send_after', 'sent_at']),
   };
 
@@ -73,11 +76,11 @@ export async function createPostgresRepo(databaseUrl) {
       return rows[0] || null;
     },
 
-    async createUser({ email, password_hash, name, role = 'PESERTA', status = 'ACTIVE', division = null, privacy_accepted_at = null }) {
+    async createUser({ email, password_hash = null, name, role = 'PESERTA', status = 'ACTIVE', division = null, assigned_competition_id = null, nim = null, google_id = null, avatar_url = null, privacy_accepted_at = null }) {
       const { rows } = await pool.query(
-        `INSERT INTO users (email, password_hash, name, role, status, division, privacy_accepted_at, last_login_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) RETURNING *`,
-        [email.toLowerCase(), password_hash, name, role, status, division, privacy_accepted_at]
+        `INSERT INTO users (email, password_hash, name, role, status, division, assigned_competition_id, nim, google_id, avatar_url, privacy_accepted_at, last_login_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW()) RETURNING *`,
+        [email.toLowerCase(), password_hash, name, role, status, division, assigned_competition_id, nim, google_id, avatar_url, privacy_accepted_at]
       );
       return rows[0];
     },
@@ -98,7 +101,26 @@ export async function createPostgresRepo(databaseUrl) {
 
     async listAdmins() {
       const { rows } = await pool.query(
-        "SELECT * FROM users WHERE role IN ('ADMIN', 'SUPERADMIN') ORDER BY created_at DESC"
+        "SELECT * FROM users WHERE role IN ('ADMIN', 'SUPERADMIN', 'JURI') ORDER BY created_at DESC"
+      );
+      return rows;
+    },
+
+    async listAllUsers({ role = null, q = null } = {}) {
+      const wheres = [];
+      const params = [];
+      if (role) {
+        params.push(role);
+        wheres.push(`role = $${params.length}`);
+      }
+      if (q) {
+        params.push(`%${q.toLowerCase()}%`);
+        wheres.push(`(LOWER(name) LIKE $${params.length} OR LOWER(email) LIKE $${params.length})`);
+      }
+      const whereSql = wheres.length ? `WHERE ${wheres.join(' AND ')}` : '';
+      const { rows } = await pool.query(
+        `SELECT id, email, name, role, status, division, assigned_competition_id, nim, avatar_url, last_login_at, created_at FROM users ${whereSql} ORDER BY created_at DESC`,
+        params
       );
       return rows;
     },
@@ -157,19 +179,23 @@ export async function createPostgresRepo(databaseUrl) {
         full_name: data.full_name ?? existing?.full_name ?? '',
         institution: data.institution ?? existing?.institution ?? '',
         phone_wa: data.phone_wa ?? existing?.phone_wa ?? '',
+        nim: data.nim !== undefined ? data.nim : existing?.nim ?? null,
         student_card_path: data.student_card_path !== undefined ? data.student_card_path : existing?.student_card_path ?? null,
+        student_card_drive_id: data.student_card_drive_id !== undefined ? data.student_card_drive_id : existing?.student_card_drive_id ?? null,
       };
       const { rows } = await pool.query(
-        `INSERT INTO participant_profiles (user_id, full_name, institution, phone_wa, student_card_path, updated_at)
-         VALUES ($1, $2, $3, $4, $5, NOW())
+        `INSERT INTO participant_profiles (user_id, full_name, institution, phone_wa, nim, student_card_path, student_card_drive_id, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
          ON CONFLICT (user_id) DO UPDATE SET
            full_name = EXCLUDED.full_name,
            institution = EXCLUDED.institution,
            phone_wa = EXCLUDED.phone_wa,
+           nim = EXCLUDED.nim,
            student_card_path = EXCLUDED.student_card_path,
+           student_card_drive_id = EXCLUDED.student_card_drive_id,
            updated_at = NOW()
          RETURNING *`,
-        [userId, merged.full_name, merged.institution, merged.phone_wa, merged.student_card_path]
+        [userId, merged.full_name, merged.institution, merged.phone_wa, merged.nim, merged.student_card_path, merged.student_card_drive_id]
       );
       return rows[0];
     },
@@ -267,10 +293,11 @@ export async function createPostgresRepo(databaseUrl) {
         );
         const regId = regRes.rows[0].id;
 
-        for (const tm of team_members) {
+        for (let i = 0; i < team_members.length; i++) {
+          const tm = team_members[i];
           await client.query(
-            'INSERT INTO team_members (registration_id, full_name, institution, phone_wa) VALUES ($1, $2, $3, $4)',
-            [regId, tm.full_name, tm.institution, tm.phone_wa]
+            'INSERT INTO team_members (registration_id, full_name, institution, phone_wa, nim, email, sequence_no) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+            [regId, tm.full_name, tm.institution, tm.phone_wa, tm.nim || null, tm.email || null, i + 1]
           );
         }
 
@@ -311,10 +338,11 @@ export async function createPostgresRepo(databaseUrl) {
 
         if (Array.isArray(team_members)) {
           await client.query('DELETE FROM team_members WHERE registration_id = $1', [id]);
-          for (const tm of team_members) {
+          for (let i = 0; i < team_members.length; i++) {
+            const tm = team_members[i];
             await client.query(
-              'INSERT INTO team_members (registration_id, full_name, institution, phone_wa) VALUES ($1, $2, $3, $4)',
-              [id, tm.full_name, tm.institution, tm.phone_wa]
+              'INSERT INTO team_members (registration_id, full_name, institution, phone_wa, nim, email, sequence_no) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+              [id, tm.full_name, tm.institution, tm.phone_wa, tm.nim || null, tm.email || null, i + 1]
             );
           }
         }
@@ -368,14 +396,22 @@ export async function createPostgresRepo(databaseUrl) {
       return { items, total: countRes.rows[0].cnt, page, pageSize };
     },
 
-    async createSubmission({ registration_id, title = null, file_path = null, link_url = null, description = null }) {
+    async createSubmission({ registration_id, title = null, file_path = null, drive_file_id = null, drive_view_url = null, link_url = null, description = null }) {
       const { rows } = await pool.query(
-        `INSERT INTO submissions (registration_id, title, file_path, link_url, description, version)
-         VALUES ($1, $2, $3, $4, $5, COALESCE((SELECT MAX(version) FROM submissions WHERE registration_id = $1), 0) + 1)
+        `INSERT INTO submissions (registration_id, title, file_path, drive_file_id, drive_view_url, link_url, description, version)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, COALESCE((SELECT MAX(version) FROM submissions WHERE registration_id = $1), 0) + 1)
          RETURNING *`,
-        [registration_id, title, file_path, link_url, description]
+        [registration_id, title, file_path, drive_file_id, drive_view_url, link_url, description]
       );
       return rows[0];
+    },
+
+    async finalizeSubmission(id) {
+      const { rows } = await pool.query(
+        'UPDATE submissions SET is_final = TRUE, finalized_at = NOW() WHERE id = $1 RETURNING *',
+        [id]
+      );
+      return rows[0] || null;
     },
 
     async listSubmissionsByRegistration(registrationId) {
@@ -415,11 +451,11 @@ export async function createPostgresRepo(databaseUrl) {
       return rows[0] || null;
     },
 
-    async createAnnouncement({ competition_id = null, title, body, created_by, published_at = null }) {
+    async createAnnouncement({ competition_id = null, title, body, created_by, published_at = null, is_pinned = false }) {
       const { rows } = await pool.query(
-        `INSERT INTO announcements (competition_id, title, body, created_by, published_at)
-         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-        [competition_id, title, body, created_by, published_at]
+        `INSERT INTO announcements (competition_id, title, body, created_by, published_at, is_pinned)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [competition_id, title, body, created_by, published_at, is_pinned]
       );
       return rows[0];
     },
@@ -501,6 +537,165 @@ export async function createPostgresRepo(databaseUrl) {
     async listAuditLogs(limit = 100) {
       const { rows } = await pool.query('SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT $1', [limit]);
       return rows;
+    },
+
+    // ── Multi-Juri Rubrik Scoring ─────────────────────────────────────
+    async upsertSubmissionScore({ submission_id, jury_id, round = 'TAHAP_1', score_orisinalitas, score_analisis, score_inovasi, score_sistematika, feedback = null }) {
+      const { rows } = await pool.query(
+        `INSERT INTO submission_scores (submission_id, jury_id, round, score_orisinalitas, score_analisis, score_inovasi, score_sistematika, feedback, scored_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+         ON CONFLICT (submission_id, jury_id, round) DO UPDATE SET
+           score_orisinalitas = EXCLUDED.score_orisinalitas,
+           score_analisis = EXCLUDED.score_analisis,
+           score_inovasi = EXCLUDED.score_inovasi,
+           score_sistematika = EXCLUDED.score_sistematika,
+           feedback = EXCLUDED.feedback,
+           scored_at = NOW()
+         RETURNING *`,
+        [submission_id, jury_id, round, Number(score_orisinalitas), Number(score_analisis), Number(score_inovasi), Number(score_sistematika), feedback]
+      );
+      return rows[0];
+    },
+
+    async getScoresBySubmission(submissionId) {
+      const { rows } = await pool.query(
+        `SELECT ss.*, u.name AS jury_name, u.email AS jury_email
+         FROM submission_scores ss
+         JOIN users u ON u.id = ss.jury_id
+         WHERE ss.submission_id = $1
+         ORDER BY ss.scored_at DESC`,
+        [submissionId]
+      );
+      return rows;
+    },
+
+    async getLeaderboard({ competitionId, round = 'TAHAP_1' } = {}) {
+      const params = [round];
+      let whereComp = '';
+      if (competitionId) {
+        params.push(competitionId);
+        whereComp = `AND r.competition_id = $${params.length}`;
+      }
+      const { rows } = await pool.query(
+        `SELECT
+           s.id AS submission_id,
+           s.title AS submission_title,
+           s.version,
+           s.is_final,
+           s.drive_file_id,
+           s.link_url,
+           s.submitted_at,
+           r.id AS registration_id,
+           r.registration_code,
+           r.team_name,
+           r.status AS registration_status,
+           u.name AS leader_name,
+           p.institution,
+           c.id AS competition_id,
+           c.name AS competition_name,
+           c.slug AS competition_slug,
+           COUNT(ss.id)::int AS jury_count,
+           ROUND(AVG(ss.total_score), 2)::numeric AS avg_score,
+           ROUND(AVG(ss.score_orisinalitas), 2)::numeric AS avg_orisinalitas,
+           ROUND(AVG(ss.score_analisis), 2)::numeric AS avg_analisis,
+           ROUND(AVG(ss.score_inovasi), 2)::numeric AS avg_inovasi,
+           ROUND(AVG(ss.score_sistematika), 2)::numeric AS avg_sistematika
+         FROM submissions s
+         JOIN registrations r ON r.id = s.registration_id
+         JOIN users u ON u.id = r.user_id
+         LEFT JOIN participant_profiles p ON p.user_id = u.id
+         JOIN competitions c ON c.id = r.competition_id
+         LEFT JOIN submission_scores ss ON ss.submission_id = s.id AND ss.round = $1
+         WHERE r.status <> 'DIBATALKAN' ${whereComp}
+         GROUP BY s.id, r.id, u.id, p.institution, c.id
+         ORDER BY avg_score DESC NULLS LAST, s.submitted_at ASC`,
+        params
+      );
+      return rows;
+    },
+
+    // ── News Articles (Superadmin) ───────────────────────────────────
+    async listNewsArticles({ publishedOnly = true, showOnHomeOnly = false } = {}) {
+      const wheres = [];
+      if (publishedOnly) wheres.push('is_published = TRUE');
+      if (showOnHomeOnly) wheres.push('show_on_home = TRUE');
+      const whereSql = wheres.length ? `WHERE ${wheres.join(' AND ')}` : '';
+      const { rows } = await pool.query(
+        `SELECT n.*, u.name AS author_name
+         FROM news_articles n
+         LEFT JOIN users u ON u.id = n.created_by
+         ${whereSql}
+         ORDER BY n.is_featured DESC, COALESCE(n.published_at, n.created_at) DESC`
+      );
+      return rows;
+    },
+
+    async getNewsArticleBySlug(slug) {
+      const { rows } = await pool.query(
+        `SELECT n.*, u.name AS author_name
+         FROM news_articles n
+         LEFT JOIN users u ON u.id = n.created_by
+         WHERE n.slug = $1`,
+        [slug]
+      );
+      return rows[0] || null;
+    },
+
+    async createNewsArticle({ slug, title, category = 'Pengumuman', excerpt = '', content = '', cover_image_url = null, show_on_home = false, is_featured = false, is_published = false, created_by }) {
+      const published_at = is_published ? new Date().toISOString() : null;
+      const { rows } = await pool.query(
+        `INSERT INTO news_articles (slug, title, category, excerpt, content, cover_image_url, show_on_home, is_featured, is_published, published_at, created_by)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         RETURNING *`,
+        [slug, title, category, excerpt, content, cover_image_url, Boolean(show_on_home), Boolean(is_featured), Boolean(is_published), published_at, created_by]
+      );
+      return rows[0];
+    },
+
+    async updateNewsArticle(id, patch) {
+      const keys = safeKeys('news_articles', patch);
+      if (keys.length === 0) return null;
+      const sets = keys.map((k, i) => `${k} = $${i + 2}`);
+      sets.push('updated_at = NOW()');
+      const values = keys.map((k) => patch[k]);
+      const { rows } = await pool.query(`UPDATE news_articles SET ${sets.join(', ')} WHERE id = $1 RETURNING *`, [id, ...values]);
+      return rows[0] || null;
+    },
+
+    async deleteNewsArticle(id) {
+      const res = await pool.query('DELETE FROM news_articles WHERE id = $1', [id]);
+      return (res.rowCount || 0) > 0;
+    },
+
+    // ── Demographics & Statistics (Superadmin) ───────────────────────
+    async getDemographics() {
+      const [instRes, compRes, roleRes] = await Promise.all([
+        pool.query(
+          `SELECT COALESCE(NULLIF(TRIM(p.institution), ''), 'Tidak Diketahui') AS institution, COUNT(*)::int AS total
+           FROM registrations r
+           JOIN participant_profiles p ON p.user_id = r.user_id
+           WHERE r.status <> 'DIBATALKAN'
+           GROUP BY 1
+           ORDER BY total DESC
+           LIMIT 20`
+        ),
+        pool.query(
+          `SELECT c.id, c.slug, c.name, c.max_quota, COUNT(r.id) FILTER (WHERE r.status <> 'DIBATALKAN')::int AS registered,
+                  COUNT(r.id) FILTER (WHERE r.status = 'TERVERIFIKASI')::int AS verified
+           FROM competitions c
+           LEFT JOIN registrations r ON r.competition_id = c.id
+           GROUP BY c.id
+           ORDER BY c.created_at ASC`
+        ),
+        pool.query(
+          `SELECT role, COUNT(*)::int AS total FROM users GROUP BY role`
+        ),
+      ]);
+      return {
+        by_institution: instRes.rows,
+        by_competition: compRes.rows,
+        users_by_role: roleRes.rows,
+      };
     },
   };
 }

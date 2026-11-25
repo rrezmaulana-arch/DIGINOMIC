@@ -34,36 +34,14 @@ export const Hero: React.FC<HeroProps> = ({ onExplore, onViewCompetitions }) => 
   return (
     <section
       id="hero"
-      className="relative w-full overflow-hidden flex flex-col items-center justify-center text-center px-4 sm:px-6 md:px-10 lg:px-16 pt-28 pb-16 sm:pt-32 sm:pb-20 lg:pt-36 lg:pb-24"
-      style={{ minHeight: '85vh' }}
+      className="relative w-full overflow-hidden flex flex-col items-center justify-center text-center px-4 sm:px-6 md:px-10 lg:px-16 pt-28 pb-16 sm:pt-36 sm:pb-20 lg:pt-40 lg:pb-24"
+      style={{ minHeight: '92vh' }}
     >
-      {/* ── RESPONSIVE BACKGROUND IMAGE: Mobile, iPad/Tablet, Desktop (Ultra-Fast WebP < 180KB) ── */}
-      {/* 1. Mobile screen (< 768px): mobile-bg.webp (100KB - instant load) */}
-      <div
-        className="absolute inset-0 bg-cover bg-center pointer-events-none select-none z-0 block md:hidden"
-        style={{
-          backgroundImage: "url('/gambar/hero-bg-mobile.webp')",
-          filter: 'contrast(1.02) saturate(1.04)',
-        }}
-      />
-
-      {/* 2. Tablet / iPad screen (768px - 1024px): ipad-bg.webp (169KB) */}
-      <div
-        className="absolute inset-0 bg-cover bg-center pointer-events-none select-none z-0 hidden md:block lg:hidden"
-        style={{
-          backgroundImage: "url('/gambar/hero-bg-ipad.webp')",
-          filter: 'contrast(1.02) saturate(1.04)',
-        }}
-      />
-
-      {/* 3. Desktop screen (>= 1024px): desktop-bg.webp (177KB) */}
-      <div
-        className="absolute inset-0 bg-cover bg-center pointer-events-none select-none z-0 hidden lg:block"
-        style={{
-          backgroundImage: "url('/gambar/hero-bg-desktop.webp')",
-          filter: 'contrast(1.02) saturate(1.04)',
-        }}
-      />
+      <picture aria-hidden="true" className="absolute inset-0 pointer-events-none">
+        <source media="(min-width: 1024px)" srcSet="/gambar/hero-view-dekstop.webp" />
+        <source media="(min-width: 768px)" srcSet="/gambar/hero-view-ipad.webp" />
+        <img src="/gambar/hero-view-mobile.webp" alt="" fetchPriority="high" className="w-full h-full object-cover object-center" />
+      </picture>
 
       {/* Radial backlight for reading comfort */}
       <div
@@ -74,14 +52,33 @@ export const Hero: React.FC<HeroProps> = ({ onExplore, onViewCompetitions }) => 
         }}
       />
 
-      {/* Seamless Multi-Stop Bottom Fade */}
-      <div
-        className="absolute bottom-0 left-0 right-0 h-24 sm:h-36 md:h-44 pointer-events-none z-0"
-        style={{
-          background:
-            'linear-gradient(to bottom, transparent 0%, rgba(253, 248, 239, 0.25) 25%, rgba(253, 248, 239, 0.65) 55%, rgba(253, 248, 239, 0.92) 80%, #fdf8ef 100%)',
-        }}
-      />
+      <div aria-hidden="true" className="hero-mist pointer-events-none absolute inset-x-0 bottom-0" />
+
+      {/* ── Paper-cut horizon: lapisan bukit/awan kertas menyambung ke About ── */}
+      <svg
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 1440 90"
+        preserveAspectRatio="none"
+        className="pointer-events-none absolute inset-x-0 bottom-0 w-full z-[1]"
+        style={{ height: 'clamp(3.5rem, 7vw, 6rem)', filter: 'drop-shadow(0 -4px 12px rgba(92,62,40,0.07))' }}
+      >
+        {/* Layer 3 — paling dalam, paling gelap */}
+        <path
+          d="M0,70 C120,38 260,22 400,42 C520,58 600,30 720,32 C840,34 940,54 1080,38 C1200,24 1330,46 1440,50 L1440,90 L0,90 Z"
+          fill="#ece0cc"
+        />
+        {/* Layer 2 */}
+        <path
+          d="M0,78 C80,56 200,40 340,56 C460,70 560,44 680,48 C800,52 920,66 1060,52 C1180,40 1310,60 1440,62 L1440,90 L0,90 Z"
+          fill="#f3e9d8"
+        />
+        {/* Layer 1 — paling depan, paling terang */}
+        <path
+          d="M0,84 C100,66 240,54 380,68 C500,80 620,60 740,62 C860,64 980,76 1120,64 C1240,54 1350,70 1440,72 L1440,90 L0,90 Z"
+          fill="#faf4e8"
+        />
+      </svg>
 
       {/* ── HERO CENTERED CONTENT ── */}
       <div className="relative z-10 w-full max-w-4xl mx-auto flex flex-col items-center">
@@ -112,8 +109,8 @@ export const Hero: React.FC<HeroProps> = ({ onExplore, onViewCompetitions }) => 
           </div>
 
           {/* Poetic Subtitle */}
-          <p className="font-edwardian text-2xl sm:text-3xl md:text-4xl text-[#4a2e18] max-w-xs sm:max-w-lg md:max-w-2xl px-2 leading-snug font-normal text-center">
-            Sebuah festival tempat gagasan muda berubah menjadi keajaiban nyata bagi UMKM lokal.
+          <p className="font-sans-body text-base sm:text-lg md:text-xl text-[#392517] max-w-xl px-4 leading-relaxed font-medium text-center text-balance">
+            Bawa <strong className="text-[#241308] font-semibold underline decoration-[#caa152]/70 underline-offset-4">ide digitalmu</strong> ke kompetisi nasional dan bantu <strong className="text-[#241308] font-semibold">UMKM lokal</strong> berkembang.
           </p>
 
           {/* Date & Location Badges */}
