@@ -5,17 +5,17 @@
   "description": "Monorepo Digiconomic Fest 2027 (web frontend React + api backend Node.js/PostgreSQL + deploy Docker)",
   "workspaces": [
     "web",
-    "api"
+    "server"
   ],
   "scripts": {
     "dev": "npm --workspace=web run dev",
     "build": "npm --workspace=web run build",
     "dev:web": "npm --workspace=web run dev",
     "build:web": "npm --workspace=web run build",
-    "dev:api": "npm --workspace=api run dev",
-    "start:api": "npm --workspace=api run start",
-    "seed:api": "npm --workspace=api run seed",
-    "test:api": "npm --workspace=api test",
+    "dev:api": "npm --workspace=server run dev",
+    "start:api": "npm --workspace=server run start",
+    "seed:api": "npm --workspace=server run seed",
+    "test:api": "npm --workspace=server test",
     "docker:dev": "docker compose -f deploy/docker-compose.dev.yml up --build",
     "docker:prod": "docker compose -f deploy/docker-compose.yml up -d --build"
   }

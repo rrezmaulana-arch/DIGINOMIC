@@ -2,7 +2,7 @@ name: digiconomic-dev
 
 services:
   api:
-    build: ../api
+    build: ../server
     ports:
       - "4001:4000"
     environment:
@@ -14,8 +14,8 @@ services:
       SUPERADMIN_EMAIL: superadmin@diginomic.id
       SUPERADMIN_PASSWORD: SuperAdmin2027!
     volumes:
-      - ../api/src:/app/src
-      - ../api/db:/app/db
+      - ../server/src:/app/src
+      - ../server/db:/app/db
       - ./data/uploads-dev:/app/uploads
     depends_on:
       db:

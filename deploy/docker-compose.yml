@@ -18,7 +18,7 @@ services:
         condition: service_healthy
 
   api:
-    build: ../api
+    build: ../server
     restart: unless-stopped
     expose:
       - "4000"

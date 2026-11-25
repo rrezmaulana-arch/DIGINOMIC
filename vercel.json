@@ -6,7 +6,7 @@
   "functions": {
     "api/index.mjs": {
       "maxDuration": 30,
-      "includeFiles": "api/db/**"
+      "includeFiles": "server/db/**"
     }
   },
   "rewrites": [
