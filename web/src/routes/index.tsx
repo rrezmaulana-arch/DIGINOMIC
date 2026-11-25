@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { PageTransitionOverlay } from '../components/PageTransitionOverlay';
+import { AnimatedDigiconomicLogo } from '../components/AnimatedDigiconomicLogo';
 import { UserProfile } from '../types';
 
 // Lazy load pages for code splitting
@@ -20,10 +21,46 @@ const SuperAdminDashboardPage = React.lazy(() => import('../pages/superadmin/Sup
 
 interface AppRoutesProps {
   currentUser: UserProfile | null;
+  authReady?: boolean;
   onLogin: (user: UserProfile) => void;
   onLogout: () => void;
   onSwitchRole: (role: 'PESERTA' | 'ADMIN' | 'JURI' | 'SUPERADMIN') => void;
 }
+
+const PageLoader: React.FC = () => (
+  <div
+    className="min-h-screen flex flex-col items-center justify-center"
+    style={{
+      background: 'radial-gradient(circle at 50% 46%, #3d2616 0%, #24140a 65%, #160b04 100%)',
+    }}
+  >
+    <div className="relative flex items-center justify-center">
+      <div
+        className="absolute w-44 h-44 sm:w-52 sm:h-52 rounded-full blur-2xl opacity-45"
+        style={{
+          background: 'radial-gradient(circle, rgba(202, 161, 82, 0.5) 0%, transparent 70%)',
+        }}
+      />
+      <div className="absolute w-36 h-36 sm:w-40 sm:h-40 rounded-full border border-[#caa152]/25 spin-reverse-slow" />
+      <div
+        className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full border border-[#caa152]/50 bg-[#2a180d]/85 backdrop-blur-xs flex items-center justify-center"
+        style={{
+          boxShadow: '0 12px 40px rgba(202, 161, 82, 0.22), inset 0 1px 0 rgba(255, 240, 200, 0.16)',
+        }}
+      >
+        <div className="absolute inset-2 rounded-full border border-dashed border-[#caa152]/35 spin-slow" />
+        <AnimatedDigiconomicLogo mode="transition" className="w-16 h-16 sm:w-20 sm:h-20" showSheen />
+      </div>
+    </div>
+    <div className="mt-5 flex items-center gap-3 opacity-90">
+      <span className="w-6 h-px bg-gradient-to-r from-transparent to-[#caa152]/70" />
+      <p className="font-cinzel text-[10px] sm:text-xs tracking-[0.34em] text-[#f3d48c] uppercase">
+        Digiconomic Fest 2027
+      </p>
+      <span className="w-6 h-px bg-gradient-to-l from-transparent to-[#caa152]/70" />
+    </div>
+  </div>
+);
 
 const DaftarRedirect: React.FC = () => {
   const { search } = useLocation();
@@ -34,6 +71,7 @@ import { pageMetadata } from '../pageMetadata';
 
 export const AppRoutes: React.FC<AppRoutesProps> = ({
   currentUser,
+  authReady = true,
   onLogin,
   onLogout,
   onSwitchRole,
@@ -60,13 +98,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
       {/* Animasi logo transisi setiap kali berpindah halaman */}
       <PageTransitionOverlay />
 
-      <Suspense
-        fallback={
-          <div className="min-h-screen bg-[#26160c] flex flex-col items-center justify-center">
-            <img src="/Logo/00-logo-gabungan.svg" alt="Digiconomic" className="w-14 h-14 animate-pulse" />
-          </div>
-        }
-      >
+      <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* 1. PUBLIC LANDING PAGE */}
           <Route
@@ -184,7 +216,9 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
           <Route
             path="/dashboard"
             element={
-              isGuest ? (
+              !authReady ? (
+                <PageLoader />
+              ) : isGuest ? (
                 <Navigate to="/login" replace />
               ) : (
                 <ParticipantDashboardPage
@@ -200,7 +234,9 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
           <Route
             path="/admin"
             element={
-              isGuest ? (
+              !authReady ? (
+                <PageLoader />
+              ) : isGuest ? (
                 <Navigate to="/panitia/login" replace />
               ) : role === 'PESERTA' ? (
                 <Navigate to="/dashboard" replace />
@@ -218,7 +254,9 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
           <Route
             path="/superadmin"
             element={
-              isGuest ? (
+              !authReady ? (
+                <PageLoader />
+              ) : isGuest ? (
                 <Navigate to="/panitia/login" replace />
               ) : role !== 'SUPERADMIN' ? (
                 <Navigate to="/admin" replace />

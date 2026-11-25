@@ -1,24 +1,17 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { AnimatedDigiconomicLogo } from './AnimatedDigiconomicLogo';
 
 /**
- * Animasi transisi antar halaman: merakit 8 layer SVG logo Digiconomic
- * secara sinematik di atas tirai espresso-emas (~900ms) lalu membuka halaman tujuan.
+ * Animasi transisi pembuka & antar halaman: merakit 8 layer SVG logo Digiconomic
+ * secara sinematik di atas tirai espresso-emas (~1s) lalu membuka halaman tujuan.
  */
 export const PageTransitionOverlay: React.FC = () => {
   const location = useLocation();
-  const isFirstRender = useRef(true);
-  const [phase, setPhase] = useState<'idle' | 'enter' | 'exit'>('idle');
+  const [phase, setPhase] = useState<'idle' | 'enter' | 'exit'>('enter');
   const [transitionKey, setTransitionKey] = useState(0);
 
   useEffect(() => {
-    // Jangan blokir render pertama kali saat baru membuka situs
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-
     setTransitionKey((k) => k + 1);
     setPhase('enter');
 

@@ -51,18 +51,11 @@ export const App: React.FC = () => {
     // Dinonaktifkan pada mode produksi
   };
 
-  if (!authReady) {
-    return (
-      <div className="min-h-screen bg-[#26160c] flex flex-col items-center justify-center">
-        <img src="/Logo/00-logo-gabungan.svg" alt="Digiconomic" className="w-14 h-14 animate-pulse" />
-      </div>
-    );
-  }
-
   return (
     <BrowserRouter>
       <AppRoutes
         currentUser={currentUser}
+        authReady={authReady}
         onLogin={handleLogin}
         onLogout={handleLogout}
         onSwitchRole={handleSwitchRole}
