@@ -126,9 +126,32 @@ export const Footer: React.FC<FooterProps> = ({
                 <MapPin className="w-4 h-4 text-[#d2b183] shrink-0 mt-0.5" />
                 <span>GenBI Komisariat Universitas Brawijaya &amp; KPw Bank Indonesia Malang, Jawa Timur</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-[#d2b183] shrink-0" />
-                <span>Hotline WhatsApp: +62 812-3456-7890</span>
+              <div className="flex items-start gap-2">
+                <Phone className="w-4 h-4 text-[#d2b183] shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p>
+                    <a
+                      href="https://wa.me/6282182324797"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hover:text-[#fbf7f0] underline decoration-[#8a6540] underline-offset-2 transition-colors"
+                    >
+                      +62 821-8232-4797
+                    </a>{' '}
+                    <span className="text-[#a89278]">(Admin 1)</span>
+                  </p>
+                  <p>
+                    <a
+                      href="https://wa.me/6289652831260"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hover:text-[#fbf7f0] underline decoration-[#8a6540] underline-offset-2 transition-colors"
+                    >
+                      +62 896-5283-1260
+                    </a>{' '}
+                    <span className="text-[#a89278]">(Admin 2)</span>
+                  </p>
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-[#d2b183] shrink-0" />

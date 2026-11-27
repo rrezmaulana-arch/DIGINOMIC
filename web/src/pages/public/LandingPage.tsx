@@ -14,7 +14,7 @@ import { FAQSection } from '../../components/FAQSection';
 import { BatikKawungPattern, SectionWaveTransition } from '../../components/Ornaments';
 import { Competition } from '../../types';
 
-const WHATSAPP_HELPDESK_URL = `https://wa.me/6281234567890?text=${encodeURIComponent(
+const WHATSAPP_HELPDESK_URL = `https://wa.me/6282182324797?text=${encodeURIComponent(
   'Halo Panitia Digiconomic Fest 2027, saya membutuhkan informasi mengenai pendaftaran lomba.'
 )}`;
 
