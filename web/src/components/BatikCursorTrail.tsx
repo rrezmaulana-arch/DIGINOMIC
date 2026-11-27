@@ -55,11 +55,13 @@ export const BatikCursorTrail: React.FC = () => {
   useEffect(() => {
     const isTouch = window.matchMedia('(pointer: coarse)').matches;
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (isTouch || prefersReduced) return;
+    const isLowCore = typeof navigator.hardwareConcurrency === 'number' && navigator.hardwareConcurrency <= 2;
+    const saveData = Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData);
+    if (isTouch || prefersReduced || isLowCore || saveData) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
     const particles: BatikParticle[] = [];
@@ -68,7 +70,7 @@ export const BatikCursorTrail: React.FC = () => {
     let rafId = 0;
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
       canvas.width = Math.floor(window.innerWidth * dpr);
       canvas.height = Math.floor(window.innerHeight * dpr);
       canvas.style.width = `${window.innerWidth}px`;
@@ -77,12 +79,23 @@ export const BatikCursorTrail: React.FC = () => {
     };
 
     resize();
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', resize, { passive: true });
+
+    const onVisibility = () => {
+      if (document.hidden && rafId) {
+        window.cancelAnimationFrame(rafId);
+        rafId = 0;
+        particles.length = 0;
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
 
     const onMouseMove = (e: MouseEvent) => {
+      if (document.hidden) return;
       const dx = e.clientX - lastX;
       const dy = e.clientY - lastY;
-      if (Math.hypot(dx, dy) < 24) return;
+      if (dx * dx + dy * dy < 784) return;
       lastX = e.clientX;
       lastY = e.clientY;
 
@@ -93,11 +106,11 @@ export const BatikCursorTrail: React.FC = () => {
         rotation: Math.random() * Math.PI,
         rotationSpeed: (Math.random() - 0.5) * 0.025,
         alpha: 0.65,
-        decay: 0.016 + Math.random() * 0.008,
+        decay: 0.018 + Math.random() * 0.008,
         color: BATIK_COLORS[Math.floor(Math.random() * BATIK_COLORS.length)],
       });
 
-      if (particles.length > 18) particles.shift();
+      if (particles.length > 12) particles.shift();
       if (!rafId) rafId = window.requestAnimationFrame(render);
     };
 
@@ -126,6 +139,7 @@ export const BatikCursorTrail: React.FC = () => {
       window.cancelAnimationFrame(rafId);
       window.removeEventListener('resize', resize);
       window.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('visibilitychange', onVisibility);
     };
   }, []);
 

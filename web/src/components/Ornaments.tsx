@@ -91,38 +91,30 @@ export const SectionDivider: React.FC<SectionDividerProps> = ({
 };
 
 /**
- * Pola latar Batik Kawung halus (SVG seamless tile) untuk memberi tekstur Nusantara elegan.
+ * Pola latar Batik Kawung halus (CSS data-URI seamless tile — 0 SVG DOM node, di-cache 1x oleh browser).
  */
 export const BatikKawungPattern: React.FC<{ color?: string; opacity?: number; id?: string }> = ({
   color = '#7a5530',
   opacity = 0.06,
-  id = 'kawung-pattern',
-}) => (
-  <svg
-    aria-hidden="true"
-    className="pointer-events-none select-none absolute inset-0 w-full h-full"
-    style={{
-      opacity,
-      maskImage: 'linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%)',
-      WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%)',
-    }}
-  >
-    <defs>
-      <pattern id={id} width="64" height="64" patternUnits="userSpaceOnUse">
-        <ellipse cx="32" cy="16" rx="8" ry="14" fill="none" stroke={color} strokeWidth="1.1" />
-        <ellipse cx="32" cy="48" rx="8" ry="14" fill="none" stroke={color} strokeWidth="1.1" />
-        <ellipse cx="16" cy="32" rx="14" ry="8" fill="none" stroke={color} strokeWidth="1.1" />
-        <ellipse cx="48" cy="32" rx="14" ry="8" fill="none" stroke={color} strokeWidth="1.1" />
-        <circle cx="32" cy="32" r="3" fill={color} />
-        <circle cx="0" cy="0" r="2.2" fill={color} />
-        <circle cx="64" cy="0" r="2.2" fill={color} />
-        <circle cx="0" cy="64" r="2.2" fill={color} />
-        <circle cx="64" cy="64" r="2.2" fill={color} />
-      </pattern>
-    </defs>
-    <rect width="100%" height="100%" fill={`url(#${id})`} />
-  </svg>
-);
+}) => {
+  const c = encodeURIComponent(color);
+  const svgTile = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cellipse cx='32' cy='16' rx='8' ry='14' fill='none' stroke='${c}' stroke-width='1.1'/%3E%3Cellipse cx='32' cy='48' rx='8' ry='14' fill='none' stroke='${c}' stroke-width='1.1'/%3E%3Cellipse cx='16' cy='32' rx='14' ry='8' fill='none' stroke='${c}' stroke-width='1.1'/%3E%3Cellipse cx='48' cy='32' rx='14' ry='8' fill='none' stroke='${c}' stroke-width='1.1'/%3E%3Ccircle cx='32' cy='32' r='3' fill='${c}'/%3E%3Ccircle cx='0' cy='0' r='2.2' fill='${c}'/%3E%3Ccircle cx='64' cy='0' r='2.2' fill='${c}'/%3E%3Ccircle cx='0' cy='64' r='2.2' fill='${c}'/%3E%3Ccircle cx='64' cy='64' r='2.2' fill='${c}'/%3E%3C/svg%3E")`;
+
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none select-none absolute inset-0 w-full h-full"
+      style={{
+        opacity,
+        backgroundImage: svgTile,
+        backgroundRepeat: 'repeat',
+        backgroundSize: '64px 64px',
+        maskImage: 'linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%)',
+        WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%)',
+      }}
+    />
+  );
+};
 
 /**
  * Transisi antar section:

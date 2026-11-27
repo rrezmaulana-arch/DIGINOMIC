@@ -6,22 +6,82 @@ interface HeroProps {
   onViewCompetitions: () => void;
 }
 
-export const Hero: React.FC<HeroProps> = ({ onExplore, onViewCompetitions }) => {
-  // Hitung selisih real-time akurat menuju 22 Maret 2027 00:00:00 WIB (UTC+7)
-  const calculateTimeLeft = () => {
-    const target = new Date('2027-03-22T00:00:00+07:00').getTime();
-    const now = new Date().getTime();
-    const diff = Math.max(0, target - now);
+const TARGET_TIMESTAMP = new Date('2027-03-22T00:00:00+07:00').getTime();
 
-    return {
-      days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-      hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
-      minutes: Math.floor((diff / 1000 / 60) % 60),
-      seconds: Math.floor((diff / 1000) % 60),
-    };
+const calculateTimeLeft = () => {
+  const diff = Math.max(0, TARGET_TIMESTAMP - Date.now());
+  return {
+    days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+    hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+    minutes: Math.floor((diff / 1000 / 60) % 60),
+    seconds: Math.floor((diff / 1000) % 60),
   };
+};
 
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+/**
+ * Terisolasi dalam React.memo agar interval 1 detik hanya me-render 4 kartu angka,
+ * bukan seluruh Hero (gambar, SVG, dan magnifier). Otomatis pause saat tab tidak aktif.
+ */
+const HeroCountdown: React.FC = React.memo(() => {
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft);
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setInterval> | null = null;
+
+    const start = () => {
+      if (timer) return;
+      setTimeLeft(calculateTimeLeft());
+      timer = setInterval(() => setTimeLeft(calculateTimeLeft()), 1000);
+    };
+
+    const stop = () => {
+      if (!timer) return;
+      clearInterval(timer);
+      timer = null;
+    };
+
+    const onVisibility = () => {
+      if (document.hidden) stop();
+      else start();
+    };
+
+    if (!document.hidden) start();
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      stop();
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, []);
+
+  return (
+    <div className="grid grid-cols-4 gap-2 sm:gap-3 md:gap-4 w-full max-w-[280px] sm:max-w-sm md:max-w-md my-1 sm:my-2">
+      {[
+        { val: timeLeft.days, label: 'HARI' },
+        { val: String(timeLeft.hours).padStart(2, '0'), label: 'JAM' },
+        { val: String(timeLeft.minutes).padStart(2, '0'), label: 'MENIT' },
+        { val: String(timeLeft.seconds).padStart(2, '0'), label: 'DETIK' },
+      ].map((item, idx) => (
+        <div
+          key={idx}
+          className="card-modern-hover group relative flex flex-col items-center justify-center py-2.5 sm:py-3.5 px-1 sm:px-2 rounded-xl sm:rounded-2xl border border-[#dfccb0] hover:border-[#caa152]/75 shadow-2xs"
+          style={{
+            background: 'rgba(255, 253, 248, 0.95)',
+          }}
+        >
+          <span className="font-cormorant tabular-nums text-xl sm:text-2xl md:text-3xl text-[#2a170b] font-semibold leading-none mb-0.5 sm:mb-1">
+            {item.val}
+          </span>
+          <span className="font-cinzel text-[8px] sm:text-[9px] md:text-[10px] text-[#8a5e38] tracking-[0.15em] sm:tracking-[0.2em] font-medium">
+            {item.label}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+});
+
+export const Hero: React.FC<HeroProps> = ({ onExplore, onViewCompetitions }) => {
   const [titleLoupeActive, setTitleLoupeActive] = useState(false);
   const titleBoxRef = useRef<HTMLDivElement>(null);
   const titleLoupeRef = useRef<HTMLDivElement>(null);
@@ -50,14 +110,6 @@ export const Hero: React.FC<HeroProps> = ({ onExplore, onViewCompetitions }) => 
   const handleTitleMouseLeave = () => {
     setTitleLoupeActive(false);
   };
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(calculateTimeLeft());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
 
   return (
     <section
@@ -167,19 +219,22 @@ export const Hero: React.FC<HeroProps> = ({ onExplore, onViewCompetitions }) => 
                 'radial-gradient(circle at 32% 28%, rgba(255, 253, 248, 0.96) 0%, rgba(248, 240, 224, 0.94) 68%, rgba(235, 220, 194, 0.95) 100%)',
               boxShadow:
                 '0 14px 34px -6px rgba(42, 23, 11, 0.34), 0 0 0 1px rgba(202, 161, 82, 0.45), inset 0 0 22px rgba(202, 161, 82, 0.22)',
-              willChange: 'transform, opacity',
+              visibility: titleLoupeActive ? 'visible' : 'hidden',
             }}
           >
             <div
               ref={titleCloneRef}
               className="px-4 sm:px-8 py-1"
-              style={{ transformOrigin: '0 0', willChange: 'transform' }}
+              style={{ transformOrigin: '0 0' }}
             >
               <div className="font-cormorant text-4xl sm:text-6xl md:text-7xl lg:text-[5.5rem] xl:text-[6.25rem] tracking-tight leading-[1.08] font-normal text-center">
                 <span className="text-[#2f1a0c] block font-normal">
                   Digiconomic
                 </span>
-                <span className="shimmer-text block mt-0.5 sm:mt-1 font-normal">
+                <span
+                  className="shimmer-text block mt-0.5 sm:mt-1 font-normal"
+                  style={{ animationPlayState: titleLoupeActive ? 'running' : 'paused' }}
+                >
                   Fest 2027
                 </span>
               </div>
@@ -224,29 +279,7 @@ export const Hero: React.FC<HeroProps> = ({ onExplore, onViewCompetitions }) => 
           </div>
 
           {/* ── REAL-TIME COUNTDOWN TIMER (Target: 22 Maret 2027) ── */}
-          <div className="grid grid-cols-4 gap-2 sm:gap-3 md:gap-4 w-full max-w-[280px] sm:max-w-sm md:max-w-md my-1 sm:my-2">
-            {[
-              { val: timeLeft.days, label: 'HARI' },
-              { val: String(timeLeft.hours).padStart(2, '0'), label: 'JAM' },
-              { val: String(timeLeft.minutes).padStart(2, '0'), label: 'MENIT' },
-              { val: String(timeLeft.seconds).padStart(2, '0'), label: 'DETIK' },
-            ].map((item, idx) => (
-              <div
-                key={idx}
-                className="card-modern-hover group relative flex flex-col items-center justify-center py-2.5 sm:py-3.5 px-1 sm:px-2 rounded-xl sm:rounded-2xl border border-[#dfccb0] hover:border-[#caa152]/75 shadow-2xs"
-                style={{
-                  background: 'rgba(255, 253, 248, 0.95)',
-                }}
-              >
-                <span className="font-cormorant tabular-nums text-xl sm:text-2xl md:text-3xl text-[#2a170b] font-semibold leading-none mb-0.5 sm:mb-1">
-                  {item.val}
-                </span>
-                <span className="font-cinzel text-[8px] sm:text-[9px] md:text-[10px] text-[#8a5e38] tracking-[0.15em] sm:tracking-[0.2em] font-medium">
-                  {item.label}
-                </span>
-              </div>
-            ))}
-          </div>
+          <HeroCountdown />
 
           {/* ── ACTION CTA BUTTONS: Rapi, proporsional, tidak memanjang selebar layar ── */}
           <div className="flex flex-row items-center justify-center gap-2 sm:gap-3.5 md:gap-4 mt-4 sm:mt-6 w-auto max-w-sm sm:max-w-md mx-auto px-2">

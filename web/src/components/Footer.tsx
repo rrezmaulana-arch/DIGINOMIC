@@ -24,6 +24,8 @@ export const Footer: React.FC<FooterProps> = ({
                 <img
                   src="/Logo/00-logo-gabungan.svg"
                   alt="Digiconomic Fest Logo"
+                  loading="lazy"
+                  decoding="async"
                   className="w-10 h-10 object-contain"
                 />
               </div>

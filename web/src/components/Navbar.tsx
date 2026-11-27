@@ -114,8 +114,8 @@ export const Navbar: React.FC<NavbarProps> = ({
       <header className="fixed top-0 left-0 right-0 z-50 px-3 sm:px-6 lg:px-10 pt-3 sm:pt-4 pointer-events-none">
         <div
           className={`pointer-events-auto max-w-6xl mx-auto flex items-center justify-between gap-2 rounded-full transition-all duration-300 ease-out px-4 sm:px-6 ${isScrolled
-            ? 'bg-[#fffdf9]/88 backdrop-blur-xl border border-[#caa152]/45 shadow-[0_12px_36px_-12px_rgba(47,30,16,0.22)] py-2'
-            : 'bg-[#fffdf9]/72 backdrop-blur-md border border-[#d8be99]/50 shadow-[0_6px_24px_-10px_rgba(47,30,16,0.12)] py-2.5'
+            ? 'bg-[#fffdf9]/96 md:bg-[#fffdf9]/88 md:backdrop-blur-md border border-[#caa152]/45 shadow-[0_12px_36px_-12px_rgba(47,30,16,0.22)] py-2'
+            : 'bg-[#fffdf9]/94 md:bg-[#fffdf9]/78 md:backdrop-blur-sm border border-[#d8be99]/50 shadow-[0_6px_24px_-10px_rgba(47,30,16,0.12)] py-2.5'
             }`}
         >
 
@@ -174,7 +174,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         : 'opacity-0 scale-95 pointer-events-none -translate-y-1'
                         }`}
                     >
-                      <div className="rounded-2xl bg-[#fffdf9]/98 backdrop-blur-xl border border-[#caa152]/55 shadow-[0_18px_40px_-14px_rgba(47,30,16,0.28)] p-2 space-y-1">
+                      <div className="rounded-2xl bg-[#fffdf9]/98 md:backdrop-blur-md border border-[#caa152]/55 shadow-[0_18px_40px_-14px_rgba(47,30,16,0.28)] p-2 space-y-1">
                         <p className="px-3 pt-1 pb-1 font-cinzel text-[9px] tracking-[0.2em] uppercase text-[#8a5e38] font-semibold">
                           2 Cabang Kompetisi Resmi
                         </p>

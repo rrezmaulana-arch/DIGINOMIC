@@ -98,7 +98,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Top Navbar Header */}
       <header
-        className={`sticky top-0 z-40 backdrop-blur-xl border-b shadow-xs transition-colors ${isDarkHeader
+        className={`sticky top-0 z-40 md:backdrop-blur-md border-b shadow-xs transition-colors ${isDarkHeader
           ? 'bg-[#24140a]/96 text-[#faf4e8] border-[#caa152]/40 border-t-2 border-t-[#caa152]'
           : currentUser.role === 'ADMIN'
             ? 'bg-[#fffdf9]/96 border-emerald-700/20 border-t-4 border-t-emerald-700'

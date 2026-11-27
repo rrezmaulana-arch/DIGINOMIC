@@ -99,10 +99,10 @@ export const PrizeBenefitsSection: React.FC = () => {
               {PODIUM_ITEMS.map((item) => (
                 <div
                   key={item.rank}
-                  className={`card-modern-hover rounded-2xl p-5 text-center backdrop-blur-sm border flex flex-col items-center justify-center ${
+                  className={`card-modern-hover rounded-2xl p-5 text-center md:backdrop-blur-xs border flex flex-col items-center justify-center ${
                     item.featured
-                      ? 'bg-[#4f321c]/75 border-[#caa152]/80 shadow-[0_12px_30px_-10px_rgba(202,161,82,0.28)]'
-                      : 'bg-[#3c2414]/65 border-[#caa152]/35 hover:border-[#caa152]/70'
+                      ? 'bg-[#4f321c]/90 md:bg-[#4f321c]/75 border-[#caa152]/80 shadow-[0_12px_30px_-10px_rgba(202,161,82,0.28)]'
+                      : 'bg-[#3c2414]/85 md:bg-[#3c2414]/65 border-[#caa152]/35 hover:border-[#caa152]/70'
                   }`}
                 >
                   <div className="w-10 h-10 rounded-xl bg-[#24140a]/75 border border-[#caa152]/40 flex items-center justify-center mb-3">
