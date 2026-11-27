@@ -3,6 +3,7 @@ import { BatikCursorTrail } from '../components/BatikCursorTrail';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { MagicMotionLines } from '../components/MagicMotionLines';
+import { MascotCompanion } from '../components/MascotCompanion';
 import { UserProfile } from '../types';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -56,6 +57,8 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({
       />
 
       <main className="relative z-10">{children}</main>
+
+      <MascotCompanion onNavigate={handleNavigate} />
 
       <Footer
         onNavigate={handleNavigate}

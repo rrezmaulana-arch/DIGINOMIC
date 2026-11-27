@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { DashboardLayout, SidebarNavItem } from '../../layouts/DashboardLayout';
 import { FileDropCard } from '../../components/FileDropCard';
 import { ParticipantApi, PublicApi } from '../../services/apiService';
+import { MASCOT_ASSETS, MASCOT_NAME } from '../../data/mascot';
 import { PENDING_COMPETITION_KEY } from '../auth/LoginPage';
 import type { AnnouncementItem, UserProfile } from '../../types';
 import {
@@ -170,6 +171,30 @@ export const ParticipantDashboardPage: React.FC<ParticipantDashboardPageProps> =
   const [subDesc, setSubDesc] = useState('');
   const [subFile, setSubFile] = useState<File | null>(null);
   const [subLinkUrl, setSubLinkUrl] = useState('');
+  const [mascotHopKey, setMascotHopKey] = useState(0);
+
+  const firstName = (profile?.full_name || currentUser.name || 'Peserta').split(' ')[0];
+  const getDashboardMascotMessage = () => {
+    if (!registration) {
+      return `Hai ${firstName}! 👋 Aku ${MASCOT_NAME}. Yuk lengkapi biodata, unggah KTM, lalu pilih cabang Esai atau Mini Case sebelum kuota penuh!`;
+    }
+    switch (registration.status) {
+      case 'MENUNGGU_VERIFIKASI':
+        return `Berkasmu sudah diterima, ${firstName}! Tim panitia sedang memeriksa pendaftaranmu—santai dulu sambil matangkan ide karyamu ya ✨`;
+      case 'DITOLAK':
+        return `Ada catatan revisi dari panitia nih, ${firstName}. Yuk perbaiki di menu Pendaftaran & Berkas biar cepat terverifikasi!`;
+      case 'TERVERIFIKASI':
+        return `Yeay, timmu sudah terverifikasi! 🎉 Jangan lupa gabung grup koordinasi & persiapkan unggah karyamu di menu Unggah Karya ya!`;
+      case 'LOLOS_TAHAP_1':
+        return `Keren banget ${firstName}! Timmu lolos Tahap 1 🚀 Terus matangkan karya terbaikmu menuju babak final!`;
+      case 'FINALIS':
+        return `Selamat Finalis Digiconomic Fest 2027! 🏆 Siapkan presentasi terbaikmu untuk panggung Universitas Brawijaya!`;
+      case 'JUARA':
+        return `Luar biasa, ${firstName}! Selamat atas prestasi Juara di Digiconomic Fest 2027! 🌟`;
+      default:
+        return `Terima kasih sudah berpartisipasi bersama ${MASCOT_NAME} di Digiconomic Fest 2027. Tetap semangat berkarya ya!`;
+    }
+  };
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -508,6 +533,35 @@ export const ParticipantDashboardPage: React.FC<ParticipantDashboardPageProps> =
             {/* TAB 1: RINGKASAN & LINIMASA */}
             {activeTab === 'overview' && (
               <div className="space-y-5">
+                {/* Sapaan Kontekstual Maskot DigiBee */}
+                <div className="bg-gradient-to-r from-[#fffdf9] via-[#faf4e8] to-[#f4e8d3] rounded-2xl p-4 sm:p-5 border border-[#caa152]/65 shadow-2xs flex items-center gap-3.5 sm:gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setMascotHopKey((k) => k + 1)}
+                    aria-label={`Sapa ${MASCOT_NAME}`}
+                    className="shrink-0 w-14 sm:w-16 cursor-pointer focus:outline-none mascot-fly-in"
+                  >
+                    <div key={mascotHopKey} className={mascotHopKey > 0 ? 'mascot-hop' : ''}>
+                      <img
+                        src={MASCOT_ASSETS.mini}
+                        alt={MASCOT_NAME}
+                        width={360}
+                        height={528}
+                        decoding="async"
+                        className="mascot-float w-full h-auto object-contain select-none"
+                      />
+                    </div>
+                  </button>
+                  <div className="min-w-0 flex-1">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#3b2412] text-[#fcedb8] font-cinzel text-[9px] tracking-[0.16em] uppercase font-semibold mb-1.5">
+                      ✦ {MASCOT_NAME} • Pemandu Peserta
+                    </span>
+                    <p className="font-sans text-xs sm:text-[13px] text-[#3b2412] leading-relaxed">
+                      &ldquo;{getDashboardMascotMessage()}&rdquo;
+                    </p>
+                  </div>
+                </div>
+
                 <div className="bg-white/95 rounded-2xl p-5 sm:p-6 border border-[#ebdcc8] shadow-xs">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>

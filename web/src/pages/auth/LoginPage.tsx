@@ -4,6 +4,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import { UserProfile } from '../../types';
 import { AuthApi, mapBackendUser } from '../../services/apiService';
 import { BatikKawungPattern, CornerFiligree } from '../../components/Ornaments';
+import { MASCOT_ASSETS, MASCOT_NAME } from '../../data/mascot';
 import {
   ArrowRight,
   Lock,
@@ -27,7 +28,18 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, staff = false }) 
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [mascotHopKey, setMascotHopKey] = useState(0);
   const hasGoogleClientId = Boolean((import.meta as any).env?.VITE_GOOGLE_CLIENT_ID);
+  const preselectedSlug = searchParams.get('lomba');
+  const loginGreeting = staff
+    ? `Halo Panitia & Juri! ✨ Aku ${MASCOT_NAME}, semangat mengawal Digiconomic Fest 2027!`
+    : preselectedSlug === 'mini-case-competition'
+      ? `Halo Calon Juara Mini Case! 👋 Masuk pakai Google yuk, aku temani daftar timmu!`
+      : preselectedSlug === 'esai-nasional'
+        ? `Halo Calon Juara Esai! 👋 Masuk pakai Google yuk, bawa ide digitalmu bersinar!`
+        : mascotHopKey % 2 === 1
+          ? `Bzzzt~ ✨ Cuma butuh 1 klik akun Google untuk mulai perjalanan lombamu!`
+          : `Halo Calon Juara! 👋 Aku ${MASCOT_NAME}, siap bawa ide digitalmu ke Digiconomic Fest 2027?`;
 
   useEffect(() => {
     const preselectedLomba = searchParams.get('lomba');
@@ -126,6 +138,38 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, staff = false }) 
               ? 'Masuk menggunakan email dan kata sandi resmi yang diberikan SuperAdmin.'
               : 'Daftar baru atau masuk instan menggunakan akun Google terverifikasi.'}
           </p>
+        </div>
+
+        {/* Sapaan Ramah Maskot DigiBee */}
+        <div className="relative z-10 mb-5 flex items-center gap-3 p-3 rounded-2xl bg-[#faf4e8] border border-[#e3d1b7]">
+          <button
+            type="button"
+            onClick={() => setMascotHopKey((k) => k + 1)}
+            aria-label={`Sapa ${MASCOT_NAME}`}
+            className="shrink-0 w-13 sm:w-14 cursor-pointer focus:outline-none mascot-fly-in"
+          >
+            <div key={mascotHopKey} className={mascotHopKey > 0 ? 'mascot-hop' : ''}>
+              <img
+                src={MASCOT_ASSETS.mini}
+                alt={MASCOT_NAME}
+                width={360}
+                height={528}
+                decoding="async"
+                className="mascot-float w-full h-auto object-contain select-none"
+              />
+            </div>
+          </button>
+          <div className="min-w-0">
+            <span className="inline-block font-cinzel text-[9px] tracking-[0.18em] uppercase font-semibold text-[#9a6522] mb-0.5">
+              ✦ {MASCOT_NAME} Menyapa
+            </span>
+            <p
+              key={loginGreeting}
+              className="mascot-bubble-in font-sans text-[11.5px] sm:text-xs text-[#3b2412] leading-relaxed"
+            >
+              &ldquo;{loginGreeting}&rdquo;
+            </p>
+          </div>
         </div>
 
         {errorMessage && (
