@@ -3,20 +3,26 @@ import { createRepository } from '../src/repositories/index.mjs';
 import { hashPassword } from '../src/utils/crypto.mjs';
 
 export async function seedDatabase(repo, options = {}) {
+  const isProd = process.env.NODE_ENV === 'production';
   const superEmail = (options.superAdminEmail || process.env.SUPERADMIN_EMAIL || 'superadmin@diginomic.id').toLowerCase();
-  const superPass = options.superAdminPassword || process.env.SUPERADMIN_PASSWORD || 'SuperAdmin2027!';
+  const explicitPass = options.superAdminPassword || process.env.SUPERADMIN_PASSWORD || '';
+  const superPass = explicitPass || (isProd ? '' : 'SuperAdmin2027!');
 
   let superAdmin = await repo.findUserByEmail(superEmail);
   if (!superAdmin) {
-    superAdmin = await repo.createUser({
-      email: superEmail,
-      password_hash: hashPassword(superPass),
-      name: 'Ketua Steering Committee',
-      role: 'SUPERADMIN',
-      status: 'ACTIVE',
-      division: 'Steering Committee',
-      privacy_accepted_at: new Date().toISOString(),
-    });
+    if (!superPass) {
+      console.warn('[SEED WARNING] SUPERADMIN_PASSWORD wajib diset pada NODE_ENV=production. Akun SuperAdmin default tidak dibuat.');
+    } else {
+      superAdmin = await repo.createUser({
+        email: superEmail,
+        password_hash: hashPassword(superPass),
+        name: 'Ketua Steering Committee',
+        role: 'SUPERADMIN',
+        status: 'ACTIVE',
+        division: 'Steering Committee',
+        privacy_accepted_at: new Date().toISOString(),
+      });
+    }
   }
 
   const existingComps = await repo.listCompetitions({ includeInactive: true });
@@ -66,7 +72,7 @@ export async function seedDatabase(repo, options = {}) {
     await repo.updateCompetition(existingCase.id, { is_team: true, max_team_size: 3 });
   }
 
-  if (typeof repo.listNewsArticles === 'function' && typeof repo.createNewsArticle === 'function') {
+  if (superAdmin && typeof repo.listNewsArticles === 'function' && typeof repo.createNewsArticle === 'function') {
     const existingNews = await repo.listNewsArticles({ publishedOnly: false });
     if (existingNews.length === 0) {
       const initialNews = [
@@ -94,7 +100,7 @@ export async function seedDatabase(repo, options = {}) {
             'Simak linimasa resmi mulai dari evaluasi karya (1–19 Feb 2027), pengumuman finalis (20 Feb 2027), babak final (21 Mar 2027), hingga Acara Puncak pada 22 Maret 2027.',
           content: [
             'Setelah pendaftaran ditutup pada 30 Januari 2027, seluruh karya Esai Nasional dan Mini Case Competition akan memasuki tahap Judging & Evaluation pada 1–19 Februari 2027.',
-            'Pengumuman finalis dijadwalkan pada 20 Februari 2027, diikuti Technical Meeting khusus finalis sebelum melaju ke Competition Final pada 21 Maret 2027 di Malang.',
+            'Pengumuman finalis dijadwalkan pada 20 Februari 2027, diikuti Technical Meeting khusus finalis sebelum melaju ke Competition Final pada 21 Maret 2027 di Universitas Brawijaya.',
             'Rangkaian kegiatan akan ditutup dengan Digiconomic Fest Main Event pada 22 Maret 2027 yang menghadirkan Seminar bersama Bank Indonesia dan praktisi UMKM, Pameran UMKM binaan BI, serta Awarding Night.',
           ].join('\n\n'),
           cover_image_url: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&fm=webp&q=75',

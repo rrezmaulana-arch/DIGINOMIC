@@ -26,22 +26,60 @@ export function applyCors(req, res, config) {
 }
 
 /**
- * Validasi CSRF berbasis header Origin pada semua metode mutasi (POST, PUT, PATCH, DELETE).
- * Jika browser mengirim Origin yang tidak ada di whitelist APP_ORIGIN -> tolak 403.
+ * Validasi CSRF berbasis Origin, Referer, dan Sec-Fetch-Site pada semua metode mutasi.
+ * - Jika browser mengirim Origin asing -> tolak 403.
+ * - Jika Origin kosong tetapi Referer berasal dari origin asing -> tolak 403.
+ * - Jika Sec-Fetch-Site bernilai cross-site tanpa Origin whitelist -> tolak 403.
  */
 export function checkOriginCsrf(req, config) {
   const method = (req.method || 'GET').toUpperCase();
   if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') return { ok: true };
 
   const origin = req.headers.origin;
-  if (origin && !config.allowedOrigins.includes(origin)) {
+  if (origin) {
+    if (!config.allowedOrigins.includes(origin)) {
+      return {
+        ok: false,
+        status: 403,
+        code: 'FORBIDDEN_ORIGIN',
+        message: 'Origin permintaan tidak diizinkan.',
+      };
+    }
+    return { ok: true };
+  }
+
+  const referer = req.headers.referer;
+  if (typeof referer === 'string' && referer.trim()) {
+    try {
+      const refOrigin = new URL(referer).origin;
+      if (!config.allowedOrigins.includes(refOrigin)) {
+        return {
+          ok: false,
+          status: 403,
+          code: 'FORBIDDEN_ORIGIN',
+          message: 'Origin referer permintaan tidak diizinkan.',
+        };
+      }
+    } catch {
+      return {
+        ok: false,
+        status: 403,
+        code: 'FORBIDDEN_ORIGIN',
+        message: 'Header Referer permintaan tidak valid.',
+      };
+    }
+  }
+
+  const fetchSite = String(req.headers['sec-fetch-site'] || '').toLowerCase();
+  if (fetchSite === 'cross-site') {
     return {
       ok: false,
       status: 403,
       code: 'FORBIDDEN_ORIGIN',
-      message: 'Origin permintaan tidak diizinkan.',
+      message: 'Permintaan lintas situs tanpa origin sah ditolak.',
     };
   }
+
   return { ok: true };
 }
 

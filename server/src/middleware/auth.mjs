@@ -14,14 +14,15 @@ export function parseCookies(cookieHeader) {
 }
 
 export function buildSessionCookie(name, value, config, maxAgeSec) {
+  const sameSite = config.cookieSameSite || (config.isProd ? 'None' : 'Lax');
   const parts = [
     `${name}=${encodeURIComponent(value)}`,
     'Path=/',
     'HttpOnly',
-    `SameSite=${config.isProd ? 'None' : 'Lax'}`,
+    `SameSite=${sameSite}`,
     `Max-Age=${maxAgeSec}`,
   ];
-  if (config.isProd) parts.push('Secure');
+  if (config.isProd || sameSite === 'None') parts.push('Secure');
   return parts.join('; ');
 }
 

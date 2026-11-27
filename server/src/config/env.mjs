@@ -18,16 +18,27 @@ export function loadConfig(overrides = {}) {
     if (!allowedOrigins.includes(prodOrigin)) allowedOrigins.push(prodOrigin);
   }
 
+  const isVercel = env.VERCEL === '1';
+  const rawSameSite = String(env.COOKIE_SAME_SITE || '').trim();
+  const cookieSameSite = ['Strict', 'Lax', 'None'].includes(rawSameSite)
+    ? rawSameSite
+    : isProd && !isVercel
+      ? 'None'
+      : 'Lax';
+
   return {
     nodeEnv,
     isProd,
+    isVercel,
+    enableApiDocs: env.ENABLE_API_DOCS === 'true' || !isProd,
+    cookieSameSite,
     port: Number(env.PORT || 4001),
     databaseUrl: env.DATABASE_URL || '',
     allowedOrigins,
     sessionCookieName: env.SESSION_COOKIE_NAME || 'digi_sid',
     sessionTtlDays: Number(env.SESSION_TTL_DAYS || 14),
     maxUploadBytes: Number(env.MAX_UPLOAD_MB || 2) * 1024 * 1024,
-    uploadDir: path.resolve(env.UPLOAD_DIR || (env.VERCEL === '1' ? '/tmp/diginomic-uploads' : './uploads')),
+    uploadDir: path.resolve(env.UPLOAD_DIR || (isVercel ? '/tmp/diginomic-uploads' : './uploads')),
     fileRetentionDays: Number(env.FILE_RETENTION_DAYS || 90),
     eventEndDate: env.EVENT_END_DATE || '2027-03-22T16:59:59.000Z',
     rateLimitWindowMs: Number(env.RATE_LIMIT_WINDOW_MS || 60_000),

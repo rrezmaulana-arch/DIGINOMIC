@@ -7,9 +7,16 @@ import { generateRegistrationCode } from '../utils/crypto.mjs';
 export async function createPostgresRepo(databaseUrl) {
   const { Pool } = await import('pg');
   const needsSsl = /supabase\.com|sslmode=require/i.test(databaseUrl);
+  const caCert = process.env.DB_SSL_CA ? process.env.DB_SSL_CA.replace(/\\n/g, '\n') : undefined;
+  const rejectUnauthorized = caCert
+    ? true
+    : process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true';
+  if (needsSsl && !rejectUnauthorized && process.env.NODE_ENV === 'production') {
+    console.warn('[DB SSL WARNING] Koneksi PostgreSQL SSL berjalan tanpa verifikasi sertifikat CA. Set DB_SSL_CA atau DB_SSL_REJECT_UNAUTHORIZED=true untuk keamanan penuh.');
+  }
   const pool = new Pool({
     connectionString: databaseUrl,
-    ...(needsSsl ? { ssl: { rejectUnauthorized: false } } : {}),
+    ...(needsSsl ? { ssl: { rejectUnauthorized, ...(caCert ? { ca: caCert } : {}) } } : {}),
     max: 10, // Sesuai PRD Bagian 9.9 untuk VPS 2 GB
     idleTimeoutMillis: 30_000,
   });
@@ -365,6 +372,95 @@ export async function createPostgresRepo(databaseUrl) {
       }
     },
 
+    async hydrateRegistrationsBatch(ids) {
+      if (!ids || ids.length === 0) return [];
+      const regRes = await pool.query('SELECT * FROM registrations WHERE id = ANY($1::uuid[])', [ids]);
+      if (regRes.rows.length === 0) return [];
+
+      const regMap = new Map(regRes.rows.map((r) => [r.id, r]));
+      const orderedRegs = ids.map((id) => regMap.get(id)).filter(Boolean);
+      const compIds = [...new Set(orderedRegs.map((r) => r.competition_id))];
+      const userIds = [...new Set(orderedRegs.map((r) => r.user_id))];
+
+      const [compRes, userRes, profRes, memRes, logRes, subRes] = await Promise.all([
+        pool.query('SELECT * FROM competitions WHERE id = ANY($1::uuid[])', [compIds]),
+        pool.query('SELECT id, name, email, role FROM users WHERE id = ANY($1::uuid[])', [userIds]),
+        pool.query('SELECT * FROM participant_profiles WHERE user_id = ANY($1::uuid[])', [userIds]),
+        pool.query('SELECT * FROM team_members WHERE registration_id = ANY($1::uuid[]) ORDER BY sequence_no ASC, id ASC', [ids]),
+        pool.query('SELECT * FROM status_logs WHERE registration_id = ANY($1::uuid[]) ORDER BY created_at ASC', [ids]),
+        pool.query('SELECT * FROM submissions WHERE registration_id = ANY($1::uuid[]) ORDER BY version DESC', [ids]),
+      ]);
+
+      const compMap = new Map(compRes.rows.map((c) => [c.id, c]));
+      const userMap = new Map(userRes.rows.map((u) => [u.id, u]));
+      const profMap = new Map(profRes.rows.map((p) => [p.user_id, p]));
+      const memMap = new Map();
+      for (const m of memRes.rows) {
+        if (!memMap.has(m.registration_id)) memMap.set(m.registration_id, []);
+        memMap.get(m.registration_id).push(m);
+      }
+      const logMap = new Map();
+      for (const l of logRes.rows) {
+        if (!logMap.has(l.registration_id)) logMap.set(l.registration_id, []);
+        logMap.get(l.registration_id).push(l);
+      }
+      const subMap = new Map();
+      for (const s of subRes.rows) {
+        if (!subMap.has(s.registration_id)) subMap.set(s.registration_id, []);
+        subMap.get(s.registration_id).push(s);
+      }
+
+      return orderedRegs.map((r) => ({
+        ...r,
+        competition: compMap.get(r.competition_id) || null,
+        user: userMap.get(r.user_id) || null,
+        profile: profMap.get(r.user_id) || null,
+        team_members: memMap.get(r.id) || [],
+        status_logs: logMap.get(r.id) || [],
+        submissions: subMap.get(r.id) || [],
+      }));
+    },
+
+    async getAdminSummary(statuses = []) {
+      const [statusRes, compRes, pendingRes] = await Promise.all([
+        pool.query('SELECT status, COUNT(*)::int AS cnt FROM registrations GROUP BY status'),
+        pool.query(
+          `SELECT COALESCE(c.name, r.competition_id::text) AS name, COUNT(*)::int AS cnt
+           FROM registrations r
+           LEFT JOIN competitions c ON c.id = r.competition_id
+           GROUP BY c.name, r.competition_id`
+        ),
+        pool.query(
+          `SELECT r.id, r.registration_code, u.name, r.created_at
+           FROM registrations r
+           LEFT JOIN users u ON u.id = r.user_id
+           WHERE r.status = 'MENUNGGU_VERIFIKASI'
+           ORDER BY r.created_at ASC
+           LIMIT 10`
+        ),
+      ]);
+
+      const byStatus = {};
+      for (const s of statuses) byStatus[s] = 0;
+      let total = 0;
+      for (const row of statusRes.rows) {
+        byStatus[row.status] = row.cnt;
+        total += row.cnt;
+      }
+
+      const byCompetition = {};
+      for (const row of compRes.rows) {
+        byCompetition[row.name] = row.cnt;
+      }
+
+      return {
+        total,
+        by_status: byStatus,
+        by_competition: byCompetition,
+        oldest_pending: pendingRes.rows,
+      };
+    },
+
     async listRegistrations({ competitionId, status, q, page = 1, pageSize = 20 } = {}) {
       const wheres = [];
       const params = [];
@@ -392,7 +488,7 @@ export async function createPostgresRepo(databaseUrl) {
          ORDER BY r.created_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
         params
       );
-      const items = await Promise.all(idRes.rows.map((row) => hydrateRegistration(row.id)));
+      const items = await this.hydrateRegistrationsBatch(idRes.rows.map((row) => row.id));
       return { items, total: countRes.rows[0].cnt, page, pageSize };
     },
 

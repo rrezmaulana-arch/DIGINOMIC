@@ -203,7 +203,8 @@ export async function streamFileFromDrive({ credPath, clientId, clientSecret, re
   if (!fileRes.ok) throw new Error(`Stream file gagal: ${fileRes.status}`);
 
   res.setHeader('Content-Type', meta.mimeType || 'application/octet-stream');
-  res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(meta.name)}"`);
+  res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(meta.name || 'berkas')}"`);
+  res.setHeader('Cache-Control', 'private, no-store');
   if (meta.size) res.setHeader('Content-Length', meta.size);
 
   const reader = fileRes.body.getReader();

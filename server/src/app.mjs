@@ -195,13 +195,19 @@ export function createApp({ repo, config, verifyGoogleToken = verifyGoogleIdToke
         });
       }
 
-      // 1B. OpenAPI JSON & Swagger UI Docs
+      // 1B. OpenAPI JSON & Swagger UI Docs (nonaktif default di produksi kecuali ENABLE_API_DOCS=true)
       if (method === 'GET' && pathname === '/openapi.json') {
+        if (!config.enableApiDocs) {
+          return sendError(res, 404, 'NOT_FOUND', 'Endpoint tidak ditemukan.');
+        }
         const originUrl = `${url.protocol}//${req.headers.host || 'localhost:4000'}`;
         return sendJson(res, 200, buildOpenApiSpec(originUrl));
       }
 
       if (method === 'GET' && pathname === '/docs') {
+        if (!config.enableApiDocs) {
+          return sendError(res, 404, 'NOT_FOUND', 'Endpoint tidak ditemukan.');
+        }
         res.writeHead(200, {
           'Content-Type': 'text/html; charset=utf-8',
           'Content-Security-Policy': "default-src 'self' https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com; script-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: https://unpkg.com",
@@ -642,7 +648,7 @@ export function createApp({ repo, config, verifyGoogleToken = verifyGoogleIdToke
               ...getDriveAuth(config),
               folderId: targetFolderId,
               fileBuffer: uploaded.buffer,
-              originalName: `KTM_${(profile?.full_name || user.name || user.id).replace(/\s+/g, '_')}.${savedFile.filename.split('.').pop()}`,
+              originalName: `KTM_${(profile?.full_name || user.name || user.id).replace(/\s+/g, '_')}.${savedFile.ext}`,
               mimeType: savedFile.mime,
             });
             driveId = driveRes.fileId;
@@ -660,8 +666,12 @@ export function createApp({ repo, config, verifyGoogleToken = verifyGoogleIdToke
       if (method === 'GET' && pathname === '/api/profile/student-card') {
         if (!requireRoles(['PESERTA'])) return;
         const profile = await repo.getProfile(user.id);
-        if (!profile || !profile.student_card_path) {
+        if (!profile || !(profile.student_card_drive_id || profile.student_card_path)) {
           return sendError(res, 404, 'FILE_NOT_FOUND', 'Berkas KTM belum diunggah.');
+        }
+        if (profile.student_card_drive_id && hasDriveConfigured(config)) {
+          await streamFileFromDrive({ ...getDriveAuth(config), fileId: profile.student_card_drive_id, res });
+          return;
         }
         const fileData = await readPrivateFile(config.uploadDir, profile.student_card_path);
         res.writeHead(200, {
@@ -803,11 +813,17 @@ export function createApp({ repo, config, verifyGoogleToken = verifyGoogleIdToke
             if (body.team_members.length < 1 || body.team_members.length > reg.competition.max_team_size - 1) {
               return sendError(res, 422, 'INVALID_TEAM_SIZE', 'Jumlah anggota tim tidak sesuai batas.');
             }
-            teamMembers = body.team_members.map((m) => ({
-              full_name: sanitizePlainText(m?.full_name, 150),
-              institution: sanitizePlainText(m?.institution, 180),
-              phone_wa: normalizePhoneWa(String(m?.phone_wa || '')),
-            }));
+            teamMembers = [];
+            for (const m of body.team_members) {
+              const fn = sanitizePlainText(m?.full_name, 150);
+              const inst = sanitizePlainText(m?.institution, 180);
+              const wa = String(m?.phone_wa || '').trim();
+              const nim = sanitizePlainText(m?.nim || '', 50) || null;
+              if (fn.length < 2 || inst.length < 2 || containsHtmlTags(fn) || containsHtmlTags(inst) || !isValidPhoneWa(wa)) {
+                return sendError(res, 422, 'INVALID_TEAM_MEMBER', 'Data anggota tim tidak lengkap atau nomor WA tidak valid.');
+              }
+              teamMembers.push({ full_name: fn, institution: inst, phone_wa: normalizePhoneWa(wa), nim });
+            }
           }
         }
 
@@ -896,7 +912,7 @@ export function createApp({ repo, config, verifyGoogleToken = verifyGoogleIdToke
               ...getDriveAuth(config),
               folderId,
               fileBuffer: uploaded.buffer,
-              originalName: `BuktiBayar_${reg.registration_code}.${savedFile.filename.split('.').pop()}`,
+              originalName: `BuktiBayar_${reg.registration_code}.${savedFile.ext}`,
               mimeType: savedFile.mime,
             });
             patch.payment_proof_drive_id = driveRes.fileId;
@@ -979,7 +995,7 @@ export function createApp({ repo, config, verifyGoogleToken = verifyGoogleIdToke
                 ...getDriveAuth(config),
                 folderId,
                 fileBuffer: uploaded.buffer,
-                originalName: `Karya_v${nextVer}_${reg.registration_code}.${saved.filename.split('.').pop()}`,
+                originalName: `Karya_v${nextVer}_${reg.registration_code}.${saved.ext}`,
                 mimeType: saved.mime,
               });
               drive_file_id = driveRes.fileId;
@@ -1042,6 +1058,10 @@ export function createApp({ repo, config, verifyGoogleToken = verifyGoogleIdToke
       // ════════════════════════════════════════════════════════════════
       if (method === 'GET' && pathname === '/api/admin/summary') {
         if (!requireRoles(['ADMIN', 'SUPERADMIN'])) return;
+        if (typeof repo.getAdminSummary === 'function') {
+          const summary = await repo.getAdminSummary(REGISTRATION_STATUSES);
+          return sendJson(res, 200, summary);
+        }
         const all = await repo.listRegistrations({ page: 1, pageSize: 5000 });
         const byStatus = {};
         const byCompetition = {};
@@ -1786,13 +1806,33 @@ export function createApp({ repo, config, verifyGoogleToken = verifyGoogleIdToke
         const newsId = superNewsMatch[1];
         if (!isValidUuid(newsId)) return sendError(res, 404, 'NEWS_NOT_FOUND', 'Berita tidak ditemukan.');
         const body = await readJsonBody(req);
+        const allowedCats = ['Pengumuman', 'Kompetisi', 'Technical Meeting', 'UMKM & Edukasi'];
         const patch = {};
-        if (body.title !== undefined) patch.title = sanitizePlainText(body.title, 300);
-        if (body.slug !== undefined) patch.slug = String(body.slug).toLowerCase().replace(/[^a-z0-9-]+/g, '-');
-        if (body.category !== undefined) patch.category = body.category;
+        if (body.title !== undefined) {
+          const t = sanitizePlainText(body.title, 300);
+          if (t.length < 3) return sendError(res, 422, 'INVALID_NEWS', 'Judul berita minimal 3 karakter.');
+          patch.title = t;
+        }
+        if (body.slug !== undefined) {
+          const s = String(body.slug).toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 180);
+          if (!s) return sendError(res, 422, 'INVALID_NEWS', 'Slug berita tidak valid.');
+          patch.slug = s;
+        }
+        if (body.category !== undefined) {
+          if (!allowedCats.includes(body.category)) {
+            return sendError(res, 422, 'INVALID_NEWS_CATEGORY', 'Kategori berita tidak valid.');
+          }
+          patch.category = body.category;
+        }
         if (body.excerpt !== undefined) patch.excerpt = sanitizePlainText(body.excerpt, 500);
         if (body.content !== undefined) patch.content = String(body.content);
-        if (body.cover_image_url !== undefined) patch.cover_image_url = body.cover_image_url || null;
+        if (body.cover_image_url !== undefined) {
+          const rawCover = String(body.cover_image_url || '').trim();
+          if (rawCover && !isValidHttpUrl(rawCover)) {
+            return sendError(res, 422, 'INVALID_URL', 'URL gambar sampul harus berupa tautan http/https yang valid.');
+          }
+          patch.cover_image_url = rawCover || null;
+        }
         if (typeof body.show_on_home === 'boolean') patch.show_on_home = body.show_on_home;
         if (typeof body.is_featured === 'boolean') patch.is_featured = body.is_featured;
         if (typeof body.is_published === 'boolean') {

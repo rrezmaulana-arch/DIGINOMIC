@@ -620,6 +620,55 @@ test('Security & Penetration Test Suite — Digiconomic Fest 2027', async (t) =>
     assert.equal((await ctx.req('GET', '/api/admin/files/arbitrary-drive-id-123', { cookie: superCookie })).status, 404);
   });
 
+  await t.test('S16. Hardening Produksi: /docs & /openapi.json 404, CSRF Referer/Sec-Fetch-Site, & Validasi News/Revisi', async () => {
+    ctx.rateLimiter.reset();
+    // 1. /docs & /openapi.json nonaktif di NODE_ENV=production
+    assert.equal((await ctx.req('GET', '/docs')).status, 404);
+    assert.equal((await ctx.req('GET', '/openapi.json')).status, 404);
+
+    // 2. CSRF: Referer asing & Sec-Fetch-Site cross-site tanpa Origin ditolak 403
+    const badReferer = await ctx.req('POST', '/api/auth/logout', {
+      cookie: adminCookie,
+      headers: { Referer: 'https://evil-phishing.example/steal' },
+    });
+    assert.equal(badReferer.status, 403);
+    assert.equal(badReferer.data.error.code, 'FORBIDDEN_ORIGIN');
+
+    const crossSite = await ctx.req('POST', '/api/auth/logout', {
+      cookie: adminCookie,
+      headers: { 'Sec-Fetch-Site': 'cross-site' },
+    });
+    assert.equal(crossSite.status, 403);
+    assert.equal(crossSite.data.error.code, 'FORBIDDEN_ORIGIN');
+
+    // 3. PATCH /api/superadmin/news/:id menolak URL berbahaya & kategori tidak valid
+    const fakeNewsId = '00000000-0000-4000-8000-000000000001';
+    const badCover = await ctx.req('PATCH', `/api/superadmin/news/${fakeNewsId}`, {
+      cookie: superCookie,
+      body: { cover_image_url: 'javascript:alert(1)' },
+    });
+    assert.equal(badCover.status, 422);
+    assert.equal(badCover.data.error.code, 'INVALID_URL');
+
+    const badCat = await ctx.req('PATCH', `/api/superadmin/news/${fakeNewsId}`, {
+      cookie: superCookie,
+      body: { category: 'KategoriPalsu' },
+    });
+    assert.equal(badCat.status, 422);
+    assert.equal(badCat.data.error.code, 'INVALID_NEWS_CATEGORY');
+
+    // 4. GET /api/admin/summary memakai agregasi cepat getAdminSummary
+    const sumRes = await ctx.req('GET', '/api/admin/summary', { cookie: superCookie });
+    assert.equal(sumRes.status, 200);
+    assert.equal(typeof sumRes.data.total, 'number');
+    assert.ok(sumRes.data.by_status && typeof sumRes.data.by_status === 'object');
+
+    // 5. Vercel full-stack same-origin memakai cookie SameSite=Lax secara default
+    const vercelCfg = loadConfig({ NODE_ENV: 'production', VERCEL: '1' });
+    assert.equal(vercelCfg.cookieSameSite, 'Lax');
+    assert.equal(vercelCfg.enableApiDocs, false);
+  });
+
 });
 
 
@@ -644,5 +693,24 @@ test('Verifikasi Google wajib Client ID, audience cocok, dan email terverifikasi
     assert.equal(profile.email, 'user@gmail.com');
   } finally {
     globalThis.fetch = originalFetch;
+  }
+});
+
+test('savePrivateFile mengembalikan ext dan filename valid untuk penamaan berkas Drive', async () => {
+  const { savePrivateFile } = await import('../src/utils/fileSecurity.mjs');
+  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'digi-filesec-'));
+  try {
+    const saved = await savePrivateFile({
+      buffer: VALID_PNG,
+      uploadDir: tmpDir,
+      subFolder: 'student-cards',
+      maxBytes: 2 * 1024 * 1024,
+    });
+    assert.equal(saved.ext, 'png');
+    assert.equal(saved.mime, 'image/png');
+    assert.ok(saved.filename && saved.filename.endsWith('.png'));
+    assert.ok(saved.relativePath.startsWith('student-cards/'));
+  } finally {
+    await fs.rm(tmpDir, { recursive: true, force: true });
   }
 });

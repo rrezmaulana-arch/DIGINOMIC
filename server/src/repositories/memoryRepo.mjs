@@ -384,6 +384,37 @@ export function createMemoryRepo() {
       return this.hydrateRegistration(id);
     },
 
+    async getAdminSummary(statuses = []) {
+      const byStatus = {};
+      for (const s of statuses) byStatus[s] = 0;
+      const byCompetition = {};
+      const pending = [];
+
+      for (const r of db.registrations.values()) {
+        byStatus[r.status] = (byStatus[r.status] || 0) + 1;
+        const comp = db.competitions.get(r.competition_id);
+        const cname = comp?.name || r.competition_id;
+        byCompetition[cname] = (byCompetition[cname] || 0) + 1;
+        if (r.status === 'MENUNGGU_VERIFIKASI') {
+          const u = db.users.get(r.user_id);
+          pending.push({
+            id: r.id,
+            registration_code: r.registration_code,
+            name: u?.name || null,
+            created_at: r.created_at,
+          });
+        }
+      }
+
+      pending.sort((a, b) => a.created_at.localeCompare(b.created_at));
+      return {
+        total: db.registrations.size,
+        by_status: byStatus,
+        by_competition: byCompetition,
+        oldest_pending: pending.slice(0, 10),
+      };
+    },
+
     async listRegistrations({ competitionId, status, q, page = 1, pageSize = 20 } = {}) {
       let items = [];
       for (const r of db.registrations.values()) {

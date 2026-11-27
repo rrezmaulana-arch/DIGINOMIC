@@ -81,6 +81,7 @@ export async function savePrivateFile({ buffer, uploadDir, subFolder, maxBytes }
   await fs.writeFile(fullPath, buffer, { mode: 0o600 });
 
   return {
+    filename,
     relativePath: `${safeFolder}/${filename}`,
     mime: detected.mime,
     ext: detected.ext,
