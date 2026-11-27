@@ -14,13 +14,20 @@ async function getAppServer() {
     cachedPromise = (async () => {
       const config = loadConfig();
       const repo = await createRepository(config);
-      if (repo.type === 'postgres') {
-        for (const file of ['001_init.sql', '002_system_upgrade.sql']) {
-          const sql = await fs.readFile(path.resolve(__dirname, `../server/db/migrations/${file}`), 'utf8');
-          await repo.pool.query(sql);
+      if (repo.type === 'postgres' && process.env.SKIP_RUNTIME_MIGRATIONS !== 'true') {
+        const schemaCheck = await repo.pool.query(
+          "SELECT to_regclass('public.news_articles') AS ready"
+        );
+        if (!schemaCheck.rows[0]?.ready) {
+          for (const file of ['001_init.sql', '002_system_upgrade.sql']) {
+            const sql = await fs.readFile(path.resolve(__dirname, `../server/db/migrations/${file}`), 'utf8');
+            await repo.pool.query(sql);
+          }
+          await seedDatabase(repo);
         }
+      } else if (repo.type !== 'postgres') {
+        await seedDatabase(repo);
       }
-      await seedDatabase(repo);
       const { server } = createApp({ repo, config });
       return server;
     })().catch((err) => {
