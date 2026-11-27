@@ -21,6 +21,7 @@ export type RegistrationStatus =
   | 'LOLOS_TAHAP_1'
   | 'FINALIS'
   | 'JUARA'
+  | 'GUGUR'
   | 'DIBATALKAN';
 
 export interface TeamMember {

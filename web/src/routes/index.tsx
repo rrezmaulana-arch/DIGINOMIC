@@ -270,12 +270,12 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
             }
           />
 
-          {/* 6. WILDCARD FALLBACK */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-
-          {/* 7. LEGAL PAGES */}
+          {/* 6. LEGAL PAGES */}
           <Route path="/kebijakan-privasi" element={<PrivacyPolicyPage />} />
           <Route path="/syarat-ketentuan" element={<TermsOfServicePage />} />
+
+          {/* 7. WILDCARD FALLBACK */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
     </>

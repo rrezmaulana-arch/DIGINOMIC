@@ -79,7 +79,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
 `Halo Kak ${reg.participantName},
 Kami dari Panitia Pendaftaran Digiconomic Fest 2027 mengenai pendaftaran Anda (#${reg.registrationCode}) untuk cabang ${reg.competitionTitle}.`;
 
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
   };
 
   const handleSuperadminApproveAll = () => {
@@ -363,9 +363,9 @@ Kami dari Panitia Pendaftaran Digiconomic Fest 2027 mengenai pendaftaran Anda (#
                 </h4>
                 <div className="space-y-2 text-xs text-[#5c3820]">
                   <div className="flex justify-between items-center py-1 border-b border-[#ebdcc8]">
-                    <span>Esai Nasional (Individu)</span>
+                    <span>Esai Nasional (Tim)</span>
                     <span className="font-bold text-[#2f1e10]">
-                      {registrations.filter(r => r.competitionId === 'comp-1').length} Peserta
+                      {registrations.filter(r => r.competitionId === 'comp-1').length} Tim
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-1 border-b border-[#ebdcc8]">
