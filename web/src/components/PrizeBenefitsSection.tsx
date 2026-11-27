@@ -66,7 +66,7 @@ export const PrizeBenefitsSection: React.FC = () => {
             Apresiasi &amp; Pengalaman
           </p>
           <h2 className="font-abang font-normal text-3xl sm:text-5xl text-[#2f1e10] tracking-tight mt-1">
-            Prizes &amp; <span className="shimmer-text">Benefits</span>
+            Prizes &amp; <span className="text-[#9a6522]">Benefits</span>
           </h2>
           <SectionDivider variant="light" />
         </div>

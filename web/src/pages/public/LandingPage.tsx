@@ -50,7 +50,7 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
   };
 
   const handleOpenWhatsAppHelp = () => {
-    window.open(WHATSAPP_HELPDESK_URL, '_blank');
+    window.open(WHATSAPP_HELPDESK_URL, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -116,7 +116,7 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
                   <span>Kabar &amp; Siaran Resmi</span>
                 </div>
                 <h2 className="font-cormorant text-3xl sm:text-4xl lg:text-[2.65rem] text-[#241308] leading-tight">
-                  Pengumuman &amp; <span className="shimmer-text">Berita Terbaru</span>
+                  Pengumuman &amp; <span className="text-[#9a6522]">Berita Terbaru</span>
                 </h2>
               </div>
               <button

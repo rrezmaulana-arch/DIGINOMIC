@@ -1,14 +1,5 @@
 @import "tailwindcss";
 
-/* ── CUSTOM LOCAL FONTS ── */
-@font-face {
-  font-family: 'ITC Edwardian Script';
-  src: url('/fonts/ITCEdwardianScript.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
 /* ── TAILWIND V4 FONT TOKENS ── */
 @theme {
   --font-sans: 'Open Sans', system-ui, sans-serif;
@@ -106,36 +97,54 @@
   scrollbar-width: none;
 }
 
-/* ── OVERSCROLL LOCK & CURSOR CONTROLS ── */
+/* ── OVERSCROLL & INTERACTION CONTROLS ── */
 html, body {
-  overscroll-behavior: none !important;
-  overscroll-behavior-y: none !important;
-  overscroll-behavior-x: none !important;
+  overscroll-behavior: none;
   margin: 0;
   background: #fdf8ef;
   font-family: 'Open Sans', system-ui, sans-serif;
   color: #2a1a0e;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  user-select: none;
-  -webkit-user-select: none;
-  caret-color: transparent !important;
 }
 
-*, *::before, *::after {
-  cursor: default !important;
-  caret-color: transparent !important;
+button, a, select, [role="button"], label[for] {
+  cursor: pointer;
 }
 
-button, a, select, [role="button"], label[for], [tabindex="0"] {
-  cursor: pointer !important;
-}
+/* ── ULTRA-LIGHTWEIGHT PURE CSS SVG CURSOR (0% JS, DESKTOP ONLY) ── */
+@media (hover: hover) and (pointer: fine) {
+  :root {
+    --cursor-default: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M3.5 2.5L18.5 11.4L11.7 13.1L8.9 19.8L3.5 2.5Z' fill='%232f1e10' stroke='%23f0cf88' stroke-width='1.6' stroke-linejoin='round'/%3E%3Cpath d='M10.4 10.6L11.4 9.6L12.4 10.6L11.4 11.6L10.4 10.6Z' fill='%23f3d48c'/%3E%3C/svg%3E") 3 2, auto;
+    --cursor-pointer: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 26 26' fill='none'%3E%3Cpath d='M3.5 2.5L18.5 11.4L11.7 13.1L8.9 19.8L3.5 2.5Z' fill='%23d8ad56' stroke='%23241308' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpath d='M20 4.5L20.9 7.1L23.5 8L20.9 8.9L20 11.5L19.1 8.9L16.5 8L19.1 7.1L20 4.5Z' fill='%23f3d48c' stroke='%23241308' stroke-width='0.75' stroke-linejoin='round'/%3E%3C/svg%3E") 3 2, pointer;
+  }
 
-input, textarea, [contenteditable="true"] {
-  cursor: text !important;
-  user-select: text !important;
-  -webkit-user-select: text !important;
-  caret-color: #2a1a0e !important;
+  html, body {
+    cursor: var(--cursor-default);
+  }
+
+  a,
+  button,
+  select,
+  summary,
+  [role="button"],
+  label[for],
+  .cursor-pointer,
+  .agenda-trigger,
+  .agenda-guide {
+    cursor: var(--cursor-pointer);
+  }
+
+  input,
+  textarea,
+  [contenteditable="true"] {
+    cursor: text;
+  }
+
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
 }
 
 /* ── MODERN MICRO-INTERACTIONS & HOVER ── */
@@ -322,27 +331,54 @@ html { scroll-padding-top: 5rem; }
   opacity: 0.48;
   transform: translate(26%, -45%) scaleX(-1);
 }
-.agenda-guide { display: inline-flex; align-items: center; gap: .6rem; padding: .5rem 1.1rem; border: 1px solid rgba(202,161,82,0.55); border-radius: 9999px; background: rgba(54,36,23,0.7); color: #f7e1b5; font-size: .82rem; cursor: pointer; transition: background-color .18s, border-color .18s; }
-.agenda-guide:hover { background: rgba(74,49,32,0.9); border-color: #e8c78a; }
-.agenda-list { position: relative; padding-left: 1.3rem; }
+.agenda-guide { display: inline-flex; align-items: center; gap: .6rem; padding: .5rem 1.1rem; border: 1px solid rgba(202,161,82,0.55); border-radius: 9999px; background: rgba(54,36,23,0.7); color: #f7e1b5; font-size: .82rem; cursor: pointer; transition: background-color .22s ease, border-color .22s ease, transform .22s ease; }
+.agenda-guide:hover { background: rgba(74,49,32,0.9); border-color: #e8c78a; transform: translateY(-1px); }
+.agenda-list { position: relative; padding-left: 1.3rem; list-style: none; margin: 0; }
 .agenda-list li { position: relative; padding: 0 0 1rem 1.8rem; border-left: 1px solid #977641; }
+.agenda-list li.agenda-item--done { border-left-color: #d8b26a; }
 .agenda-list li:last-child { border-color: transparent; padding-bottom: 0; }
 .agenda-list li:last-child::before { content:''; position:absolute; left:-1px; top:0; height:2.2rem; border-left:1px solid #977641; }
-.agenda-card { background: #362417; border: 1px solid #745537; border-radius: .85rem; }
-.agenda-card summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.2rem; list-style: none; cursor: pointer; }
-.agenda-card summary::-webkit-details-marker { display: none; }
-.agenda-node { position: absolute; display: grid; place-items: center; width: 2rem; height: 2rem; left: calc(-1rem - 1px); top: 1rem; border-radius: 50%; background: #2e1d11; border: 1px solid #be995e; color: #efd293; font-size: .78rem; font-variant-numeric: tabular-nums; }
-.stage-date { display: block; color: #ead19d; font-size: .78rem; letter-spacing: .035em; }
-.agenda-card strong { display: block; margin-top: .22rem; font-size: clamp(1rem,2vw,1.2rem); }
-.agenda-card p { padding: 0 1.2rem 1.2rem; color: #f2e6d2; line-height: 1.6; }
-.agenda-chevron { flex-shrink: 0; color: #dfba77; }
-.agenda-card[open] .agenda-chevron { transform: rotate(180deg); }
-.agenda-card summary:focus-visible { outline: 2px solid #ffe2a1; border-radius: inherit; }
-.agenda-card[open], .agenda-card:focus-within { border-color: #dfb97c; }
-@media (hover:hover) {
-  .agenda-card:hover { background: #4a3120; border-color: #e8c78a; box-shadow: 0 6px 18px #160c0840; }
-  .agenda-card:hover .agenda-node { background: #edd19a; color: #301c0d; }
+.agenda-card { background: #362417; border: 1px solid #745537; border-radius: .95rem; overflow: hidden; transition: background-color .28s cubic-bezier(0.22,1,0.36,1), border-color .28s ease, box-shadow .28s ease, transform .28s cubic-bezier(0.22,1,0.36,1); }
+.agenda-card--open { background: #412b1b; border-color: #dfb97c; box-shadow: 0 14px 32px -14px rgba(10, 5, 2, 0.55); }
+.agenda-card--current { background: linear-gradient(135deg, #472e1c 0%, #372315 100%); border-color: #e6c278; box-shadow: 0 0 0 1px rgba(230, 194, 120, 0.35), 0 16px 36px -14px rgba(202, 161, 82, 0.32); }
+.agenda-card--next { border-color: rgba(218, 178, 102, 0.72); }
+.agenda-card--done { opacity: 0.88; }
+.agenda-trigger { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.2rem; background: transparent; border: 0; color: inherit; text-align: left; cursor: pointer; }
+.agenda-trigger:focus-visible { outline: 2px solid #ffe2a1; outline-offset: -2px; border-radius: inherit; }
+.agenda-node { position: absolute; display: grid; place-items: center; width: 2rem; height: 2rem; left: calc(-1rem - 1px); top: 1rem; border-radius: 50%; background: #2e1d11; border: 1px solid #be995e; color: #efd293; font-size: .78rem; font-variant-numeric: tabular-nums; transition: background-color .28s ease, color .28s ease, border-color .28s ease, transform .28s cubic-bezier(0.22,1,0.36,1), box-shadow .28s ease; }
+.agenda-node--open { background: #caa152; color: #241308; border-color: #f3d48c; transform: scale(1.06); }
+.agenda-node--done { background: #5a3d24; color: #f3d48c; border-color: #d8b26a; }
+.agenda-node--next { background: #4a3019; color: #ffe4a3; border-color: #e6c278; box-shadow: 0 0 0 4px rgba(202, 161, 82, 0.16); }
+.agenda-node--current { background: #dfba68; color: #241308; border-color: #fff0c2; font-weight: 700; box-shadow: 0 0 0 5px rgba(223, 186, 104, 0.24); animation: agenda-node-pulse 2.2s ease-in-out infinite; }
+.stage-date { display: inline-block; color: #ead19d; font-size: .78rem; letter-spacing: .035em; }
+.agenda-card strong { display: block; margin-top: .28rem; font-size: clamp(1rem,2vw,1.2rem); color: #fffdf9; }
+.agenda-panel { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 340ms cubic-bezier(0.22,1,0.36,1), opacity 280ms ease; }
+.agenda-panel--open { grid-template-rows: 1fr; opacity: 1; }
+.agenda-panel-inner { overflow: hidden; }
+.agenda-panel-inner p { margin: 0; padding: .8rem 1.2rem 1.2rem; color: #f2e6d2; font-size: .88rem; line-height: 1.65; border-top: 1px solid rgba(202, 161, 82, 0.22); transform: translateY(-6px); transition: transform 340ms cubic-bezier(0.22,1,0.36,1); }
+.agenda-panel--open .agenda-panel-inner p { transform: translateY(0); }
+.agenda-chevron { flex-shrink: 0; color: #dfba77; transition: transform 320ms cubic-bezier(0.22,1,0.36,1), color .22s ease; }
+.agenda-chevron--open { transform: rotate(180deg); color: #ffe4a3; }
+.agenda-badge { display: inline-flex; align-items: center; gap: .38rem; padding: .18rem .6rem; border-radius: 9999px; font-size: .66rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; line-height: 1.2; }
+.agenda-badge--current { background: rgba(34, 197, 94, 0.16); border: 1px solid rgba(110, 231, 183, 0.55); color: #bbf7d0; }
+.agenda-badge--next { background: rgba(202, 161, 82, 0.2); border: 1px solid rgba(234, 209, 157, 0.55); color: #fcedb8; }
+.agenda-badge--done { background: rgba(255, 253, 249, 0.08); border: 1px solid rgba(216, 178, 106, 0.35); color: #d8c3a3; }
+.agenda-pulse-dot { width: .45rem; height: .45rem; border-radius: 9999px; background: #4ade80; box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); animation: agenda-dot-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite; }
+.agenda-badge--next .agenda-pulse-dot { background: #f3d48c; box-shadow: 0 0 0 0 rgba(243, 212, 140, 0.7); }
+@keyframes agenda-dot-ping {
+  0% { box-shadow: 0 0 0 0 rgba(243, 212, 140, 0.65); }
+  70% { box-shadow: 0 0 0 6px rgba(243, 212, 140, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(243, 212, 140, 0); }
 }
-@media (prefers-reduced-motion:no-preference) {
-  .agenda-card, .agenda-node, .agenda-chevron { transition: background-color .18s, color .18s, border-color .18s, transform .18s; }
+@keyframes agenda-node-pulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(223, 186, 104, 0.22); }
+  50% { box-shadow: 0 0 0 8px rgba(223, 186, 104, 0.06); }
+}
+@media (hover:hover) {
+  .agenda-card:hover { background: #4a3120; border-color: #e8c78a; box-shadow: 0 10px 26px -12px rgba(10, 5, 2, 0.55); }
+  .agenda-item:hover .agenda-node:not(.agenda-node--current) { background: #edd19a; color: #301c0d; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .agenda-card, .agenda-node, .agenda-chevron, .agenda-panel, .agenda-panel-inner p, .agenda-guide { transition: none !important; }
+  .agenda-pulse-dot, .agenda-node--current { animation: none !important; }
 }

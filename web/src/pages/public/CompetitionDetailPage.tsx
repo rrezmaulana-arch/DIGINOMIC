@@ -139,7 +139,7 @@ export const CompetitionDetailPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="relative rounded-2xl border border-[#caa152]/50 bg-[#3a2415]/85 backdrop-blur-xs px-5 py-4 shrink-0">
+            <div className="card-modern-hover relative rounded-2xl border border-[#caa152]/50 bg-[#3a2415]/85 backdrop-blur-xs px-5 py-4 shrink-0">
               <CornerFiligree color="#caa152" className="w-5 h-5 opacity-55" />
               <p className="font-cinzel text-[10px] tracking-[0.2em] uppercase text-[#caa152]">Total Hadiah Keseluruhan</p>
               <p className="font-cormorant text-2xl sm:text-3xl text-[#fffdf9] font-medium mt-0.5">
@@ -275,7 +275,7 @@ export const CompetitionDetailPage: React.FC = () => {
             {/* RIGHT 4 COLUMNS: STICKY SUMMARY SIDEBAR */}
             <div className="lg:col-span-4 lg:sticky lg:top-28">
               <div
-                className="relative rounded-3xl border-2 border-[#caa152]/80 p-6 sm:p-7 shadow-[0_14px_34px_rgba(47,30,16,0.09)] overflow-hidden"
+                className="card-modern-hover relative rounded-3xl border-2 border-[#caa152]/80 p-6 sm:p-7 shadow-[0_14px_34px_rgba(47,30,16,0.09)] overflow-hidden"
                 style={{ background: 'linear-gradient(180deg, #fffdf9 0%, #f5ebda 100%)' }}
               >
 

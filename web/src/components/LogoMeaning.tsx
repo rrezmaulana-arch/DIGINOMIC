@@ -97,7 +97,7 @@ export const LogoMeaning: React.FC = () => {
           </div>
 
           <h2 className="font-cormorant font-normal text-2xl sm:text-4xl lg:text-[2.75rem] text-[#fffdf9] tracking-tight leading-snug">
-            Makna di Balik <span className="shimmer-text">Simbol & Rona Logo</span>
+            Makna di Balik <span className="text-[#e8c47a]">Simbol &amp; Rona Logo</span>
           </h2>
 
           <div className="flex items-center justify-center gap-2.5 my-1.5 sm:my-3 text-[#caa152] opacity-80">
@@ -225,8 +225,8 @@ export const LogoMeaning: React.FC = () => {
           </div>
         </div>
 
-        {/* ── MOBILE CARD LAYOUT: 2-Column Grid Interaktif ── */}
-        <div className="grid grid-cols-2 lg:hidden gap-2 sm:gap-3 mt-2 sm:mt-4">
+        {/* ── MOBILE CARD LAYOUT: 1-Kolom Interaktif (Teks Terbaca Utuh Tanpa Terpotong) ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:hidden gap-2.5 sm:gap-3 mt-3 sm:mt-4">
           {elements.map((item) => {
             const isSelected = activeElement === item.id;
             return (
@@ -234,22 +234,26 @@ export const LogoMeaning: React.FC = () => {
                 key={item.id}
                 type="button"
                 onClick={() => toggleMobileElement(item.id)}
-                className={`text-left p-2.5 sm:p-4 rounded-xl border shadow-xs relative flex flex-col justify-start transition-all duration-200 ${isSelected
-                    ? 'bg-[#452b1a] border-[#caa152] ring-1 ring-[#caa152]/60'
-                    : 'bg-[#382315]/90 border-[#caa152]/35'
+                aria-pressed={isSelected}
+                className={`text-left p-3.5 sm:p-4 rounded-xl border shadow-xs relative flex flex-col justify-start transition-all duration-250 ${isSelected
+                    ? 'bg-[#452b1a] border-[#e8c47a] ring-1 ring-[#caa152]/60 shadow-md'
+                    : 'bg-[#382315]/90 border-[#caa152]/35 hover:border-[#caa152]/60'
                   }`}
               >
-                <div className="absolute inset-1 rounded-lg border border-dashed border-[#caa152]/20 pointer-events-none" />
-                <div className="flex items-center justify-between gap-1 mb-1 relative z-10 w-full">
-                  <span className="font-cinzel text-[9px] font-semibold text-[#e3c47f]">{item.code}</span>
-                  <div className="w-5 h-5 rounded-md bg-[#24140a] border border-[#caa152]/40 flex items-center justify-center shrink-0">
+                <div className="flex items-center justify-between gap-2 mb-1.5 w-full">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="font-cinzel text-[10px] font-semibold text-[#e3c47f] shrink-0">{item.code}</span>
+                    <span className="text-[#caa152] text-[10px]">•</span>
+                    <span className="text-[10px] text-[#e3c47f]/90 font-sans truncate">{item.subtitle}</span>
+                  </div>
+                  <div className="w-6 h-6 rounded-md bg-[#24140a] border border-[#caa152]/40 flex items-center justify-center shrink-0">
                     {item.icon}
                   </div>
                 </div>
-                <h3 className="font-cormorant text-sm sm:text-base font-medium text-[#fffdf9] leading-tight mb-0.5 relative z-10">
+                <h3 className="font-cormorant text-lg font-medium text-[#fffdf9] leading-tight mb-1">
                   {item.title}
                 </h3>
-                <p className="font-sans text-[10px] sm:text-[11px] text-[#dec9ad] leading-snug font-normal relative z-10 line-clamp-3">
+                <p className="font-sans text-xs text-[#dec9ad] leading-relaxed font-normal">
                   {item.desc}
                 </p>
               </button>
@@ -271,7 +275,6 @@ export const LogoMeaning: React.FC = () => {
                 key={idx}
                 className="card-modern-hover p-5 sm:p-6 rounded-2xl bg-[#382315]/95 border border-[#caa152]/40 hover:border-[#caa152]/85 shadow-md flex flex-col items-center text-center relative overflow-hidden"
               >
-                <div className="absolute inset-1.5 rounded-xl border border-dashed border-[#caa152]/18 pointer-events-none" />
                 <div
                   className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl ${color.ringClass} flex items-center justify-center mb-3 relative z-10`}
                   style={{ background: color.swatchStyle }}

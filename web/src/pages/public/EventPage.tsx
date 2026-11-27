@@ -64,7 +64,7 @@ export const EventPage: React.FC = () => {
               <span className="text-[#caa152]/50">•</span>
               <span className="inline-flex items-center gap-1.5">
                 <MapPin className="w-4 h-4 text-[#caa152]" />
-                Kota Malang, Jawa Timur
+                Universitas Brawijaya
               </span>
             </div>
 
@@ -88,7 +88,7 @@ export const EventPage: React.FC = () => {
 
           {/* Kanan: Kartu Undangan Resmi (Logo Terintegrasi Rapi di Footer Kartu) */}
           <div className="lg:col-span-5">
-            <div className="relative rounded-3xl overflow-hidden border border-[#caa152]/55 bg-[#2d1b0f]/95 shadow-[0_24px_60px_-16px_rgba(0,0,0,0.6)]">
+            <div className="card-modern-hover relative rounded-3xl overflow-hidden border border-[#caa152]/55 bg-[#2d1b0f]/95 shadow-[0_24px_60px_-16px_rgba(0,0,0,0.6)]">
               <CornerFiligree color="#caa152" className="w-6 h-6 opacity-50" />
 
               <div className="p-6 sm:p-7 space-y-5 relative z-10">
@@ -108,18 +108,18 @@ export const EventPage: React.FC = () => {
                       </p>
                     </div>
                   </div>
-                  <span className="font-cinzel text-[10px] tracking-[0.18em] uppercase text-[#f3d48c] border border-[#caa152]/40 px-2.5 py-1 rounded-full">
-                    Malang
+                  <span className="font-cinzel text-[9px] tracking-[0.14em] uppercase text-[#f3d48c] border border-[#caa152]/40 px-2.5 py-1 rounded-full text-center shrink-0">
+                    Univ. Brawijaya
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 pt-4 border-t border-[#caa152]/25 text-left">
-                  <div className="p-3.5 rounded-2xl bg-[#201209]/90 border border-[#caa152]/20">
+                  <div className="p-3.5 rounded-2xl bg-[#201209]/90 border border-[#caa152]/20 hover:border-[#caa152]/65 hover:-translate-y-0.5 transition-all duration-250">
                     <p className="font-cinzel text-[9.5px] tracking-[0.18em] uppercase text-[#caa152]">Hari 1</p>
                     <p className="font-cormorant text-2xl text-[#fffdf9] font-semibold mt-0.5">21 Mar</p>
                     <p className="font-sans text-[11px] text-[#dec9ad] mt-0.5">Competition Final</p>
                   </div>
-                  <div className="p-3.5 rounded-2xl bg-[#201209]/90 border border-[#caa152]/20">
+                  <div className="p-3.5 rounded-2xl bg-[#201209]/90 border border-[#caa152]/20 hover:border-[#caa152]/65 hover:-translate-y-0.5 transition-all duration-250">
                     <p className="font-cinzel text-[9.5px] tracking-[0.18em] uppercase text-[#caa152]">Hari 2</p>
                     <p className="font-cormorant text-2xl text-[#fffdf9] font-semibold mt-0.5">22 Mar</p>
                     <p className="font-sans text-[11px] text-[#dec9ad] mt-0.5">Seminar, Expo &amp; Awarding</p>
@@ -135,9 +135,9 @@ export const EventPage: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <img src="/Logo/logo-bi.webp" alt="Bank Indonesia" className="h-3.5 sm:h-4 w-auto object-contain" />
                   <span className="w-px h-3.5 bg-[#b8925a]/45" aria-hidden="true" />
-                  <img src="/Logo/logo-ub.webp" alt="Universitas Brawijaya" className="h-5 sm:h-6 w-auto object-contain" />
-                  <span className="w-px h-3.5 bg-[#b8925a]/45" aria-hidden="true" />
                   <img src="/Logo/logo-genbi.webp" alt="GenBI UB" className="h-4 sm:h-5 w-auto object-contain" />
+                  <span className="w-px h-3.5 bg-[#b8925a]/45" aria-hidden="true" />
+                  <img src="/Logo/logo-ub.webp" alt="Universitas Brawijaya" className="h-5 sm:h-6 w-auto object-contain" />
                 </div>
               </div>
             </div>
@@ -155,17 +155,17 @@ export const EventPage: React.FC = () => {
           {/* HARI 1: Foto Kiri, Penjelasan Kanan */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             <div className="lg:col-span-6 relative">
-              <div className="relative rounded-3xl overflow-hidden border-2 border-[#d8be99] bg-[#fffdf9] p-2.5 shadow-[0_20px_48px_-18px_rgba(47,30,16,0.28)]">
+              <div className="card-modern-hover group relative rounded-3xl overflow-hidden border-2 border-[#d8be99] hover:border-[#caa152] bg-[#fffdf9] p-2.5 shadow-[0_20px_48px_-18px_rgba(47,30,16,0.28)]">
                 <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-[#2b1a0e]">
                   <img
                     src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=1000&fm=webp&q=80"
                     alt="Babak Final Pitching Digiconomic Fest 2027"
                     loading="lazy"
                     decoding="async"
-                    className="w-full h-full object-cover filter sepia-[0.14]"
+                    className="w-full h-full object-cover filter sepia-[0.14] transition-all duration-700 ease-out group-hover:scale-105 group-hover:sepia-0"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#241308]/65 via-transparent to-transparent" />
-                  <div className="absolute bottom-4 left-4 bg-[#fffdf9]/95 backdrop-blur-xs px-4 py-2 rounded-xl border border-[#caa152]/60 shadow-sm">
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#241308]/65 via-transparent to-transparent transition-opacity duration-300 group-hover:opacity-80" />
+                  <div className="absolute bottom-4 left-4 bg-[#fffdf9]/95 backdrop-blur-xs px-4 py-2 rounded-xl border border-[#caa152]/60 shadow-sm transition-transform duration-300 group-hover:-translate-y-0.5">
                     <p className="font-cinzel text-[9px] tracking-[0.2em] uppercase text-[#8a5e38] font-semibold">
                       Hari Pertama
                     </p>
@@ -183,10 +183,10 @@ export const EventPage: React.FC = () => {
               </p>
               <h2 className="font-cormorant text-3xl sm:text-4xl text-[#241308] font-normal leading-tight">
                 Grand Final Pitching{' '}
-                <span className="shimmer-text">Esai &amp; Mini Case</span>
+                <span className="text-[#9a6522]">Esai &amp; Mini Case</span>
               </h2>
               <p className="font-sans text-xs sm:text-sm text-[#4a2e18] leading-relaxed">
-                Tim finalis terbaik dari seluruh Indonesia memaparkan gagasan dan solusi bisnis UMKM secara langsung di hadapan dewan juri praktisi dan akademisi di Kota Malang.
+                Tim finalis terbaik dari seluruh Indonesia memaparkan gagasan dan solusi bisnis UMKM secara langsung di hadapan dewan juri praktisi dan akademisi di Universitas Brawijaya.
               </p>
               <ul className="space-y-2.5 pt-2">
                 {[
@@ -213,7 +213,7 @@ export const EventPage: React.FC = () => {
               </p>
               <h2 className="font-cormorant text-3xl sm:text-4xl text-[#241308] font-normal leading-tight">
                 Seminar Bank Indonesia,{' '}
-                <span className="shimmer-text">Expo UMKM &amp; Awarding</span>
+                <span className="text-[#9a6522]">Expo UMKM &amp; Awarding</span>
               </h2>
               <p className="font-sans text-xs sm:text-sm text-[#4a2e18] leading-relaxed">
                 Acara puncak Digiconomic Fest 2027 yang terbuka bagi 375+ peserta—memadukan seminar ekonomi digital bersama KPw Bank Indonesia Malang, pameran produk UMKM binaan BI, hingga penganugerahan juara.
@@ -235,17 +235,17 @@ export const EventPage: React.FC = () => {
             </div>
 
             <div className="lg:col-span-6 order-1 lg:order-2 relative">
-              <div className="relative rounded-3xl overflow-hidden border-2 border-[#d8be99] bg-[#fffdf9] p-2.5 shadow-[0_20px_48px_-18px_rgba(47,30,16,0.28)]">
+              <div className="card-modern-hover group relative rounded-3xl overflow-hidden border-2 border-[#d8be99] hover:border-[#caa152] bg-[#fffdf9] p-2.5 shadow-[0_20px_48px_-18px_rgba(47,30,16,0.28)]">
                 <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-[#2b1a0e]">
                   <img
                     src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1000&fm=webp&q=80"
                     alt="Seminar Nasional dan Pameran UMKM Bank Indonesia"
                     loading="lazy"
                     decoding="async"
-                    className="w-full h-full object-cover filter sepia-[0.14]"
+                    className="w-full h-full object-cover filter sepia-[0.14] transition-all duration-700 ease-out group-hover:scale-105 group-hover:sepia-0"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#241308]/65 via-transparent to-transparent" />
-                  <div className="absolute bottom-4 right-4 bg-[#fffdf9]/95 backdrop-blur-xs px-4 py-2 rounded-xl border border-[#caa152]/60 shadow-sm text-right">
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#241308]/65 via-transparent to-transparent transition-opacity duration-300 group-hover:opacity-80" />
+                  <div className="absolute bottom-4 right-4 bg-[#fffdf9]/95 backdrop-blur-xs px-4 py-2 rounded-xl border border-[#caa152]/60 shadow-sm text-right transition-transform duration-300 group-hover:-translate-y-0.5">
                     <p className="font-cinzel text-[9px] tracking-[0.2em] uppercase text-[#8a5e38] font-semibold">
                       Acara Puncak
                     </p>
@@ -278,7 +278,7 @@ export const EventPage: React.FC = () => {
                 <span>Pengarahan Daring · Zoom Meeting</span>
               </p>
               <h2 className="font-cormorant text-3xl sm:text-4xl text-[#fffdf9] font-normal leading-tight">
-                Jadwal <span className="shimmer-text">Technical Meeting</span>
+                Jadwal <span className="text-[#e8c47a]">Technical Meeting</span>
               </h2>
               <p className="font-sans text-xs sm:text-sm text-[#dec9ad] leading-relaxed mt-2">
                 Wajib diikuti perwakilan tim terdaftar untuk menyamakan aturan teknis, format berkas, dan alur penilaian.
@@ -313,7 +313,7 @@ export const EventPage: React.FC = () => {
 
           {/* Kanan: Kartu Parchment Panduan Singkat */}
           <div className="lg:col-span-7">
-            <div className="relative rounded-3xl bg-[#fffdf9] text-[#241308] border border-[#caa152]/70 p-6 sm:p-8 shadow-xl">
+            <div className="card-modern-hover relative rounded-3xl bg-[#fffdf9] text-[#241308] border border-[#caa152]/70 p-6 sm:p-8 shadow-xl">
               <CornerFiligree color="#b88c52" className="w-6 h-6 opacity-40" />
 
               <div className="relative z-10 space-y-5">

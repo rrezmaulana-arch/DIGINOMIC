@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Camera, X, ZoomIn } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { Camera, Search, X, ZoomIn } from 'lucide-react';
 import {
   BatikKawungPattern,
   CornerFiligree,
@@ -61,13 +62,174 @@ const GALLERY_ITEMS: GalleryItem[] = [
 ];
 
 const CATEGORIES = ['Semua', 'Kompetisi', 'Seminar', 'Awarding'] as const;
+const LOUPE_SIZE = 156;
+
+interface LoupeState {
+  active: boolean;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 
 export const GallerySection: React.FC = () => {
   const [filter, setFilter] = useState<(typeof CATEGORIES)[number]>('Semua');
   const [lightbox, setLightbox] = useState<GalleryItem | null>(null);
+  const [zoomLevel, setZoomLevel] = useState<2.4 | 3.2>(2.4);
+  const [loupe, setLoupe] = useState<LoupeState>({
+    active: false,
+    x: 0,
+    y: 0,
+    width: 1,
+    height: 1,
+  });
+  const imgBoxRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!lightbox) {
+      setLoupe((prev) => (prev.active ? { ...prev, active: false } : prev));
+      setZoomLevel(2.4);
+      return;
+    }
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightbox(null);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [lightbox]);
+
+  const handleLoupeMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const box = imgBoxRef.current;
+    if (!box) return;
+    const rect = box.getBoundingClientRect();
+    const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+    const y = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
+    setLoupe({
+      active: true,
+      x,
+      y,
+      width: rect.width,
+      height: rect.height,
+    });
+  };
+
+  const handleLoupeLeave = () => {
+    setLoupe((prev) => ({ ...prev, active: false }));
+  };
+
+  const toggleZoomLevel = () => {
+    setZoomLevel((prev) => (prev === 2.4 ? 3.2 : 2.4));
+  };
 
   const visibleItems =
     filter === 'Semua' ? GALLERY_ITEMS : GALLERY_ITEMS.filter((item) => item.category === filter);
+
+  const lightboxModal =
+    lightbox &&
+    createPortal(
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={lightbox.title}
+        className="fixed inset-0 z-[95] bg-[#160b04]/88 backdrop-blur-sm flex items-center justify-center p-4"
+        onClick={() => setLightbox(null)}
+      >
+        <div
+          className="relative max-w-3xl w-full rounded-3xl overflow-hidden border-2 border-[#caa152] bg-[#29170b] shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            type="button"
+            onClick={() => setLightbox(null)}
+            className="absolute top-3.5 right-3.5 z-30 w-9 h-9 rounded-full bg-[#1a0e06]/85 border border-[#caa152]/70 text-[#faf4e8] flex items-center justify-center hover:bg-[#3b2412] hover:scale-105 transition-all"
+            aria-label="Tutup pratinjau"
+          >
+            <X className="w-4 h-4" />
+          </button>
+
+          {/* Interactive Magnifier Photo Stage */}
+          <div
+            ref={imgBoxRef}
+            onMouseMove={handleLoupeMove}
+            onMouseLeave={handleLoupeLeave}
+            onClick={toggleZoomLevel}
+            className="relative w-full overflow-hidden bg-[#1a0e06] select-none cursor-zoom-in"
+            title="Arahkan kursor untuk kaca pembesar · Klik untuk ganti tingkat zoom"
+          >
+            <img
+              src={lightbox.imageUrl}
+              alt={lightbox.title}
+              draggable={false}
+              className={`w-full max-h-[66vh] object-cover transition-transform duration-500 ease-out ${
+                loupe.active ? 'scale-[1.03]' : 'scale-100'
+              }`}
+            />
+
+            {/* Hint pill (desktop) */}
+            <div
+              className={`hidden sm:inline-flex items-center gap-1.5 absolute top-3.5 left-3.5 z-20 px-3 py-1 rounded-full bg-[#1a0e06]/78 border border-[#caa152]/55 text-[#f7e1b5] text-[11px] font-sans backdrop-blur-xs pointer-events-none transition-opacity duration-200 ${
+                loupe.active ? 'opacity-90' : 'opacity-85'
+              }`}
+            >
+              <Search className="w-3 h-3 text-[#e8c47a]" />
+              <span>
+                {loupe.active
+                  ? `Magnifier ${zoomLevel}× · Klik untuk ${zoomLevel === 2.4 ? '3.2×' : '2.4×'}`
+                  : 'Arahkan kursor untuk efek magnifier'}
+              </span>
+            </div>
+
+            {/* Circular Vintage Gold Magnifier Loupe (Desktop Hover Only) */}
+            {loupe.active && (
+              <div
+                aria-hidden="true"
+                className="hidden sm:block pointer-events-none absolute z-20 rounded-full border-2 border-[#f3d48c] ring-2 ring-[#29170b]/75 shadow-[0_14px_34px_rgba(0,0,0,0.6),inset_0_0_24px_rgba(255,244,210,0.22)]"
+                style={{
+                  width: LOUPE_SIZE,
+                  height: LOUPE_SIZE,
+                  left: 0,
+                  top: 0,
+                  transform: `translate3d(${loupe.x - LOUPE_SIZE / 2}px, ${loupe.y - LOUPE_SIZE / 2}px, 0)`,
+                  backgroundImage: `url("${lightbox.imageUrl}")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundSize: `${loupe.width * zoomLevel}px ${loupe.height * zoomLevel}px`,
+                  backgroundPosition: `${-(loupe.x * zoomLevel - LOUPE_SIZE / 2)}px ${-(loupe.y * zoomLevel - LOUPE_SIZE / 2)}px`,
+                }}
+              >
+                {/* Glass highlight reflection */}
+                <div
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    background:
+                      'radial-gradient(circle at 30% 25%, rgba(255, 250, 232, 0.28) 0%, rgba(255, 250, 232, 0.04) 45%, transparent 70%)',
+                  }}
+                />
+                {/* Fine center crosshair */}
+                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border border-[#f3d48c]/70" />
+              </div>
+            )}
+          </div>
+
+          <div className="p-5 sm:p-6 bg-[#29170b] text-[#faf4e8]">
+            <span className="font-poppins text-[10px] tracking-[0.2em] uppercase text-[#caa152] font-semibold">
+              {lightbox.category} · {lightbox.year}
+            </span>
+            <h4 className="font-poppins text-lg sm:text-xl font-semibold text-[#fffdf9] mt-1">
+              {lightbox.title}
+            </h4>
+            <p className="font-sans text-xs sm:text-sm text-[#e3d0b5] mt-1.5 leading-relaxed">
+              {lightbox.caption}
+            </p>
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
 
   return (
     <section
@@ -88,7 +250,7 @@ export const GallerySection: React.FC = () => {
           </div>
 
           <h2 className="font-abang font-normal text-2xl sm:text-4xl lg:text-[2.75rem] text-[#241308] tracking-tight leading-snug">
-            Galeri <span className="shimmer-text">Digiconomic Fest</span>
+            Galeri <span className="text-[#9a6522]">Digiconomic Fest</span>
           </h2>
           <SectionDivider variant="light" />
           <p className="font-sans text-xs sm:text-sm text-[#5c3e28] leading-relaxed">
@@ -167,43 +329,7 @@ export const GallerySection: React.FC = () => {
         </div>
       </div>
 
-      {/* Lightbox Modal */}
-      {lightbox && (
-        <div
-          className="fixed inset-0 z-[90] bg-[#1a0e06]/85 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setLightbox(null)}
-        >
-          <div
-            className="relative max-w-3xl w-full rounded-3xl overflow-hidden border-2 border-[#caa152] bg-[#29170b] shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              type="button"
-              onClick={() => setLightbox(null)}
-              className="absolute top-3.5 right-3.5 z-10 w-9 h-9 rounded-full bg-[#1a0e06]/80 border border-[#caa152]/60 text-[#faf4e8] flex items-center justify-center hover:bg-[#3b2412] transition-colors"
-              aria-label="Tutup pratinjau"
-            >
-              <X className="w-4 h-4" />
-            </button>
-            <img
-              src={lightbox.imageUrl}
-              alt={lightbox.title}
-              className="w-full max-h-[68vh] object-cover"
-            />
-            <div className="p-5 sm:p-6 bg-[#29170b] text-[#faf4e8]">
-              <span className="font-poppins text-[10px] tracking-[0.2em] uppercase text-[#caa152] font-semibold">
-                {lightbox.category} · {lightbox.year}
-              </span>
-              <h4 className="font-poppins text-lg sm:text-xl font-semibold text-[#fffdf9] mt-1">
-                {lightbox.title}
-              </h4>
-              <p className="font-sans text-xs sm:text-sm text-[#e3d0b5] mt-1.5 leading-relaxed">
-                {lightbox.caption}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {lightboxModal}
     </section>
   );
 };

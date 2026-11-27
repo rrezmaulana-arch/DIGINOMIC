@@ -122,19 +122,20 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* LOGO & BRAND LOCKUP */}
           <button
             onClick={() => goTo('/')}
-            className="flex items-center gap-2 select-none text-left group shrink-0"
+            className="flex items-center gap-2.5 select-none text-left group shrink-0 px-1.5 py-0.5 -ml-1.5 rounded-full transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-[#f4ead9]/75 active:scale-[0.98]"
           >
             <img
               src="/Logo/00-logo-gabungan.svg"
               alt="Logo"
-              className="h-6.5 sm:h-8 w-auto object-contain filter drop-shadow-2xs"
+              className="h-6.5 sm:h-8 w-auto object-contain filter drop-shadow-2xs transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-110 group-hover:-rotate-6 group-hover:drop-shadow-[0_4px_10px_rgba(202,161,82,0.5)]"
             />
             <div className="flex flex-col">
-              <span className="font-poppins font-semibold text-sm sm:text-lg text-[#2a170b] tracking-tight leading-none font-normal">
+              <span className="font-poppins font-semibold text-sm sm:text-lg text-[#2a170b] group-hover:text-[#7a4b18] tracking-tight leading-none transition-colors duration-300">
                 Digiconomic
               </span>
-              <span className="font-cinzel text-[7px] sm:text-[9px] text-[#9b6e38] tracking-[0.26em] uppercase mt-0.5 font-normal">
+              <span className="relative font-cinzel text-[7px] sm:text-[9px] text-[#9b6e38] group-hover:text-[#b88636] tracking-[0.26em] group-hover:tracking-[0.31em] uppercase mt-0.5 font-normal transition-all duration-300">
                 FEST 2027
+                <span className="block h-[1.5px] w-0 group-hover:w-full bg-gradient-to-r from-[#caa152] via-[#e8c47a] to-transparent transition-all duration-350 ease-out mt-0.5 rounded-full" />
               </span>
             </div>
           </button>

@@ -40,9 +40,9 @@ export const Footer: React.FC<FooterProps> = ({
             <div className="inline-flex items-center gap-3.5 px-3.5 py-2 rounded-xl bg-[#faf4e8]/95 border border-[#caa152]/40">
               <img src="/Logo/logo-bi.webp" alt="Bank Indonesia" loading="lazy" className="h-3.5 sm:h-4 w-auto object-contain" />
               <span className="w-px h-4 bg-[#b8925a]/45" aria-hidden="true" />
-              <img src="/Logo/logo-ub.webp" alt="Universitas Brawijaya" loading="lazy" className="h-5 sm:h-6 w-auto object-contain" />
-              <span className="w-px h-4 bg-[#b8925a]/45" aria-hidden="true" />
               <img src="/Logo/logo-genbi.webp" alt="GenBI Komisariat UB" loading="lazy" className="h-4 sm:h-5 w-auto object-contain" />
+              <span className="w-px h-4 bg-[#b8925a]/45" aria-hidden="true" />
+              <img src="/Logo/logo-ub.webp" alt="Universitas Brawijaya" loading="lazy" className="h-5 sm:h-6 w-auto object-contain" />
             </div>
 
             <p className="text-xs text-[#cfbc9f] leading-relaxed max-w-sm">

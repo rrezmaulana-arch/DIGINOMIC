@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Calendar, MapPin, ArrowRight } from 'lucide-react';
 
 interface HeroProps {
@@ -22,6 +22,34 @@ export const Hero: React.FC<HeroProps> = ({ onExplore, onViewCompetitions }) => 
   };
 
   const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+  const [titleLoupeActive, setTitleLoupeActive] = useState(false);
+  const titleBoxRef = useRef<HTMLDivElement>(null);
+  const titleLoupeRef = useRef<HTMLDivElement>(null);
+  const titleCloneRef = useRef<HTMLDivElement>(null);
+
+  const TITLE_LOUPE_SIZE = 156;
+  const TITLE_LOUPE_ZOOM = 1.45;
+
+  const handleTitleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const box = titleBoxRef.current;
+    const loupe = titleLoupeRef.current;
+    const clone = titleCloneRef.current;
+    if (!box || !loupe || !clone) return;
+    const rect = box.getBoundingClientRect();
+    const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+    const y = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
+    const r = TITLE_LOUPE_SIZE / 2;
+
+    if (!titleLoupeActive) setTitleLoupeActive(true);
+    loupe.style.transform = `translate3d(${(x - r).toFixed(1)}px, ${(y - r).toFixed(1)}px, 0)`;
+    clone.style.width = `${rect.width}px`;
+    clone.style.height = `${rect.height}px`;
+    clone.style.transform = `translate3d(${(r - x * TITLE_LOUPE_ZOOM).toFixed(1)}px, ${(r - y * TITLE_LOUPE_ZOOM).toFixed(1)}px, 0) scale(${TITLE_LOUPE_ZOOM})`;
+  };
+
+  const handleTitleMouseLeave = () => {
+    setTitleLoupeActive(false);
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -83,7 +111,7 @@ export const Hero: React.FC<HeroProps> = ({ onExplore, onViewCompetitions }) => 
       {/* ── HERO CENTERED CONTENT ── */}
       <div className="relative z-10 w-full max-w-4xl mx-auto flex flex-col items-center">
         
-        {/* Baris Logo Resmi Penyelenggara (Tanpa Pill / Box Berlebihan) */}
+        {/* Baris Logo Resmi Penyelenggara (Urutan: BI → GenBI → UB) */}
         <div className="flex items-center justify-center gap-3.5 sm:gap-5 mb-3 sm:mb-4">
           <img
             src="/Logo/logo-bi.webp"
@@ -92,15 +120,15 @@ export const Hero: React.FC<HeroProps> = ({ onExplore, onViewCompetitions }) => 
           />
           <span className="w-px h-4 sm:h-5 bg-[#b8925a]/45" aria-hidden="true" />
           <img
-            src="/Logo/logo-ub.webp"
-            alt="Universitas Brawijaya"
-            className="h-6 sm:h-7 md:h-8 w-auto object-contain"
-          />
-          <span className="w-px h-4 sm:h-5 bg-[#b8925a]/45" aria-hidden="true" />
-          <img
             src="/Logo/logo-genbi.webp"
             alt="GenBI Komisariat Universitas Brawijaya"
             className="h-5 sm:h-6 md:h-7 w-auto object-contain"
+          />
+          <span className="w-px h-4 sm:h-5 bg-[#b8925a]/45" aria-hidden="true" />
+          <img
+            src="/Logo/logo-ub.webp"
+            alt="Universitas Brawijaya"
+            className="h-6 sm:h-7 md:h-8 w-auto object-contain"
           />
         </div>
 
@@ -109,15 +137,64 @@ export const Hero: React.FC<HeroProps> = ({ onExplore, onViewCompetitions }) => 
           GENBI KOMISARIAT UNIVERSITAS BRAWIJAYA MEMPERSEMBAHKAN
         </p>
 
-        {/* Main Title: Digiconomic (Hitam/Dark) & Fest 2027 (Emas Bercahaya/Shimmer) */}
-        <h1 className="font-cormorant text-4xl sm:text-6xl md:text-7xl lg:text-[5.5rem] xl:text-[6.25rem] tracking-tight leading-[1.08] font-normal select-none text-center px-2 sm:px-4">
-          <span className="text-[#1a0f07] block drop-shadow-xs font-normal">
-            Digiconomic
-          </span>
-          <span className="shimmer-text block mt-0.5 sm:mt-1 font-normal">
-            Fest 2027
-          </span>
-        </h1>
+        {/* Main Title: Digiconomic & Fest 2027 dengan Efek Kaca Pembesar (Magnifier Loupe) */}
+        <div
+          ref={titleBoxRef}
+          onMouseMove={handleTitleMouseMove}
+          onMouseLeave={handleTitleMouseLeave}
+          className="relative inline-block select-none px-4 sm:px-8 py-1 cursor-zoom-in"
+        >
+          <h1 className="font-cormorant text-4xl sm:text-6xl md:text-7xl lg:text-[5.5rem] xl:text-[6.25rem] tracking-tight leading-[1.08] font-normal text-center">
+            <span className="text-[#1a0f07] block drop-shadow-xs font-normal">
+              Digiconomic
+            </span>
+            <span className="shimmer-text block mt-0.5 sm:mt-1 font-normal">
+              Fest 2027
+            </span>
+          </h1>
+
+          {/* Lensa Magnifier Optik (Desktop Hover Only, 60fps via Ref Transform) */}
+          <div
+            ref={titleLoupeRef}
+            aria-hidden="true"
+            className={`hidden sm:block pointer-events-none absolute left-0 top-0 z-30 rounded-full overflow-hidden border-2 border-[#d8ad56] ring-2 ring-[#fffdf9]/80 transition-opacity duration-200 ${
+              titleLoupeActive ? 'opacity-100' : 'opacity-0'
+            }`}
+            style={{
+              width: TITLE_LOUPE_SIZE,
+              height: TITLE_LOUPE_SIZE,
+              background:
+                'radial-gradient(circle at 32% 28%, rgba(255, 253, 248, 0.96) 0%, rgba(248, 240, 224, 0.94) 68%, rgba(235, 220, 194, 0.95) 100%)',
+              boxShadow:
+                '0 14px 34px -6px rgba(42, 23, 11, 0.34), 0 0 0 1px rgba(202, 161, 82, 0.45), inset 0 0 22px rgba(202, 161, 82, 0.22)',
+              willChange: 'transform, opacity',
+            }}
+          >
+            <div
+              ref={titleCloneRef}
+              className="px-4 sm:px-8 py-1"
+              style={{ transformOrigin: '0 0', willChange: 'transform' }}
+            >
+              <div className="font-cormorant text-4xl sm:text-6xl md:text-7xl lg:text-[5.5rem] xl:text-[6.25rem] tracking-tight leading-[1.08] font-normal text-center">
+                <span className="text-[#2f1a0c] block font-normal">
+                  Digiconomic
+                </span>
+                <span className="shimmer-text block mt-0.5 sm:mt-1 font-normal">
+                  Fest 2027
+                </span>
+              </div>
+            </div>
+
+            {/* Kilau pantulan kaca lensa */}
+            <div
+              className="absolute inset-0 rounded-full pointer-events-none"
+              style={{
+                background:
+                  'radial-gradient(circle at 28% 24%, rgba(255, 255, 255, 0.55) 0%, rgba(255, 250, 235, 0.12) 42%, transparent 68%)',
+              }}
+            />
+          </div>
+        </div>
 
         <div className="flex flex-col items-center w-full mt-2 sm:mt-3">
           {/* Subtle Decorative Star Divider */}
@@ -142,7 +219,7 @@ export const Hero: React.FC<HeroProps> = ({ onExplore, onViewCompetitions }) => 
             </div>
             <div className="flex items-center gap-1.5 sm:gap-2">
               <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#caa152]" />
-              <span>MALANG, JAWA TIMUR</span>
+              <span>UNIVERSITAS BRAWIJAYA</span>
             </div>
           </div>
 
@@ -156,16 +233,15 @@ export const Hero: React.FC<HeroProps> = ({ onExplore, onViewCompetitions }) => 
             ].map((item, idx) => (
               <div
                 key={idx}
-                className="group relative flex flex-col items-center justify-center py-2 sm:py-3 px-1 sm:px-2 rounded-xl sm:rounded-2xl border border-[#ebdcc8] shadow-2xs hover:shadow-xs transition-all duration-300"
+                className="card-modern-hover group relative flex flex-col items-center justify-center py-2.5 sm:py-3.5 px-1 sm:px-2 rounded-xl sm:rounded-2xl border border-[#dfccb0] hover:border-[#caa152]/75 shadow-2xs"
                 style={{
-                  background: 'rgba(255, 253, 248, 0.94)',
+                  background: 'rgba(255, 253, 248, 0.95)',
                 }}
               >
-                <div className="absolute inset-0.5 sm:inset-1 rounded-lg sm:rounded-xl border border-dashed border-[#caa152]/30 pointer-events-none group-hover:border-[#caa152]/70 transition-colors duration-300" />
-                <span className="font-cormorant text-xl sm:text-2xl md:text-3xl text-[#2a170b] font-normal leading-none mb-0.5 sm:mb-1">
+                <span className="font-cormorant tabular-nums text-xl sm:text-2xl md:text-3xl text-[#2a170b] font-semibold leading-none mb-0.5 sm:mb-1">
                   {item.val}
                 </span>
-                <span className="font-cinzel text-[8px] sm:text-[9px] md:text-[10px] text-[#8a5e38] tracking-[0.15em] sm:tracking-[0.2em] font-normal">
+                <span className="font-cinzel text-[8px] sm:text-[9px] md:text-[10px] text-[#8a5e38] tracking-[0.15em] sm:tracking-[0.2em] font-medium">
                   {item.label}
                 </span>
               </div>

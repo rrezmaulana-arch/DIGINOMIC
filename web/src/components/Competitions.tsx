@@ -49,7 +49,7 @@ export const Competitions: React.FC<CompetitionsProps> = ({
               </div>
 
               <h2 className="font-abang font-normal text-2xl sm:text-4xl lg:text-[2.85rem] text-[#fffdfa] tracking-tight leading-[1.12]">
-                Cabang <span className="shimmer-text">Kompetisi Resmi</span>
+                Cabang <span className="text-[#e8c47a]">Kompetisi Resmi</span>
               </h2>
 
               <p className="font-sans text-xs sm:text-sm text-[#e4ceaa] leading-relaxed">

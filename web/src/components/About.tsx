@@ -31,7 +31,7 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
               </p>
               <h2 className="font-cormorant font-normal text-2xl sm:text-3xl md:text-4xl lg:text-[2.85rem] text-[#241308] tracking-tight leading-[1.15]">
                 Mengenal <br />
-                <span className="shimmer-text font-normal">
+                <span className="text-[#9a6522] font-medium">
                   Digiconomic Fest
                 </span>
               </h2>
@@ -42,7 +42,7 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
             </p>
 
             <p className="font-sans text-[11.5px] sm:text-sm text-[#4a2e18] leading-[1.7] sm:leading-[1.85] font-normal">
-              Melalui cabang lomba <strong className="text-[#241308] font-semibold">Esai Nasional</strong> dan <strong className="text-[#241308] font-semibold">Mini Case Competition</strong> tingkat nasional, serta seminar nasional dan pameran UMKM binaan di <strong className="text-[#241308] font-semibold">Malang, Jawa Timur</strong>, Digiconomic Fest mendorong inovasi nyata agar <strong className="text-[#7a5530] font-semibold">UMKM lokal</strong> semakin adaptif, berdaya saing global, dan berkelanjutan.
+              Melalui cabang lomba <strong className="text-[#241308] font-semibold">Esai</strong> dan <strong className="text-[#241308] font-semibold">Mini Case Competition</strong> tingkat nasional, serta seminar dan pameran UMKM binaan <strong className="text-[#241308] font-semibold">BI Malang</strong> di <strong className="text-[#241308] font-semibold">Universitas Brawijaya</strong>, Digiconomic Fest mendorong inovasi nyata agar <strong className="text-[#7a5530] font-semibold">UMKM lokal</strong> semakin adaptif, berdaya saing global, dan berkelanjutan.
             </p>
 
             <div className="pt-1 sm:pt-2">
@@ -109,7 +109,7 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
         {/* ── MIDDLE: TEMA RESMI (Compact & Balanced on mobile) ── */}
         <div className="my-5 sm:my-10 md:my-14 text-center">
           <div
-            className="p-3.5 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl border border-[#ebdcc8] shadow-xs max-w-4xl mx-auto relative overflow-hidden"
+            className="card-modern-hover p-3.5 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl border border-[#ebdcc8] shadow-xs max-w-4xl mx-auto relative overflow-hidden"
             style={{
               background: 'radial-gradient(circle at 50% 30%, #ffffff 0%, #faf4e8 70%, #f4e8d2 100%)',
             }}
@@ -126,9 +126,9 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
             <div className="mt-4 sm:mt-6 pt-3.5 sm:pt-4 border-t border-[#e6d5bc]/80 flex flex-wrap items-center justify-center gap-4 sm:gap-7">
               <img src="/Logo/logo-bi.webp" alt="Bank Indonesia" loading="lazy" className="h-4 sm:h-5 w-auto object-contain opacity-90" />
               <span className="w-px h-4 bg-[#caa152]/40 hidden sm:inline-block" aria-hidden="true" />
-              <img src="/Logo/logo-ub.webp" alt="Universitas Brawijaya" loading="lazy" className="h-6 sm:h-7 w-auto object-contain opacity-90" />
-              <span className="w-px h-4 bg-[#caa152]/40 hidden sm:inline-block" aria-hidden="true" />
               <img src="/Logo/logo-genbi.webp" alt="GenBI Komisariat Universitas Brawijaya" loading="lazy" className="h-5 sm:h-6 w-auto object-contain opacity-90" />
+              <span className="w-px h-4 bg-[#caa152]/40 hidden sm:inline-block" aria-hidden="true" />
+              <img src="/Logo/logo-ub.webp" alt="Universitas Brawijaya" loading="lazy" className="h-6 sm:h-7 w-auto object-contain opacity-90" />
             </div>
           </div>
         </div>
@@ -170,11 +170,10 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
             ].map((item, idx) => (
               <div
                 key={idx}
-                className="w-[80vw] sm:w-auto shrink-0 snap-center group p-3.5 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl md:rounded-3xl border border-[#ebdcc8] shadow-xs hover:shadow-lg transition-all duration-300 relative flex flex-col justify-start"
-                style={{ background: 'rgba(255, 253, 248, 0.94)' }}
+                className="card-modern-hover w-[80vw] sm:w-auto shrink-0 snap-center group p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl md:rounded-3xl border border-[#dfccb0] hover:border-[#caa152]/75 shadow-xs relative flex flex-col justify-start"
+                style={{ background: 'rgba(255, 253, 248, 0.95)' }}
               >
-                <div className="absolute inset-1.5 sm:inset-2 rounded-lg sm:rounded-xl md:rounded-2xl border border-dashed border-[#caa152]/20 pointer-events-none group-hover:border-[#caa152]/60 transition-colors duration-300" />
-                <div className="flex items-center gap-2 mb-1.5 sm:mb-3 relative z-10">
+                <div className="flex items-center gap-2.5 mb-2 sm:mb-3 relative z-10">
                   <div className="w-6.5 h-6.5 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-cinzel text-[10px] sm:text-xs font-semibold text-white bg-gradient-to-r from-[#ba883a] to-[#caa152] shadow-2xs shrink-0">
                     {item.no}
                   </div>
