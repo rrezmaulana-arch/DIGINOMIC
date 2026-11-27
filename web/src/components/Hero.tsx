@@ -83,16 +83,31 @@ export const Hero: React.FC<HeroProps> = ({ onExplore, onViewCompetitions }) => 
       {/* ── HERO CENTERED CONTENT ── */}
       <div className="relative z-10 w-full max-w-4xl mx-auto flex flex-col items-center">
         
-        {/* Identitas GenBI Komisariat Universitas Brawijaya */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#fffdf9]/90 border border-[#caa152]/55 shadow-2xs mb-2.5 sm:mb-3.5">
-          <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-[#2f1e10] text-[#f3d48c] font-cinzel text-[8px] sm:text-[9px] tracking-[0.16em] uppercase font-semibold shrink-0">
-            GenBI UB
-          </span>
-          <span className="w-px h-3 bg-[#caa152]/50" aria-hidden="true" />
-          <p className="font-cinzel text-[8.5px] sm:text-[10px] md:text-[11px] tracking-[0.16em] sm:tracking-[0.24em] text-[#7a4e26] uppercase font-semibold">
-            GENBI KOMISARIAT UNIVERSITAS BRAWIJAYA MEMPERSEMBAHKAN
-          </p>
+        {/* Baris Logo Resmi Penyelenggara (Tanpa Pill / Box Berlebihan) */}
+        <div className="flex items-center justify-center gap-3.5 sm:gap-5 mb-3 sm:mb-4">
+          <img
+            src="/Logo/logo-bi.webp"
+            alt="Bank Indonesia"
+            className="h-4 sm:h-5 md:h-6 w-auto object-contain"
+          />
+          <span className="w-px h-4 sm:h-5 bg-[#b8925a]/45" aria-hidden="true" />
+          <img
+            src="/Logo/logo-ub.webp"
+            alt="Universitas Brawijaya"
+            className="h-6 sm:h-7 md:h-8 w-auto object-contain"
+          />
+          <span className="w-px h-4 sm:h-5 bg-[#b8925a]/45" aria-hidden="true" />
+          <img
+            src="/Logo/logo-genbi.webp"
+            alt="GenBI Komisariat Universitas Brawijaya"
+            className="h-5 sm:h-6 md:h-7 w-auto object-contain"
+          />
         </div>
+
+        {/* Eyebrow Editorial Polos & Bersih */}
+        <p className="font-cinzel text-[9px] sm:text-[10.5px] md:text-xs tracking-[0.22em] sm:tracking-[0.3em] text-[#7a4e26] uppercase font-medium mb-2 sm:mb-3 px-2">
+          GENBI KOMISARIAT UNIVERSITAS BRAWIJAYA MEMPERSEMBAHKAN
+        </p>
 
         {/* Main Title: Digiconomic (Hitam/Dark) & Fest 2027 (Emas Bercahaya/Shimmer) */}
         <h1 className="font-cormorant text-4xl sm:text-6xl md:text-7xl lg:text-[5.5rem] xl:text-[6.25rem] tracking-tight leading-[1.08] font-normal select-none text-center px-2 sm:px-4">

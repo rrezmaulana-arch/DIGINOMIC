@@ -65,11 +65,10 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
             <div
               onMouseEnter={() => setFrontCard('kolaborasi')}
               onClick={() => setFrontCard('kolaborasi')}
-              className={`w-44 sm:w-56 md:w-64 p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[#fffdf9] border border-[#ebdcc8]/90 cursor-pointer absolute transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
-                frontCard === 'kolaborasi'
-                  ? 'z-30 -translate-x-4 sm:-translate-x-6 -translate-y-4 rotate-0 scale-105 shadow-[0_22px_45px_-12px_rgba(47,30,16,0.32)] ring-1 ring-[#caa152]/60'
-                  : 'z-10 -translate-x-10 sm:-translate-x-14 -translate-y-6 -rotate-6 scale-95 shadow-md opacity-95'
-              }`}
+              className={`w-44 sm:w-56 md:w-64 p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[#fffdf9] border border-[#ebdcc8]/90 cursor-pointer absolute transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${frontCard === 'kolaborasi'
+                ? 'z-30 -translate-x-4 sm:-translate-x-6 -translate-y-4 rotate-0 scale-105 shadow-[0_22px_45px_-12px_rgba(47,30,16,0.32)] ring-1 ring-[#caa152]/60'
+                : 'z-10 -translate-x-10 sm:-translate-x-14 -translate-y-6 -rotate-6 scale-95 shadow-md opacity-95'
+                }`}
             >
               <div className="w-full h-28 sm:h-36 md:h-40 rounded-lg sm:rounded-xl overflow-hidden bg-[#e0ceb6]">
                 <img loading="lazy" decoding="async"
@@ -87,11 +86,10 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
             <div
               onMouseEnter={() => setFrontCard('seminar')}
               onClick={() => setFrontCard('seminar')}
-              className={`w-44 sm:w-56 md:w-64 p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[#fffdf9] border border-[#ebdcc8]/90 cursor-pointer absolute transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
-                frontCard === 'seminar'
-                  ? 'z-30 translate-x-6 sm:translate-x-10 translate-y-6 rotate-2 scale-105 shadow-[0_22px_45px_-12px_rgba(47,30,16,0.32)] ring-1 ring-[#caa152]/60'
-                  : 'z-10 translate-x-12 sm:translate-x-16 translate-y-10 rotate-8 scale-95 shadow-md opacity-90'
-              }`}
+              className={`w-44 sm:w-56 md:w-64 p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[#fffdf9] border border-[#ebdcc8]/90 cursor-pointer absolute transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${frontCard === 'seminar'
+                ? 'z-30 translate-x-6 sm:translate-x-10 translate-y-6 rotate-2 scale-105 shadow-[0_22px_45px_-12px_rgba(47,30,16,0.32)] ring-1 ring-[#caa152]/60'
+                : 'z-10 translate-x-12 sm:translate-x-16 translate-y-10 rotate-8 scale-95 shadow-md opacity-90'
+                }`}
             >
               <div className="w-full h-28 sm:h-36 md:h-40 rounded-lg sm:rounded-xl overflow-hidden bg-[#e0ceb6]">
                 <img loading="lazy" decoding="async"
@@ -125,10 +123,12 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
               “Ekosistem UMKM di Negara Emerging Market: Mengakselerasi Potensi Lokal yang Berdaya Saing Global untuk Mewujudkan Pertumbuhan Berkelanjutan”
             </blockquote>
 
-            <div className="mt-2.5 sm:mt-5 flex flex-wrap items-center justify-center gap-2.5 sm:gap-6 text-[8.5px] sm:text-[10px] font-cinzel text-[#8a5e38] tracking-[0.15em] sm:tracking-[0.2em] uppercase font-medium">
-              <span>✦ GenBI Komisariat UB</span>
-              <span>✦ KPw Bank Indonesia Malang</span>
-              <span>✦ Divisi Pendidikan &amp; Kewirausahaan</span>
+            <div className="mt-4 sm:mt-6 pt-3.5 sm:pt-4 border-t border-[#e6d5bc]/80 flex flex-wrap items-center justify-center gap-4 sm:gap-7">
+              <img src="/Logo/logo-bi.webp" alt="Bank Indonesia" loading="lazy" className="h-4 sm:h-5 w-auto object-contain opacity-90" />
+              <span className="w-px h-4 bg-[#caa152]/40 hidden sm:inline-block" aria-hidden="true" />
+              <img src="/Logo/logo-ub.webp" alt="Universitas Brawijaya" loading="lazy" className="h-6 sm:h-7 w-auto object-contain opacity-90" />
+              <span className="w-px h-4 bg-[#caa152]/40 hidden sm:inline-block" aria-hidden="true" />
+              <img src="/Logo/logo-genbi.webp" alt="GenBI Komisariat Universitas Brawijaya" loading="lazy" className="h-5 sm:h-6 w-auto object-contain opacity-90" />
             </div>
           </div>
         </div>
