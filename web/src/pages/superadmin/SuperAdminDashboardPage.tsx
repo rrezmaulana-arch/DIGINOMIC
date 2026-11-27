@@ -1112,6 +1112,8 @@ const QuotaCard: React.FC<{ comp: any; onSave: (c: any, patch: any) => void; sav
 }) => {
   const [quota, setQuota] = useState(Number(comp.max_quota || 100));
   const [fee, setFee] = useState(Number(comp.fee || 0));
+  const [isTeam, setIsTeam] = useState(comp.is_team !== undefined ? Boolean(comp.is_team) : true);
+  const [maxTeamSize, setMaxTeamSize] = useState(Number(comp.max_team_size || 3));
   const [regOpen, setRegOpen] = useState(toDatetimeLocal(comp.reg_open_at));
   const [regClose, setRegClose] = useState(toDatetimeLocal(comp.reg_close_at));
   const [subDeadline, setSubDeadline] = useState(toDatetimeLocal(comp.submission_deadline));
@@ -1123,7 +1125,9 @@ const QuotaCard: React.FC<{ comp: any; onSave: (c: any, patch: any) => void; sav
     <div className="bg-white/95 rounded-2xl p-5 sm:p-6 border border-[#ebdcc8] shadow-2xs space-y-4">
       <div className="flex items-center justify-between gap-2 pb-3 border-b border-[#ebdcc8]">
         <div>
-          <span className="text-[10px] font-mono uppercase text-[#ba883a] font-bold">/{comp.slug}</span>
+          <span className="text-[10px] font-mono uppercase text-[#ba883a] font-bold">
+            /{comp.slug} • {isTeam ? `TIM (Maks. ${maxTeamSize} Orang)` : 'INDIVIDU'}
+          </span>
           <h4 className="font-cormorant text-2xl font-semibold text-[#2f1e10]">{comp.name}</h4>
         </div>
         <span
@@ -1155,6 +1159,34 @@ const QuotaCard: React.FC<{ comp: any; onSave: (c: any, patch: any) => void; sav
             value={fee}
             onChange={(e) => setFee(Number(e.target.value))}
             className="w-full px-3 py-2 rounded-xl border border-[#d8be99] text-xs"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-[#2f1e10] mb-1">Kategori Kepesertaan</label>
+          <select
+            value={isTeam ? 'TIM' : 'INDIVIDU'}
+            onChange={(e) => {
+              const nextTeam = e.target.value === 'TIM';
+              setIsTeam(nextTeam);
+              if (nextTeam && maxTeamSize < 2) setMaxTeamSize(3);
+              if (!nextTeam) setMaxTeamSize(1);
+            }}
+            className="w-full px-3 py-2 rounded-xl border border-[#d8be99] text-xs bg-white"
+          >
+            <option value="TIM">Tim / Kelompok</option>
+            <option value="INDIVIDU">Individu</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-[#2f1e10] mb-1">Maksimal Anggota Tim (Termasuk Ketua)</label>
+          <input
+            type="number"
+            min={isTeam ? 2 : 1}
+            max={10}
+            disabled={!isTeam}
+            value={maxTeamSize}
+            onChange={(e) => setMaxTeamSize(Number(e.target.value))}
+            className="w-full px-3 py-2 rounded-xl border border-[#d8be99] text-xs disabled:bg-gray-100"
           />
         </div>
         <div>
@@ -1223,6 +1255,8 @@ const QuotaCard: React.FC<{ comp: any; onSave: (c: any, patch: any) => void; sav
           onSave(comp, {
             max_quota: quota,
             fee,
+            is_team: isTeam,
+            max_team_size: isTeam ? Math.max(2, maxTeamSize) : 1,
             reg_open_at: regOpen ? new Date(regOpen).toISOString() : undefined,
             reg_close_at: regClose ? new Date(regClose).toISOString() : undefined,
             submission_deadline: subDeadline ? new Date(subDeadline).toISOString() : undefined,

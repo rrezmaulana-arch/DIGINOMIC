@@ -5,7 +5,7 @@ export const TermsOfServicePage: React.FC = () => {
   const lastUpdated = '26 November 2026';
   const appName = 'Digiconomic Fest 2027';
   const appUrl = 'https://diginomic.vercel.app';
-  const contactEmail = 'archedevstudio@gmail.com';
+  const contactEmail = 'digiconomicfestival@gmail.com';
 
   return (
     <div className="min-h-screen bg-[#fdf8ef] py-16 px-4">
@@ -32,8 +32,8 @@ export const TermsOfServicePage: React.FC = () => {
           <section>
             <h2 className="text-xl font-semibold text-[#2f1e10]">2. Deskripsi Layanan</h2>
             <p>
-              {appName} adalah platform digital yang diselenggarakan oleh GenBI (Generasi Baru Indonesia) Malang
-              bekerja sama dengan Bank Indonesia untuk memfasilitasi pendaftaran, pengelolaan, dan penilaian
+              {appName} adalah platform digital yang diselenggarakan oleh GenBI Komisariat Universitas Brawijaya
+              bekerja sama dengan Kantor Perwakilan Bank Indonesia Malang untuk memfasilitasi pendaftaran, pengelolaan, dan penilaian
               kompetisi akademik nasional, termasuk Esai Nasional dan Mini Case Competition.
             </p>
           </section>

@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 
 export const PrivacyPolicyPage: React.FC = () => {
   const lastUpdated = '26 November 2026';
-  const orgName = 'GenBI (Generasi Baru Indonesia) Malang bekerja sama dengan Bank Indonesia';
-  const contactEmail = 'archedevstudio@gmail.com';
+  const orgName = 'GenBI Komisariat Universitas Brawijaya bekerja sama dengan Kantor Perwakilan Bank Indonesia Malang';
+  const contactEmail = 'digiconomicfestival@gmail.com';
   const appName = 'Digiconomic Fest 2027';
   const appUrl = 'https://diginomic.vercel.app';
 

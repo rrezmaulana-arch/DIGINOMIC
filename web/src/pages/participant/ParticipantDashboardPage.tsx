@@ -674,7 +674,7 @@ export const ParticipantDashboardPage: React.FC<ParticipantDashboardPageProps> =
                                 </span>
                               </div>
                               <p className="text-[11px] text-[#7a5530] mt-1.5 pl-6">
-                                {comp.is_team ? `Tim (2–${comp.max_team_size} orang)` : 'Individu (Perorangan)'} • Sisa kuota:{' '}
+                                {comp.is_team ? `Tim (Maks. ${comp.max_team_size} orang termasuk ketua)` : 'Individu (Perorangan)'} • Sisa kuota:{' '}
                                 <strong>{Math.max(0, comp.max_quota - comp.registered_count)}</strong>
                               </p>
                             </label>

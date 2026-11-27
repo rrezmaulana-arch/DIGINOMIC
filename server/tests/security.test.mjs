@@ -256,7 +256,14 @@ test('Security & Penetration Test Suite — Digiconomic Fest 2027', async (t) =>
     });
 
     const [a, b] = await Promise.all([
-      ctx.req('POST', '/api/registrations', { cookie: raceCookie, body: { competition_slug: 'esai-nasional' } }),
+      ctx.req('POST', '/api/registrations', {
+        cookie: raceCookie,
+        body: {
+          competition_slug: 'esai-nasional',
+          team_name: 'Tim Balap Esai',
+          team_members: [{ full_name: 'Anggota Esai', institution: 'ITB', phone_wa: '081355556667' }],
+        },
+      }),
       ctx.req('POST', '/api/registrations', {
         cookie: raceCookie,
         body: {
@@ -528,7 +535,11 @@ test('Security & Penetration Test Suite — Digiconomic Fest 2027', async (t) =>
     });
     const regEsai = await ctx.req('POST', '/api/registrations', {
       cookie: pCookie,
-      body: { competition_slug: 'esai-nasional' },
+      body: {
+        competition_slug: 'esai-nasional',
+        team_name: 'Tim Esai Rahasia',
+        team_members: [{ full_name: 'Anggota Esai', institution: 'UB', phone_wa: '081277776667' }],
+      },
     });
     await ctx.req('PATCH', `/api/admin/registrations/${regEsai.data.registration.id}/status`, {
       cookie: superCookie,

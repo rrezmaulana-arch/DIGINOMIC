@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Competition } from '../types';
 import { COMPETITIONS_DATA } from '../data/competitions';
-import { ArrowRight, BookOpen, Briefcase, FileText, Trophy } from 'lucide-react';
+import { ArrowRight, BookOpen, Briefcase, FileText, Trophy, Users } from 'lucide-react';
 import {
   BatikKawungPattern,
   CornerFiligree,
@@ -100,18 +100,16 @@ export const Competitions: React.FC<CompetitionsProps> = ({
                     </h3>
 
                     <p className="font-sans text-xs sm:text-sm text-[#5c3e28] leading-relaxed">
-                      {isEsai
-                        ? 'Tuliskan gagasan kritis dan solusi digital untuk mengakselerasi ekosistem UMKM Indonesia.'
-                        : 'Pecahkan studi kasus bisnis riil UMKM bersama tim terbaikmu hingga panggung final pitching.'}
+                      {comp.description}
                     </p>
 
                     <div className="pt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[#e5d4bc]">
                       <span className="font-poppins font-semibold text-xs text-[#2f1e10] bg-[#efe1cb] px-3 py-1 rounded-full border border-[#caa152]/50">
-                        {comp.feeFormatted}
+                        {comp.feeFormatted} / Tim
                       </span>
                       <span className="font-poppins text-xs font-semibold text-[#7a5530] flex items-center gap-1.5">
-                        <Trophy className="w-3.5 h-3.5 text-[#caa152]" />
-                        <span>{comp.prizes.split('+')[0]}</span>
+                        <Users className="w-3.5 h-3.5 text-[#caa152]" />
+                        <span>Tim (Maks. {comp.maxTeamSize} Orang)</span>
                       </span>
                     </div>
                   </div>

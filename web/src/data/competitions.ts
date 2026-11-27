@@ -5,19 +5,19 @@ export const COMPETITIONS_DATA: Competition[] = [
     id: 'comp-1',
     slug: 'esai-nasional',
     title: 'Esai Nasional',
-    category: 'INDIVIDU',
+    category: 'TIM',
     fee: 35000,
     feeFormatted: 'Rp 35.000',
-    isTeam: false,
-    maxTeamSize: 1,
-    description: 'Tuliskan mantra gagasanmu untuk UMKM Indonesia. Kompetisi kepenulisan kritis untuk menguji analisis ekonomi dan solusi digital bagi pelaku usaha lokal.',
+    isTeam: true,
+    maxTeamSize: 3,
+    description: 'Kompetisi kepenulisan ilmiah beregu tingkat nasional untuk menuangkan gagasan kritis, analisis ekonomi, dan solusi transformasi digital yang aplikatif bagi pelaku UMKM lokal.',
     briefRules: [
-      'Terbuka untuk Pelajar SMA/SMK sederajat dan Mahasiswa aktif se-Indonesia.',
-      'Karya orisinal, belum pernah dipublikasikan di media cetak/online.',
-      'Panjang naskah 1.500 - 2.500 kata sesuai format template resmi.',
-      'Format submission file PDF maksimal 10 MB.'
+      'Diikuti secara tim beranggotakan 2 hingga 3 orang (Pelajar SMA/SMK sederajat atau Mahasiswa aktif se-Indonesia).',
+      'Karya orisinal, belum pernah dipublikasikan di media cetak maupun daring.',
+      'Panjang naskah 1.500 – 2.500 kata sesuai format template resmi Digiconomic Fest 2027.',
+      'Format pengumpulan berkas PDF maksimal 10 MB melalui Portal Peserta.'
     ],
-    prizes: 'Total Rp 10.000.000 + E-Sertifikat Nasional + Trophy',
+    prizes: 'Memperebutkan Total Hadiah Pembinaan Rp 26.000.000+ · Trofi & E-Sertifikat Nasional',
     deadline: '30 Januari 2027',
     iconName: 'FileText'
   },
@@ -30,14 +30,14 @@ export const COMPETITIONS_DATA: Competition[] = [
     feeFormatted: 'Rp 50.000',
     isTeam: true,
     maxTeamSize: 3,
-    description: 'Pecahkan teka-teki bisnis UMKM bersama timmu. Pecahkan studi kasus riil tantangan UMKM di emerging market dengan strategi bisnis adaptif dan berdaya saing.',
+    description: 'Kompetisi pemecahan studi kasus bisnis nyata UMKM di negara emerging market untuk merumuskan strategi pertumbuhan adaptif, model bisnis terukur, dan proyeksi dampak berkelanjutan.',
     briefRules: [
-      'Tim terdiri dari 2 hingga 3 orang mahasiswa aktif dari perguruan tinggi se-Indonesia.',
-      'Meliputi analisis masalah UMKM, solusi strategis, model bisnis, dan proyeksi dampak.',
-      'Finalis terpilih berhak mempresentasikan proposal di hadapan dewan juri & praktisi.',
-      'Format submission Proposal Solusi PDF maksimal 15 halaman.'
+      'Diikuti secara tim beranggotakan 2 hingga 3 orang mahasiswa aktif dari perguruan tinggi se-Indonesia.',
+      'Mencakup diagnosis masalah UMKM, strategi solusi, model bisnis, dan proyeksi dampak.',
+      'Finalis terpilih mempresentasikan deck solusi langsung di hadapan dewan juri & praktisi.',
+      'Format pengumpulan Proposal/Deck Solusi PDF maksimal 15 halaman melalui Portal Peserta.'
     ],
-    prizes: 'Total Rp 16.000.000 + Mentoring Praktisi + Trophy',
+    prizes: 'Memperebutkan Total Hadiah Pembinaan Rp 26.000.000+ · Mentoring Praktisi & Trofi',
     deadline: '30 Januari 2027',
     iconName: 'Briefcase'
   }
@@ -74,11 +74,11 @@ export const TIMELINE_DATA = [
 export const FAQ_DATA = [
   {
     q: 'Apa saja cabang lomba di Digiconomic Fest 2027?',
-    a: 'Tersedia 2 cabang perlombaan resmi: 1) Esai Nasional (Kategori Individu) dan 2) Mini Case Competition (Kategori Tim 2-3 orang).'
+    a: 'Tersedia 2 cabang perlombaan tim tingkat nasional: 1) Esai Nasional (Kategori Tim 2–3 orang) dan 2) Mini Case Competition (Kategori Tim 2–3 orang).'
   },
   {
     q: 'Bagaimana alur pendaftaran lomba di website ini?',
-    a: 'Alurnya sangat mudah: 1) Masuk/login akun Anda, 2) Pilih cabang lomba (Esai Nasional atau Mini Case Competition), 3) Lengkapi form biodata & kartu pelajar/KTM, 4) Di halaman payment lakukan scan QRIS yang ditampilkan, 5) Klik tombol Konfirmasi via WhatsApp untuk mengirim data ke panitia bersama lampiran gambar bukti bayar.'
+    a: 'Alurnya sangat mudah: 1) Masuk dengan akun Google Anda, 2) Lengkapi biodata ketua tim & unggah KTM, 3) Pilih cabang lomba (Esai Nasional atau Mini Case Competition) dan isi data anggota tim (maks. 3 orang termasuk ketua), 4) Lakukan pembayaran QRIS resmi & unggah bukti bayar di Dashboard Peserta.'
   },
   {
     q: 'Apakah ada payment gateway otomatis?',

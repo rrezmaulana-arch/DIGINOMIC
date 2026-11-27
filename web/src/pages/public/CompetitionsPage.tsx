@@ -50,8 +50,12 @@ export const CompetitionsPage: React.FC = () => {
 
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-xs sm:text-sm text-[#f3d48c] font-sans">
             <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#382315]/90 border border-[#caa152]/35">
+              <Trophy className="w-4 h-4 text-[#caa152]" />
+              Total Hadiah Keseluruhan Rp 26.000.000+
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#382315]/90 border border-[#caa152]/35">
               <Users className="w-4 h-4 text-[#caa152]" />
-              350+ Target Esai • 100+ Target Mini Case
+              Seluruh Cabang Kategori Tim (Maks. 3 Orang)
             </span>
             <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#382315]/90 border border-[#caa152]/35">
               <ShieldCheck className="w-4 h-4 text-[#caa152]" />
@@ -64,77 +68,123 @@ export const CompetitionsPage: React.FC = () => {
       <SectionWaveTransition fromColor="#1e1108" toColor="#f3e6d3" accentColor="#caa152" variant="cloud" />
 
       {/* ── COMPETITION CARDS GRID ── */}
-      <section className="relative py-12 sm:py-18 px-4 sm:px-8 lg:px-16 bg-gradient-to-b from-[#f3e6d3] via-[#efe1cc] to-[#ebdcc5]">
+      <section aria-labelledby="daftar-cabang-lomba" className="relative py-12 sm:py-18 px-4 sm:px-8 lg:px-16 bg-gradient-to-b from-[#f3e6d3] via-[#efe1cc] to-[#ebdcc5]">
         <BatikKawungPattern color="#7a5530" opacity={0.045} id="kawung-comp-page-grid" />
-        <div className="max-w-6xl mx-auto relative z-10 space-y-14">
+        <div className="max-w-6xl mx-auto relative z-10 space-y-12">
+          <div className="text-center max-w-2xl mx-auto">
+            <p className="font-cinzel text-[10px] sm:text-xs tracking-[0.24em] uppercase text-[#7a5530] font-semibold mb-1.5">
+              Penjelasan &amp; Ketentuan Cabang Lomba
+            </p>
+            <h2 id="daftar-cabang-lomba" className="font-cormorant text-2xl sm:text-4xl text-[#241308] font-normal">
+              Pilih Cabang Kompetisi Tim Terbaikmu
+            </h2>
+            <p className="mt-2 font-sans text-xs sm:text-sm text-[#5c3e28] leading-relaxed">
+              Kedua cabang dilaksanakan secara beregu (maksimal 3 orang per tim) untuk memperebutkan total dana pembinaan <strong>Rp 26.000.000+</strong>, trofi, dan e-sertifikat nasional Bank Indonesia.
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-            {COMPETITIONS_DATA.map((comp) => {
+            {COMPETITIONS_DATA.map((comp, index) => {
               const IconComp = comp.iconName === 'Briefcase' ? Briefcase : FileText;
+              const isEsai = comp.slug === 'esai-nasional';
+              const focusSummary = isEsai
+                ? 'Fokus pada kajian analitis, kebijakan ekonomi digital, literasi QRIS, dan gagasan inovatif penguatan daya saing UMKM lokal dalam bentuk naskah esai ilmiah (1.500–2.500 kata).'
+                : 'Fokus pada pemecahan studi kasus bisnis nyata UMKM di emerging market secara strategis, mencakup audit masalah, model bisnis, serta proyeksi dampak dalam bentuk deck solusi (maks. 15 halaman).';
+              const targetAudience = isEsai
+                ? 'Pelajar SMA/SMK sederajat & Mahasiswa aktif se-Indonesia'
+                : 'Mahasiswa aktif D3/D4/S1 perguruan tinggi se-Indonesia';
+
               return (
-                <div
+                <article
                   key={comp.id}
-                  className="card-modern-hover p-6 sm:p-8 rounded-3xl bg-[#fffdf9] border border-[#ebdcc8] shadow-sm flex flex-col justify-between relative"
+                  className="card-modern-hover p-6 sm:p-8 rounded-3xl bg-[#fffdf9] border border-[#dfc9ab] shadow-sm flex flex-col justify-between relative"
                 >
                   <div className="absolute inset-2 rounded-2xl border border-dashed border-[#caa152]/25 pointer-events-none" />
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between gap-3 mb-4">
-                      <span className="px-3 py-1 rounded-full bg-[#f5ede0] border border-[#ebdcc8] text-[#7a5530] font-cinzel text-[10px] tracking-[0.18em] uppercase font-semibold">
-                        Kategori {comp.category} {comp.isTeam ? `(2–${comp.maxTeamSize} Orang)` : '(Perorangan)'}
-                      </span>
-                      <div className="w-11 h-11 rounded-2xl bg-[#2f1d10] border border-[#caa152]/60 flex items-center justify-center shrink-0">
+                  <div className="relative z-10 space-y-5">
+                    {/* Header Card */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="px-3 py-1 rounded-full bg-[#2f1d10] text-[#f3d48c] font-cinzel text-[10px] tracking-[0.16em] uppercase font-semibold">
+                            Cabang 0{index + 1}
+                          </span>
+                          <span className="px-3 py-1 rounded-full bg-[#f5ede0] border border-[#d8be99] text-[#6b4725] font-cinzel text-[10px] tracking-[0.14em] uppercase font-semibold">
+                            Kategori Tim (2–{comp.maxTeamSize} Orang)
+                          </span>
+                        </div>
+                        <h3 className="font-cormorant text-2xl sm:text-3xl text-[#241308] font-semibold leading-tight">
+                          {comp.title}
+                        </h3>
+                      </div>
+                      <div className="w-12 h-12 rounded-2xl bg-[#2f1d10] border border-[#caa152]/60 flex items-center justify-center shrink-0 shadow-xs">
                         <IconComp className="w-5 h-5 text-[#f3d48c]" />
                       </div>
                     </div>
 
-                    <h2 className="font-cormorant text-2xl sm:text-3xl text-[#241308] font-normal mb-2">
-                      {comp.title}
-                    </h2>
-
-                    <p className="font-sans text-xs sm:text-sm text-[#4a2e18] leading-relaxed mb-5">
+                    {/* Deskripsi Utama */}
+                    <p className="font-sans text-xs sm:text-sm text-[#4a2e18] leading-relaxed">
                       {comp.description}
                     </p>
 
-                    <div className="grid grid-cols-2 gap-3 p-3.5 rounded-2xl bg-[#faf4e8] border border-[#ebdcc8] mb-5 text-xs font-sans">
-                      <div>
-                        <p className="text-[10px] uppercase tracking-wider text-[#8a5e38] font-cinzel">Biaya Daftar</p>
-                        <p className="text-sm sm:text-base font-semibold text-[#241308] mt-0.5">{comp.feeFormatted}</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] uppercase tracking-wider text-[#8a5e38] font-cinzel">Batas Daftar</p>
-                        <p className="text-sm sm:text-base font-semibold text-[#241308] mt-0.5">{comp.deadline}</p>
-                      </div>
-                      <div className="col-span-2 pt-2 border-t border-[#ebdcc8]">
-                        <p className="text-[10px] uppercase tracking-wider text-[#8a5e38] font-cinzel">Apresiasi &amp; Hadiah</p>
-                        <p className="text-xs sm:text-sm font-medium text-[#7a5530] mt-0.5">{comp.prizes}</p>
-                      </div>
+                    {/* Penjelasan Fokus Lomba (Pengganti Hadiah Per Lomba) */}
+                    <div className="p-4 rounded-2xl bg-[#faf4e8] border border-[#e6d5bc] space-y-2">
+                      <p className="text-[10px] uppercase tracking-[0.18em] text-[#8a5e38] font-cinzel font-semibold">
+                        Penjelasan &amp; Ruang Lingkup Lomba
+                      </p>
+                      <p className="font-sans text-xs sm:text-[13px] text-[#3a2414] leading-relaxed">
+                        {focusSummary}
+                      </p>
                     </div>
 
-                    <ul className="space-y-2 mb-6">
-                      {comp.briefRules.map((rule, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-xs text-[#5c3e28] font-sans">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[#ba883a] mt-0.5 shrink-0" />
-                          <span>{rule}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    {/* Metadata Terstruktur (SEO-Friendly <dl>) */}
+                    <dl className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs font-sans">
+                      <div className="p-3 rounded-xl bg-[#f7efe0] border border-[#e6d5bc]">
+                        <dt className="text-[10px] uppercase tracking-wider text-[#8a5e38] font-cinzel">Biaya Daftar</dt>
+                        <dd className="text-sm font-semibold text-[#241308] mt-0.5">{comp.feeFormatted} / Tim</dd>
+                      </div>
+                      <div className="p-3 rounded-xl bg-[#f7efe0] border border-[#e6d5bc]">
+                        <dt className="text-[10px] uppercase tracking-wider text-[#8a5e38] font-cinzel">Batas Daftar</dt>
+                        <dd className="text-sm font-semibold text-[#241308] mt-0.5">{comp.deadline}</dd>
+                      </div>
+                      <div className="p-3 rounded-xl bg-[#f7efe0] border border-[#e6d5bc]">
+                        <dt className="text-[10px] uppercase tracking-wider text-[#8a5e38] font-cinzel">Komposisi</dt>
+                        <dd className="text-sm font-semibold text-[#241308] mt-0.5">Tim 2–{comp.maxTeamSize} Orang</dd>
+                      </div>
+                    </dl>
+
+                    {/* Ketentuan Singkat */}
+                    <div className="space-y-2.5">
+                      <p className="text-[11px] font-cinzel uppercase tracking-[0.16em] text-[#7a5530] font-semibold">
+                        Sasaran: <span className="font-sans normal-case tracking-normal text-[#4a2e18] font-medium">{targetAudience}</span>
+                      </p>
+                      <ul className="space-y-2">
+                        {comp.briefRules.map((rule, idx) => (
+                          <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-[13px] text-[#4d321c] font-sans leading-relaxed">
+                            <CheckCircle2 className="w-4 h-4 text-[#ba883a] mt-0.5 shrink-0" />
+                            <span>{rule}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
 
-                  <div className="relative z-10 flex flex-wrap items-center gap-3 pt-4 border-t border-[#ebdcc8]">
+                  {/* Action Buttons */}
+                  <div className="relative z-10 flex flex-wrap items-center gap-3 pt-5 mt-6 border-t border-[#e6d5bc]">
                     <button
                       onClick={() => navigate(`/daftar?lomba=${comp.slug}`)}
                       className="btn-modern-shine flex-1 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-[#ba883a] via-[#caa152] to-[#b88636] text-white font-cinzel text-xs tracking-[0.16em] uppercase font-semibold shadow-xs active:scale-95 transition-all cursor-pointer"
                     >
-                      <span>Daftar Lomba</span>
+                      <span>Daftar Tim Sekarang</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => navigate(`/kompetisi/${comp.slug}`)}
-                      className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full bg-[#faf4e8] hover:bg-[#f0e3cc] text-[#2f1e10] border border-[#caa152]/60 font-cinzel text-xs tracking-[0.14em] uppercase font-medium transition-all"
+                      className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full bg-[#faf4e8] hover:bg-[#f0e3cc] text-[#2f1e10] border border-[#caa152]/60 font-cinzel text-xs tracking-[0.14em] uppercase font-semibold transition-all cursor-pointer"
                     >
-                      <span>Detail</span>
+                      <span>Detail &amp; Alur</span>
                     </button>
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>

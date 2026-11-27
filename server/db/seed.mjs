@@ -20,21 +20,21 @@ export async function seedDatabase(repo, options = {}) {
   }
 
   const existingComps = await repo.listCompetitions({ includeInactive: true });
-  const hasEsai = existingComps.some((c) => c.slug === 'esai-nasional');
-  const hasCase = existingComps.some((c) => c.slug === 'mini-case-competition');
+  const existingEsai = existingComps.find((c) => c.slug === 'esai-nasional');
+  const existingCase = existingComps.find((c) => c.slug === 'mini-case-competition');
 
   const now = Date.now();
   const defaultOpen = options.regOpenAt || new Date(now - 24 * 60 * 60 * 1000).toISOString();
   const defaultClose = options.regCloseAt || '2027-01-30T16:59:59.000Z';
   const defaultSubDeadline = options.submissionDeadline || '2027-02-15T16:59:59.000Z';
 
-  if (!hasEsai) {
+  if (!existingEsai) {
     await repo.createCompetition({
       slug: 'esai-nasional',
       name: 'Esai Nasional',
       fee: 35000,
-      is_team: false,
-      max_team_size: 1,
+      is_team: true,
+      max_team_size: 3,
       max_quota: 100,
       reg_open_at: defaultOpen,
       reg_close_at: defaultClose,
@@ -43,9 +43,11 @@ export async function seedDatabase(repo, options = {}) {
       guidebook_url: 'https://drive.google.com/file/d/digiconomic2027-guidebook/view',
       is_active: true,
     });
+  } else if (!existingEsai.is_team || Number(existingEsai.max_team_size) < 3) {
+    await repo.updateCompetition(existingEsai.id, { is_team: true, max_team_size: 3 });
   }
 
-  if (!hasCase) {
+  if (!existingCase) {
     await repo.createCompetition({
       slug: 'mini-case-competition',
       name: 'Mini Case Competition',
@@ -60,6 +62,8 @@ export async function seedDatabase(repo, options = {}) {
       guidebook_url: 'https://drive.google.com/file/d/digiconomic2027-guidebook/view',
       is_active: true,
     });
+  } else if (!existingCase.is_team || Number(existingCase.max_team_size) < 3) {
+    await repo.updateCompetition(existingCase.id, { is_team: true, max_team_size: 3 });
   }
 
   if (typeof repo.listNewsArticles === 'function' && typeof repo.createNewsArticle === 'function') {
@@ -71,10 +75,10 @@ export async function seedDatabase(repo, options = {}) {
           category: 'Pengumuman',
           title: 'Pendaftaran Digiconomic Fest 2027 Resmi Dibuka: Target 450+ Peserta Nasional',
           excerpt:
-            'GenBI Malang resmi membuka pendaftaran Digiconomic Fest 2027 (14 Des 2026 – 30 Jan 2027) dengan dua cabang kompetisi nasional: Esai Nasional dan Mini Case Competition.',
+            'GenBI Komisariat Universitas Brawijaya & KPw Bank Indonesia Malang resmi membuka pendaftaran Digiconomic Fest 2027 (14 Des 2026 – 30 Jan 2027) dengan dua cabang kompetisi tim nasional: Esai Nasional dan Mini Case Competition.',
           content: [
-            'Generasi Baru Indonesia (GenBI) melalui kolaborasi Divisi Pendidikan dan Divisi Kewirausahaan resmi membuka pendaftaran Digiconomic Fest 2027 mulai 14 Desember 2026 hingga 30 Januari 2027.',
-            'Tahun ini tersedia dua cabang kompetisi utama yaitu Esai Nasional (kategori individu, target 350+ pendaftar) dan Mini Case Competition (kategori tim 2–3 orang, target 100+ pendaftar). Setiap akun hanya diperbolehkan mengikuti satu cabang lomba aktif agar kompetisi berjalan adil dan fokus.',
+            'GenBI Komisariat Universitas Brawijaya bersama Kantor Perwakilan Bank Indonesia Malang resmi membuka pendaftaran Digiconomic Fest 2027 mulai 14 Desember 2026 hingga 30 Januari 2027.',
+            'Tahun ini tersedia dua cabang kompetisi tim tingkat nasional yaitu Esai Nasional (kategori tim 2–3 orang) dan Mini Case Competition (kategori tim 2–3 orang). Setiap akun ketua tim hanya diperbolehkan mengikuti satu cabang lomba aktif agar kompetisi berjalan adil dan fokus.',
             'Seluruh berkas pendaftaran dapat diunggah melalui portal resmi, dan status verifikasi serta akses grup peserta akan diperbarui langsung melalui Dashboard Peserta.',
           ].join('\n\n'),
           cover_image_url: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&fm=webp&q=75',

@@ -38,11 +38,11 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
             </div>
 
             <p className="font-sans text-[11.5px] sm:text-sm text-[#4a2e18] leading-[1.7] sm:leading-[1.85] font-normal">
-              <strong className="text-[#241308] font-semibold">Digiconomic Fest 2027</strong> merupakan program kerja kolaboratif <strong className="text-[#241308] font-semibold">GenBI (Generasi Baru Indonesia) &amp; Bank Indonesia</strong> yang menjadi wadah edukasi, <strong className="text-[#7a5530] font-semibold underline decoration-[#caa152]/60 underline-offset-4">kompetisi ekonomi digital nasional</strong>, dan kolaborasi bagi mahasiswa untuk mengembangkan potensi UMKM di tengah dinamika <em>emerging market</em>.
+              <strong className="text-[#241308] font-semibold">Digiconomic Fest 2027</strong> merupakan program kerja kolaboratif <strong className="text-[#241308] font-semibold">GenBI Komisariat Universitas Brawijaya &amp; Kantor Perwakilan Bank Indonesia Malang</strong> yang menjadi wadah edukasi, <strong className="text-[#7a5530] font-semibold underline decoration-[#caa152]/60 underline-offset-4">kompetisi ekonomi digital nasional</strong>, dan kolaborasi bagi mahasiswa untuk mengembangkan potensi UMKM di tengah dinamika <em>emerging market</em>.
             </p>
 
             <p className="font-sans text-[11.5px] sm:text-sm text-[#4a2e18] leading-[1.7] sm:leading-[1.85] font-normal">
-              Melalui cabang <strong className="text-[#241308] font-semibold">Esai Nasional</strong>, <strong className="text-[#241308] font-semibold">Mini Case Competition</strong>, serta seminar nasional di <strong className="text-[#241308] font-semibold">Malang, Jawa Timur</strong>, festival ini mendorong inovasi nyata agar <strong className="text-[#7a5530] font-semibold">UMKM lokal</strong> semakin adaptif, berdaya saing global, dan berkelanjutan.
+              Melalui cabang lomba <strong className="text-[#241308] font-semibold">Esai Nasional</strong> dan <strong className="text-[#241308] font-semibold">Mini Case Competition</strong> tingkat nasional, serta seminar nasional dan pameran UMKM binaan di <strong className="text-[#241308] font-semibold">Malang, Jawa Timur</strong>, Digiconomic Fest mendorong inovasi nyata agar <strong className="text-[#7a5530] font-semibold">UMKM lokal</strong> semakin adaptif, berdaya saing global, dan berkelanjutan.
             </p>
 
             <div className="pt-1 sm:pt-2">
@@ -126,9 +126,9 @@ export const About: React.FC<AboutProps> = ({ onExploreComps }) => {
             </blockquote>
 
             <div className="mt-2.5 sm:mt-5 flex flex-wrap items-center justify-center gap-2.5 sm:gap-6 text-[8.5px] sm:text-[10px] font-cinzel text-[#8a5e38] tracking-[0.15em] sm:tracking-[0.2em] uppercase font-medium">
-              <span>✦ Divisi Pendidikan</span>
-              <span>✦ Bank Indonesia</span>
-              <span>✦ Divisi Kewirausahaan</span>
+              <span>✦ GenBI Komisariat UB</span>
+              <span>✦ KPw Bank Indonesia Malang</span>
+              <span>✦ Divisi Pendidikan &amp; Kewirausahaan</span>
             </div>
           </div>
         </div>

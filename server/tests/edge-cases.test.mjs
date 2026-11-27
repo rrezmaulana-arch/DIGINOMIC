@@ -102,11 +102,17 @@ test('Edge Cases, Lifecycle, Quota & Deadline Suite — Digiconomic Fest 2027', 
   const superCookie = superLogin.cookie;
   const esai = ctx.seeded.competitions.find((c) => c.slug === 'esai-nasional');
 
+  const esaiPayload = {
+    competition_slug: 'esai-nasional',
+    team_name: 'Tim Esai Uji',
+    team_members: [{ full_name: 'Anggota Uji', institution: 'UB', phone_wa: '081299001122' }],
+  };
+
   await t.test('E1. Siklus lengkap status: MENUNGGU_VERIFIKASI -> TERVERIFIKASI -> LOLOS_TAHAP_1 -> FINALIS -> JUARA', async () => {
     const pCookie = await ctx.registerVerifiedParticipant('juara@kampus.ac.id', 'Calon Juara', '081211112222');
     const created = await ctx.req('POST', '/api/registrations', {
       cookie: pCookie,
-      body: { competition_slug: 'esai-nasional' },
+      body: esaiPayload,
     });
     assert.equal(created.status, 201);
     const regId = created.data.registration.id;
@@ -137,7 +143,7 @@ test('Edge Cases, Lifecycle, Quota & Deadline Suite — Digiconomic Fest 2027', 
     const p2Cookie = await ctx.registerVerifiedParticipant('telat@kampus.ac.id', 'Peserta Kedua', '081233334444');
     const over = await ctx.req('POST', '/api/registrations', {
       cookie: p2Cookie,
-      body: { competition_slug: 'esai-nasional' },
+      body: esaiPayload,
     });
     assert.equal(over.status, 409);
     assert.equal(over.data.error.code, 'QUOTA_EXCEEDED');
@@ -159,7 +165,7 @@ test('Edge Cases, Lifecycle, Quota & Deadline Suite — Digiconomic Fest 2027', 
     });
     const closedRes = await ctx.req('POST', '/api/registrations', {
       cookie: pCookie,
-      body: { competition_slug: 'esai-nasional' },
+      body: esaiPayload,
     });
     assert.equal(closedRes.status, 403);
     assert.equal(closedRes.data.error.code, 'REGISTRATION_CLOSED');
@@ -186,7 +192,7 @@ test('Edge Cases, Lifecycle, Quota & Deadline Suite — Digiconomic Fest 2027', 
     const pCookie = await ctx.registerVerifiedParticipant('sub@kampus.ac.id', 'Peserta Karya', '081277778888');
     const reg = await ctx.req('POST', '/api/registrations', {
       cookie: pCookie,
-      body: { competition_slug: 'esai-nasional' },
+      body: esaiPayload,
     });
     await ctx.req('PATCH', `/api/admin/registrations/${reg.data.registration.id}/status`, {
       cookie: superCookie,

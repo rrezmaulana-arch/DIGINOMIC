@@ -21,7 +21,7 @@ const GALLERY_ITEMS: GalleryItem[] = [
     id: 1,
     title: 'Grand Final Pitching Mini Case',
     category: 'Kompetisi',
-    year: '2025',
+    year: '2026',
     caption: 'Tim finalis memaparkan strategi transformasi digital UMKM di hadapan dewan juri.',
     imageUrl: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=1000&q=80',
     span: 'md:col-span-2 md:row-span-2',
@@ -30,7 +30,7 @@ const GALLERY_ITEMS: GalleryItem[] = [
     id: 2,
     title: 'Seminar Nasional Bank Indonesia',
     category: 'Seminar',
-    year: '2025',
+    year: '2026',
     caption: 'Diskusi panel kebijakan ekonomi digital dan perluasan QRIS untuk pelaku usaha lokal.',
     imageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=900&q=80',
   },
@@ -38,15 +38,15 @@ const GALLERY_ITEMS: GalleryItem[] = [
     id: 3,
     title: 'Kolaborasi & Mentoring Bisnis',
     category: 'Kompetisi',
-    year: '2025',
-    caption: 'Sesi pendampingan intensif bersama praktisi industri dan alumni GenBI.',
+    year: '2026',
+    caption: 'Sesi pendampingan intensif bersama praktisi industri dan alumni GenBI UB.',
     imageUrl: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=900&q=80',
   },
   {
     id: 4,
     title: 'Malam Penganugerahan Juara',
     category: 'Awarding',
-    year: '2025',
+    year: '2026',
     caption: 'Penyerahan trofi dan dana pembinaan bagi para pemenang Esai & Mini Case.',
     imageUrl: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=900&q=80',
   },
@@ -54,8 +54,8 @@ const GALLERY_ITEMS: GalleryItem[] = [
     id: 5,
     title: 'Expo Inovasi UMKM Lokal',
     category: 'Seminar',
-    year: '2025',
-    caption: 'Pameran produk kreatif UMKM binaan yang berkolaborasi dengan peserta festival.',
+    year: '2026',
+    caption: 'Pameran produk kreatif UMKM binaan KPw Bank Indonesia Malang yang berkolaborasi dengan peserta Digiconomic Fest.',
     imageUrl: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=900&q=80',
   },
 ];
@@ -84,7 +84,7 @@ export const GallerySection: React.FC = () => {
         <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-12">
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#3b2412] border border-[#caa152]/60 text-[#fcedb8] font-poppins text-[10px] sm:text-xs tracking-widest uppercase font-semibold mb-3">
             <Camera className="w-3.5 h-3.5 text-[#caa152]" />
-            <span>Kilas Balik Digiconomic 2025</span>
+            <span>Kilas Balik Digiconomic Fest 2026</span>
           </div>
 
           <h2 className="font-abang font-normal text-2xl sm:text-4xl lg:text-[2.75rem] text-[#241308] tracking-tight leading-snug">
@@ -92,7 +92,7 @@ export const GallerySection: React.FC = () => {
           </h2>
           <SectionDivider variant="light" />
           <p className="font-sans text-xs sm:text-sm text-[#5c3e28] leading-relaxed">
-            Momen terbaik dari panggung kompetisi, seminar ekonomi digital Bank Indonesia, hingga malam penganugerahan juara.
+            Jejak perjalanan dan momen terbaik Digiconomic Fest 2026—dari panggung kompetisi, seminar ekonomi digital Bank Indonesia, hingga malam penganugerahan juara menuju edisi 2027.
           </p>
 
           {/* Filter Pills */}

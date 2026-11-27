@@ -6,11 +6,11 @@ import {
 } from './Ornaments';
 
 const steps = [
-  { date: '14 Des 2026 – 30 Jan 2027', title: 'Pendaftaran & Verifikasi', detail: 'Daftarkan peserta atau tim, lalu lengkapi data untuk verifikasi panitia.' },
-  { date: '1 – 19 Feb 2027', title: 'Seleksi & Penjurian Karya', detail: 'Karya peserta masuk ke tahap seleksi dan penilaian juri.' },
+  { date: '14 Des 2026 – 30 Jan 2027', title: 'Pendaftaran & Verifikasi', detail: 'Daftarkan tim peserta (maks. 3 orang), lalu lengkapi data untuk verifikasi panitia.' },
+  { date: '1 – 19 Feb 2027', title: 'Seleksi & Penjurian Karya', detail: 'Karya tim peserta masuk ke tahap seleksi dan penilaian juri.' },
   { date: '20 Februari 2027', title: 'Pengumuman Finalis', detail: 'Peserta dapat melihat hasil seleksi dan daftar tim yang maju ke final.' },
   { date: '21 Maret 2027', title: 'Final Kompetisi', detail: 'Finalis mengikuti babak akhir kompetisi.' },
-  { date: '22 Maret 2027 — Acara Puncak', title: 'Main Event, Pameran UMKM & Awarding Night', detail: 'Rangkaian festival ditutup dengan pameran UMKM dan malam penghargaan.' },
+  { date: '22 Maret 2027 — Acara Puncak', title: 'Main Event, Pameran UMKM & Awarding Night', detail: 'Rangkaian Digiconomic Fest ditutup dengan seminar, pameran UMKM, dan malam penghargaan.' },
 ];
 
 export const TimelineSection: React.FC = () => {

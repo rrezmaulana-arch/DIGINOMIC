@@ -65,26 +65,26 @@ const STAGE_DETAILS: Record<
     guidebookSubtitle: 'Dokumen PDF resmi disiapkan oleh Divisi Kewirausahaan & Pendidikan GenBI.',
   },
   'esai-nasional': {
-    badge: 'Cabang 01 · Kompetisi Individu Nasional',
+    badge: 'Cabang 01 · Kompetisi Tim Nasional',
     eligibility: 'Pelajar SMA/SMK & Mahasiswa',
-    teamTypeLabel: 'Peserta Individu',
+    teamTypeLabel: 'Tim Maks. 3 Orang',
     periodLabel: '14 Des – 30 Jan 2027',
     finalDateLabel: '22 Maret 2027',
     finalistDateLabel: '20 Feb 2027',
     flowHeading: 'Alur Kompetisi Esai Nasional',
     stages: [
-      { num: '01', tag: 'Registration', title: 'Pendaftaran & KTM', desc: 'Lengkapi biodata, unggah kartu pelajar/KTM, dan verifikasi QRIS.' },
+      { num: '01', tag: 'Registration', title: 'Pendaftaran Tim & KTM', desc: 'Lengkapi biodata ketua & anggota tim (2–3 orang), unggah KTM, dan verifikasi QRIS.' },
       { num: '02', tag: 'Research', title: 'Eksplorasi Gagasan', desc: 'Riset isu aktual ekonomi digital dan daya saing UMKM lokal.' },
       { num: '03', tag: 'Writing', title: 'Penulisan Naskah', desc: 'Susun esai orisinal 1.500 – 2.500 kata sesuai template resmi.' },
       { num: '04', tag: 'Submission', title: 'Unggah Naskah PDF', desc: 'Kirim file PDF (maks. 10 MB) melalui Portal Peserta sebelum deadline.' },
       { num: '05', tag: 'Evaluation', title: 'Kurasi & Penjurian', desc: 'Penilaian substansi, orisinalitas, dan struktur argumen pada 1–19 Feb.' },
       { num: '06', tag: 'Grand Final', title: 'Presentasi & Awarding', desc: 'Pemaparan finalis terpilih dan penganugerahan juara pada 22 Mar 2027.', highlight: true },
     ],
-    leftRulesTitle: 'Ketentuan Peserta',
+    leftRulesTitle: 'Ketentuan Tim',
     leftRules: [
-      'Terbuka bagi Pelajar SMA/SMK sederajat dan Mahasiswa aktif se-Indonesia secara individu.',
+      'Setiap tim beranggotakan 2 hingga 3 orang (Pelajar SMA/SMK sederajat atau Mahasiswa aktif se-Indonesia).',
       'Karya bersifat orisinal, belum pernah dipublikasikan maupun diikutsertakan pada lomba lain.',
-      'Satu akun peserta hanya dapat memiliki satu pendaftaran lomba aktif di sistem.',
+      'Satu akun ketua tim hanya dapat memiliki satu pendaftaran lomba aktif di sistem.',
     ],
     rightRulesTitle: 'Aturan & Penjurian',
     rightRules: [
@@ -92,7 +92,7 @@ const STAGE_DETAILS: Record<
       'Aspek penilaian mencakup orisinalitas gagasan, kedalaman analisis ekonomi, dan kebermanfaatan bagi UMKM.',
       'Keputusan dewan juri bersifat mutlak dan diumumkan melalui Portal Peserta.',
     ],
-    guidebookSubtitle: 'Dokumen PDF pedoman penulisan dan template resmi oleh Divisi Pendidikan GenBI.',
+    guidebookSubtitle: 'Dokumen PDF pedoman penulisan dan template resmi oleh GenBI Komisariat Universitas Brawijaya.',
   },
 };
 
@@ -141,10 +141,11 @@ export const CompetitionDetailPage: React.FC = () => {
 
             <div className="relative rounded-2xl border border-[#caa152]/50 bg-[#3a2415]/85 backdrop-blur-xs px-5 py-4 shrink-0">
               <CornerFiligree color="#caa152" className="w-5 h-5 opacity-55" />
-              <p className="font-cinzel text-[10px] tracking-[0.2em] uppercase text-[#caa152]">Total Hadiah Cabang</p>
+              <p className="font-cinzel text-[10px] tracking-[0.2em] uppercase text-[#caa152]">Total Hadiah Keseluruhan</p>
               <p className="font-cormorant text-2xl sm:text-3xl text-[#fffdf9] font-medium mt-0.5">
-                {comp.prizes.split('+')[0]}
+                Rp 26.000.000+
               </p>
+              <p className="font-sans text-[11px] text-[#dec9ad] mt-0.5">Seluruh Cabang · Trofi &amp; E-Sertifikat</p>
             </div>
           </div>
         </div>

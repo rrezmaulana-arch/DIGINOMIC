@@ -205,10 +205,14 @@ test('End-to-End Functional & Business Rules Suite — Digiconomic Fest 2027', a
     assert.deepEqual(dlBuf, VALID_PNG);
   });
 
-  await t.test('4. Daftar lomba individu, BR-01 (1 akun 1 lomba), pembatalan & daftar ulang', async () => {
+  await t.test('4. Daftar lomba tim Esai Nasional, BR-01 (1 akun 1 lomba), pembatalan & daftar ulang', async () => {
     const r1 = await ctx.req('POST', '/api/registrations', {
       cookie: p1Cookie,
-      body: { competition_slug: 'esai-nasional' },
+      body: {
+        competition_slug: 'esai-nasional',
+        team_name: 'Tim Esai Nusantara',
+        team_members: [{ full_name: 'Anggota Esai', institution: 'Universitas Brawijaya', phone_wa: '081288887777' }],
+      },
     });
     assert.equal(r1.status, 201);
     assert.equal(r1.data.registration.status, 'MENUNGGU_VERIFIKASI');
@@ -235,7 +239,11 @@ test('End-to-End Functional & Business Rules Suite — Digiconomic Fest 2027', a
     // Setelah DIBATALKAN, boleh daftar ulang lagi!
     const r2 = await ctx.req('POST', '/api/registrations', {
       cookie: p1Cookie,
-      body: { competition_slug: 'esai-nasional' },
+      body: {
+        competition_slug: 'esai-nasional',
+        team_name: 'Tim Esai Nusantara',
+        team_members: [{ full_name: 'Anggota Esai', institution: 'Universitas Brawijaya', phone_wa: '081288887777' }],
+      },
     });
     assert.equal(r2.status, 201);
     p1RegId = r2.data.registration.id;

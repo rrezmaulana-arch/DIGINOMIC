@@ -1450,6 +1450,8 @@ export function createApp({ repo, config, verifyGoogleToken = verifyGoogleIdToke
         const patch = {};
         if (body.fee !== undefined) patch.fee = Math.max(0, Number(body.fee));
         if (body.max_quota !== undefined) patch.max_quota = Math.max(1, Number(body.max_quota));
+        if (typeof body.is_team === 'boolean') patch.is_team = body.is_team;
+        if (body.max_team_size !== undefined) patch.max_team_size = Math.max(1, Math.min(10, Number(body.max_team_size)));
         if (body.reg_open_at) patch.reg_open_at = String(body.reg_open_at);
         if (body.reg_close_at) patch.reg_close_at = String(body.reg_close_at);
         if (body.submission_deadline) patch.submission_deadline = String(body.submission_deadline);

@@ -1,24 +1,25 @@
 # Digiconomic Fest 2027
 
-> Festival dan kompetisi nasional ekonomi digital serta pemberdayaan UMKM yang diselenggarakan oleh Generasi Baru Indonesia (GenBI) bersama Bank Indonesia.
+> Kompetisi nasional ekonomi digital dan pemberdayaan UMKM yang diselenggarakan oleh GenBI Komisariat Universitas Brawijaya bersama Kantor Perwakilan Bank Indonesia Malang.
 
 ## Ringkasan Acara
 - **Nama Acara:** Digiconomic Fest 2027
-- **Penyelenggara:** GenBI x Bank Indonesia
+- **Penyelenggara:** GenBI Komisariat Universitas Brawijaya x Kantor Perwakilan Bank Indonesia Malang
+- **Email Resmi:** digiconomicfestival@gmail.com
 - **Lokasi Puncak Acara:** Malang, Jawa Timur, Indonesia
 - **Puncak Acara (Main Event & Awarding Night):** 22 Maret 2027
 - **Total Apresiasi Kompetisi:** Rp 26.000.000+ (uang pembinaan, trofi, dan e-sertifikat nasional)
 
 ## Jadwal Resmi 2026–2027
-1. **14 Desember 2026 – 30 Januari 2027:** Pendaftaran & Verifikasi Peserta
+1. **14 Desember 2026 – 30 Januari 2027:** Pendaftaran & Verifikasi Tim Peserta
 2. **1 – 19 Februari 2027:** Seleksi & Penjurian Karya
 3. **20 Februari 2027:** Pengumuman Finalis
 4. **21 Maret 2027:** Final Kompetisi
 5. **22 Maret 2027:** Main Event, Pameran UMKM & Awarding Night
 
-## Cabang Kompetisi Utama
-- **Esai Nasional** (`/kompetisi/esai-nasional`): Kompetisi penulisan gagasan ilmiah seputar inovasi ekonomi digital dan transformasi UMKM.
-- **Mini Case Competition** (`/kompetisi/mini-case-competition`): Kompetisi pemecahan studi kasus bisnis nyata bagi mahasiswa untuk membantu UMKM lokal berkembang.
+## Cabang Kompetisi Utama (Semua Kategori Tim, Maks. 3 Orang)
+- **Esai Nasional** (`/kompetisi/esai-nasional`): Kompetisi tim penulisan gagasan ilmiah seputar inovasi ekonomi digital dan transformasi UMKM (2–3 orang).
+- **Mini Case Competition** (`/kompetisi/mini-case-competition`): Kompetisi tim pemecahan studi kasus bisnis nyata bagi mahasiswa untuk membantu UMKM lokal berkembang (2–3 orang).
 
 ## Halaman Resmi
 - Beranda: https://diginomic.vercel.app/
