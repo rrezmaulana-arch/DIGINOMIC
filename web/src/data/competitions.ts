@@ -43,38 +43,110 @@ export const COMPETITIONS_DATA: Competition[] = [
   }
 ];
 
-export const TIMELINE_DATA = [
+export interface TimelineStage {
+  id: string;
+  date: string;
+  shortDate: string;
+  title: string;
+  desc: string;
+  startAt: string; // ISO WIB (+07:00)
+  endAt: string;   // ISO WIB (+07:00)
+}
+
+export const TIMELINE_DATA: TimelineStage[] = [
   {
-    date: '14 Des 2026',
-    title: 'Pendaftaran Dibuka',
-    desc: 'Registrasi online via website dan pembayaran QRIS dibuka untuk Esai Nasional & Mini Case.'
+    id: 'pendaftaran',
+    date: '14 Des 2026 – 30 Jan 2027',
+    shortDate: '14 Des 2026 – 30 Jan 2027',
+    title: 'Pendaftaran & Verifikasi',
+    desc: 'Daftarkan tim peserta (maks. 3 orang), lengkapi biodata & KTM, lalu lakukan pembayaran QRIS dan unggah bukti bayar di Dashboard Peserta untuk verifikasi panitia.',
+    startAt: '2026-12-14T00:00:00+07:00',
+    endAt: '2027-01-30T23:59:59+07:00',
   },
   {
-    date: '30 Jan 2027',
-    title: 'Penutupan Registrasi',
-    desc: 'Batas akhir pengisian biodata, pembayaran pendaftaran, dan verifikasi berkas peserta.'
+    id: 'penjurian',
+    date: '1 – 19 Feb 2027',
+    shortDate: '1 – 19 Feb 2027',
+    title: 'Seleksi & Penjurian Karya',
+    desc: 'Karya esai dan proposal solusi mini case yang telah dikumpulkan masuk ke tahap evaluasi dan penilaian objektif oleh dewan juri praktisi & akademisi.',
+    startAt: '2027-02-01T00:00:00+07:00',
+    endAt: '2027-02-19T23:59:59+07:00',
   },
   {
-    date: '19 Feb 2027',
-    title: 'Evaluasi & Penjurian',
-    desc: 'Penilaian karya esai dan proposal solusi mini case oleh dewan juri praktisi industri.'
-  },
-  {
-    date: '20 Feb 2027',
+    id: 'pengumuman-finalis',
+    date: '20 Februari 2027',
+    shortDate: '20 Feb 2027',
     title: 'Pengumuman Finalis',
-    desc: 'Pengumuman resmi para tim finalis terbaik yang berhak melaju ke babak penentuan.'
+    desc: 'Pengumuman resmi daftar tim finalis terbaik yang berhak melaju ke babak penentuan melalui Dashboard Peserta dan halaman Berita Resmi.',
+    startAt: '2027-02-20T00:00:00+07:00',
+    endAt: '2027-02-20T23:59:59+07:00',
   },
   {
-    date: '22 Mar 2027',
-    title: 'Grand Final & Awarding',
-    desc: 'Presentasi final, seminar Bank Indonesia, dan penganugerahan pemenang Rp 26.000.000.'
-  }
+    id: 'grand-final',
+    date: '21 Maret 2027',
+    shortDate: '21 Mar 2027',
+    title: 'Final Kompetisi',
+    desc: 'Tim finalis terpilih mempresentasikan karya dan strategi solusi UMKM secara langsung di hadapan dewan juri di Universitas Brawijaya.',
+    startAt: '2027-03-21T00:00:00+07:00',
+    endAt: '2027-03-21T23:59:59+07:00',
+  },
+  {
+    id: 'main-event',
+    date: '22 Maret 2027 — Acara Puncak',
+    shortDate: '22 Mar 2027',
+    title: 'Main Event, Pameran UMKM & Awarding Night',
+    desc: 'Rangkaian Digiconomic Fest ditutup dengan Seminar Bank Indonesia, Pameran UMKM binaan BI Malang, dan malam penganugerahan pemenang Rp 26.000.000+ di Universitas Brawijaya.',
+    startAt: '2027-03-22T00:00:00+07:00',
+    endAt: '2027-03-22T23:59:59+07:00',
+  },
 ];
+
+export type TimelineStageStatus = 'completed' | 'current' | 'upcoming_next' | 'upcoming';
+
+export interface TimelineStageWithStatus extends TimelineStage {
+  status: TimelineStageStatus;
+  daysUntilStart: number;
+}
+
+export function resolveTimelineStatuses(
+  stages: TimelineStage[] = TIMELINE_DATA,
+  nowMs: number = Date.now()
+): TimelineStageWithStatus[] {
+  let hasActive = false;
+  let assignedNext = false;
+
+  const base = stages.map((stage) => {
+    const startMs = new Date(stage.startAt).getTime();
+    const endMs = new Date(stage.endAt).getTime();
+    const daysUntilStart = Math.max(0, Math.ceil((startMs - nowMs) / (1000 * 60 * 60 * 24)));
+
+    if (nowMs >= startMs && nowMs <= endMs) {
+      hasActive = true;
+      return { ...stage, status: 'current' as TimelineStageStatus, daysUntilStart: 0 };
+    }
+    if (nowMs > endMs) {
+      return { ...stage, status: 'completed' as TimelineStageStatus, daysUntilStart: 0 };
+    }
+    return { ...stage, status: 'upcoming' as TimelineStageStatus, daysUntilStart };
+  });
+
+  if (!hasActive) {
+    return base.map((stage) => {
+      if (!assignedNext && stage.status === 'upcoming') {
+        assignedNext = true;
+        return { ...stage, status: 'upcoming_next' as TimelineStageStatus };
+      }
+      return stage;
+    });
+  }
+
+  return base;
+}
 
 export const FAQ_DATA = [
   {
     q: 'Apa saja cabang lomba di Digiconomic Fest 2027?',
-    a: 'Tersedia 2 cabang perlombaan tim tingkat nasional: 1) Esai Nasional (Kategori Tim 2–3 orang) dan 2) Mini Case Competition (Kategori Tim 2–3 orang).'
+    a: 'Tersedia 2 cabang perlombaan tim tingkat nasional: 1) Esai (Kategori Tim 2–3 orang) dan 2) Mini Case Competition (Kategori Tim 2–3 orang).'
   },
   {
     q: 'Bagaimana alur pendaftaran lomba di website ini?',
@@ -82,11 +154,11 @@ export const FAQ_DATA = [
   },
   {
     q: 'Apakah ada payment gateway otomatis?',
-    a: 'Tidak. Pembayaran menggunakan QRIS resmi Digiconomic Fest dan konfirmasi langsung ke nomor WhatsApp panitia dengan template pesan otomatis. Panitia akan memverifikasi pembayaran Anda dalam 1x24 jam.'
+    a: 'Tidak. Pembayaran dilakukan dengan memindai QRIS resmi Digiconomic Fest 2027, lalu mengunggah bukti transfer langsung di Dashboard Peserta. Panitia akan memverifikasi pembayaran Anda maksimal dalam 1×24 jam.'
   },
   {
     q: 'Bagaimana cara mengirim bukti transfer/pembayaran?',
-    a: 'Setelah scan QRIS di layar, klik tombol "Kirim Konfirmasi via WhatsApp". WhatsApp Anda akan otomatis terbuka dengan format pesan yang sudah terisi nama, ID registrasi, dan lomba. Cukup lampirkan foto/screenshot bukti pembayaran ke chat tersebut.'
+    a: 'Setelah menyelesaikan pendaftaran cabang lomba di Dashboard Peserta, pindai kode QRIS resmi yang tersedia lalu unggah foto/screenshot bukti bayar (JPG, PNG, atau PDF maks. 2 MB) beserta nama pengirim pada menu Pembayaran di Dashboard Peserta.'
   },
   {
     q: 'Bolehkah mendaftar lebih dari satu cabang lomba?',

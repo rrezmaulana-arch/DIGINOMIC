@@ -28,7 +28,7 @@ export const FAQSection: React.FC<FAQProps> = ({ onOpenWhatsAppHelp }) => {
             Pusat Informasi & Tanya Jawab
           </p>
           <h2 className="font-cormorant font-normal text-2xl sm:text-4xl lg:text-[2.65rem] text-[#2f1e10] tracking-tight leading-snug">
-            Pertanyaan yang <span className="shimmer-text">Sering Diajukan</span>
+            Pertanyaan yang <span className="text-[#9a6522]">Sering Diajukan</span>
           </h2>
           <div className="flex items-center justify-center gap-3 my-2 sm:my-4 text-[#caa152] opacity-75">
             <span className="w-8 sm:w-10 h-px bg-gradient-to-r from-transparent to-[#caa152]" />
@@ -46,12 +46,13 @@ export const FAQSection: React.FC<FAQProps> = ({ onOpenWhatsAppHelp }) => {
         <div className="space-y-2 sm:space-y-3.5">
           {FAQ_DATA.map((item, index) => {
             const isOpen = openIndex === index;
+            const panelId = `faq-panel-${index}`;
             return (
               <div
                 key={index}
-                className={`rounded-xl sm:rounded-2xl border overflow-hidden transition-all duration-300 ease-out relative ${
+                className={`rounded-xl sm:rounded-2xl border overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] relative ${
                   isOpen
-                    ? 'border-[#caa152] bg-[#fffdf9] shadow-[0_10px_28px_-12px_rgba(47,30,16,0.18)]'
+                    ? 'border-[#caa152] bg-[#fffdf9] shadow-[0_12px_30px_-12px_rgba(47,30,16,0.2)]'
                     : 'border-[#dfd0ba] bg-[#fffdf9]/92 hover:border-[#caa152]/70 hover:bg-[#fffdf9] hover:-translate-y-0.5 hover:shadow-xs'
                 }`}
               >
@@ -59,12 +60,13 @@ export const FAQSection: React.FC<FAQProps> = ({ onOpenWhatsAppHelp }) => {
                   type="button"
                   onClick={() => toggle(index)}
                   aria-expanded={isOpen}
+                  aria-controls={panelId}
                   className="w-full text-left p-4 sm:p-5 flex items-center justify-between gap-3 font-sans text-xs sm:text-sm text-[#2f1e10] hover:text-[#7a5530] transition-colors relative z-10"
                 >
                   <span className="flex items-center gap-3 font-normal">
-                    <span className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center font-poppins text-[10px] font-semibold transition-colors duration-300 ${
+                    <span className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center font-poppins text-[10px] font-semibold transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
                       isOpen
-                        ? 'bg-[#3b2412] text-[#f3d48c]'
+                        ? 'bg-[#3b2412] text-[#f3d48c] scale-105 shadow-xs'
                         : 'bg-[#efe1cb] text-[#6b4725]'
                     }`}>
                       {String(index + 1).padStart(2, '0')}
@@ -74,19 +76,26 @@ export const FAQSection: React.FC<FAQProps> = ({ onOpenWhatsAppHelp }) => {
                     </span>
                   </span>
                   <ChevronDown
-                    className={`w-4 h-4 text-[#7a5530] transition-transform duration-300 ease-out shrink-0 ${
+                    className={`w-4 h-4 text-[#7a5530] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] shrink-0 ${
                       isOpen ? 'rotate-180 text-[#a87226]' : ''
                     }`}
                   />
                 </button>
 
                 <div
-                  className={`grid transition-all duration-300 ease-out ${
+                  id={panelId}
+                  role="region"
+                  aria-hidden={!isOpen}
+                  className={`grid transition-[grid-template-rows,opacity] duration-350 ease-[cubic-bezier(0.22,1,0.36,1)] ${
                     isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
                   }`}
                 >
                   <div className="overflow-hidden">
-                    <div className="px-4 sm:px-6 pb-4 sm:pb-5 pt-2 text-xs sm:text-[13px] text-[#5c3820] leading-relaxed border-t border-[#ebdcc8]/70 font-sans">
+                    <div
+                      className={`px-4 sm:px-6 pb-4 sm:pb-5 pt-2.5 text-xs sm:text-[13px] text-[#5c3820] leading-relaxed border-t border-[#ebdcc8]/70 font-sans transition-transform duration-350 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                        isOpen ? 'translate-y-0' : '-translate-y-1.5'
+                      }`}
+                    >
                       {item.a}
                     </div>
                   </div>
@@ -98,7 +107,7 @@ export const FAQSection: React.FC<FAQProps> = ({ onOpenWhatsAppHelp }) => {
 
         {/* Harmonious Contact Card */}
         <div
-          className="mt-6 sm:mt-12 p-4 sm:p-8 rounded-2xl sm:rounded-3xl border border-[#ebdcc8] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3.5 sm:gap-5 relative overflow-hidden"
+          className="card-modern-hover mt-6 sm:mt-12 p-4 sm:p-8 rounded-2xl sm:rounded-3xl border border-[#ebdcc8] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3.5 sm:gap-5 relative overflow-hidden"
           style={{
             background: 'radial-gradient(circle at 50% 25%, #ffffff 0%, #faf4e8 70%, #f4e8d2 100%)',
           }}

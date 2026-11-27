@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FileText,
@@ -7,7 +7,7 @@ import {
   ArrowRight,
   Check,
 } from 'lucide-react';
-import { COMPETITIONS_DATA } from '../../data/competitions';
+import { COMPETITIONS_DATA, TIMELINE_DATA, resolveTimelineStatuses } from '../../data/competitions';
 import {
   BatikKawungPattern,
   SectionWaveTransition,
@@ -16,13 +16,7 @@ import {
 export const CompetitionsPage: React.FC = () => {
   const navigate = useNavigate();
 
-  const stages = [
-    { step: '01', title: 'Pendaftaran & Berkas', date: '14 Des 2026 – 30 Jan 2027' },
-    { step: '02', title: 'Seleksi & Penjurian', date: '1 – 19 Feb 2027' },
-    { step: '03', title: 'Pengumuman Finalis', date: '20 Feb 2027' },
-    { step: '04', title: 'Grand Final', date: '21 Mar 2027' },
-    { step: '05', title: 'Awarding Night', date: '22 Mar 2027' },
-  ];
+  const stages = useMemo(() => resolveTimelineStatuses(TIMELINE_DATA), []);
 
   const compactDetails: Record<string, { summary: string; audience: string; points: string[] }> = {
     'esai-nasional': {
@@ -32,7 +26,7 @@ export const CompetitionsPage: React.FC = () => {
       points: [
         'Tim 2–3 orang (1 akun ketua, 1 lomba aktif)',
         'Naskah orisinal 1.500–2.500 kata (PDF maks. 10 MB)',
-        'Presentasi finalis di Kota Malang pada 21–22 Maret 2027',
+        'Presentasi finalis di Universitas Brawijaya pada 21–22 Maret 2027',
       ],
     },
     'mini-case-competition': {
@@ -182,15 +176,49 @@ export const CompetitionsPage: React.FC = () => {
             </div>
 
             <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-              {stages.map((st) => (
-                <li key={st.step} className="pt-3 border-t-2 border-[#caa152]/60">
-                  <span className="font-cinzel text-[10px] text-[#8a5e38] font-semibold tracking-widest">
-                    {st.step}
-                  </span>
-                  <h4 className="font-poppins text-sm font-semibold text-[#241308] mt-1">{st.title}</h4>
-                  <p className="font-sans text-xs text-[#6b4725] mt-0.5">{st.date}</p>
-                </li>
-              ))}
+              {stages.map((st, idx) => {
+                const isCurrent = st.status === 'current';
+                const isNext = st.status === 'upcoming_next';
+                const isDone = st.status === 'completed';
+                return (
+                  <li
+                    key={st.id}
+                    className={`card-modern-hover rounded-xl p-3 border border-transparent border-t-2 hover:bg-[#fffdf9]/75 ${
+                      isCurrent
+                        ? 'border-t-emerald-600'
+                        : isNext
+                          ? 'border-t-[#b88636]'
+                          : isDone
+                            ? 'border-t-[#8a5e38]/70 opacity-80'
+                            : 'border-t-[#caa152]/60'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-cinzel text-[10px] text-[#8a5e38] font-semibold tracking-widest">
+                        0{idx + 1}
+                      </span>
+                      {isCurrent && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-[9px] font-poppins font-semibold uppercase tracking-wider">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                          Berlangsung
+                        </span>
+                      )}
+                      {isNext && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#3b2412] text-[#f3d48c] text-[9px] font-poppins font-semibold uppercase tracking-wider">
+                          Berikutnya
+                        </span>
+                      )}
+                      {isDone && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#e6d5bc] text-[#6b4725] text-[9px] font-poppins font-semibold uppercase tracking-wider">
+                          Selesai
+                        </span>
+                      )}
+                    </div>
+                    <h4 className="font-poppins text-sm font-semibold text-[#241308] mt-1">{st.title}</h4>
+                    <p className="font-sans text-xs text-[#6b4725] mt-0.5">{st.shortDate}</p>
+                  </li>
+                );
+              })}
             </ol>
           </div>
         </div>

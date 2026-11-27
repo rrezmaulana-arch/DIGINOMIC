@@ -1,20 +1,59 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, BookOpen, ChevronDown } from 'lucide-react';
+import { ArrowRight, BookOpen, Check, ChevronDown } from 'lucide-react';
 import {
-  BatikKawungPattern,
-} from './Ornaments';
+  TIMELINE_DATA,
+  resolveTimelineStatuses,
+  type TimelineStageStatus,
+} from '../data/competitions';
+import { BatikKawungPattern } from './Ornaments';
 
-const steps = [
-  { date: '14 Des 2026 – 30 Jan 2027', title: 'Pendaftaran & Verifikasi', detail: 'Daftarkan tim peserta (maks. 3 orang), lalu lengkapi data untuk verifikasi panitia.' },
-  { date: '1 – 19 Feb 2027', title: 'Seleksi & Penjurian Karya', detail: 'Karya tim peserta masuk ke tahap seleksi dan penilaian juri.' },
-  { date: '20 Februari 2027', title: 'Pengumuman Finalis', detail: 'Peserta dapat melihat hasil seleksi dan daftar tim yang maju ke final.' },
-  { date: '21 Maret 2027', title: 'Final Kompetisi', detail: 'Finalis mengikuti babak akhir kompetisi.' },
-  { date: '22 Maret 2027 — Acara Puncak', title: 'Main Event, Pameran UMKM & Awarding Night', detail: 'Rangkaian Digiconomic Fest ditutup dengan seminar, pameran UMKM, dan malam penghargaan.' },
-];
+function getStageBadge(status: TimelineStageStatus, daysUntilStart: number) {
+  if (status === 'current') {
+    return {
+      label: 'Sedang Berlangsung',
+      className: 'agenda-badge agenda-badge--current',
+      dot: true,
+    };
+  }
+  if (status === 'upcoming_next') {
+    return {
+      label: daysUntilStart > 0 ? `Tahap Berikutnya · H-${daysUntilStart}` : 'Segera Dimulai',
+      className: 'agenda-badge agenda-badge--next',
+      dot: true,
+    };
+  }
+  if (status === 'completed') {
+    return {
+      label: 'Selesai',
+      className: 'agenda-badge agenda-badge--done',
+      dot: false,
+    };
+  }
+  return null;
+}
 
 export const TimelineSection: React.FC = () => {
   const navigate = useNavigate();
+  const stages = useMemo(() => resolveTimelineStatuses(TIMELINE_DATA), []);
+
+  const initialOpenIndex = useMemo(() => {
+    const activeIdx = stages.findIndex(
+      (s) => s.status === 'current' || s.status === 'upcoming_next'
+    );
+    return activeIdx >= 0 ? activeIdx : 0;
+  }, [stages]);
+
+  const [openIndex, setOpenIndex] = useState<number | null>(initialOpenIndex);
+
+  const activeStage = useMemo(
+    () => stages.find((s) => s.status === 'current' || s.status === 'upcoming_next') || null,
+    [stages]
+  );
+
+  const toggle = (index: number) => {
+    setOpenIndex((prev) => (prev === index ? null : index));
+  };
 
   return (
     <section
@@ -30,27 +69,118 @@ export const TimelineSection: React.FC = () => {
           <p className="font-cinzel text-[10px] sm:text-xs tracking-[0.22em] uppercase text-[#ead19d] font-medium mb-2.5">
             LINIMASA RESMI 2026 &ndash; 2027
           </p>
-          <h2 className="font-cormorant font-normal text-4xl sm:text-5xl lg:text-[3.5rem] text-[#fffdf9] tracking-tight leading-[1.06] mb-5">
+          <h2 className="font-cormorant font-normal text-4xl sm:text-5xl lg:text-[3.5rem] text-[#fffdf9] tracking-tight leading-[1.06] mb-4">
             Alur &amp; Jadwal{' '}
-            <span className="shimmer-text block">Kompetisi</span>
+            <span className="text-[#e8c47a] block">Kompetisi</span>
           </h2>
-          <button type="button" onClick={() => navigate('/juklak-juknis')} className="agenda-guide">
-            <BookOpen size={16} /> Juklak &amp; Juknis <ArrowRight size={16} />
-          </button>
+
+          {activeStage && (
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#3a2516]/90 border border-[#caa152]/55 text-[#f7e1b5] text-xs mb-5 max-w-full">
+              <span className="agenda-pulse-dot shrink-0" aria-hidden="true" />
+              <span className="truncate">
+                <strong className="font-semibold text-[#fff3cf]">
+                  {activeStage.status === 'current' ? 'Sedang Berlangsung:' : 'Tahap Berikutnya:'}
+                </strong>{' '}
+                {activeStage.title}
+              </span>
+            </div>
+          )}
+
+          <div className="block">
+            <button type="button" onClick={() => navigate('/juklak-juknis')} className="agenda-guide">
+              <BookOpen size={16} /> Juklak &amp; Juknis <ArrowRight size={16} />
+            </button>
+          </div>
         </header>
+
         <ol className="agenda-list md:col-span-7">
-          {steps.map((step, index) => (
-            <li key={step.title}>
-              <details className="agenda-card">
-                <summary>
-                  <span className="agenda-node" aria-hidden="true">0{index + 1}</span>
-                  <span><span className="stage-date">{step.date}</span><strong>{step.title}</strong></span>
-                  <ChevronDown className="agenda-chevron" size={18} aria-hidden="true" />
-                </summary>
-                <p>{step.detail}</p>
-              </details>
-            </li>
-          ))}
+          {stages.map((step, index) => {
+            const isOpen = openIndex === index;
+            const isCurrent = step.status === 'current';
+            const isNext = step.status === 'upcoming_next';
+            const isDone = step.status === 'completed';
+            const badge = getStageBadge(step.status, step.daysUntilStart);
+            const panelId = `agenda-panel-${step.id}`;
+
+            return (
+              <li
+                key={step.id}
+                className={
+                  isCurrent
+                    ? 'agenda-item agenda-item--current'
+                    : isNext
+                      ? 'agenda-item agenda-item--next'
+                      : isDone
+                        ? 'agenda-item agenda-item--done'
+                        : 'agenda-item'
+                }
+              >
+                <span
+                  className={`agenda-node ${
+                    isCurrent
+                      ? 'agenda-node--current'
+                      : isNext
+                        ? 'agenda-node--next'
+                        : isDone
+                          ? 'agenda-node--done'
+                          : ''
+                  } ${isOpen ? 'agenda-node--open' : ''}`}
+                  aria-hidden="true"
+                >
+                  {isDone ? <Check size={14} strokeWidth={2.5} /> : `0${index + 1}`}
+                </span>
+
+                <div
+                  className={`agenda-card ${isOpen ? 'agenda-card--open' : ''} ${
+                    isCurrent
+                      ? 'agenda-card--current'
+                      : isNext
+                        ? 'agenda-card--next'
+                        : isDone
+                          ? 'agenda-card--done'
+                          : ''
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => toggle(index)}
+                    aria-expanded={isOpen}
+                    aria-controls={panelId}
+                    className="agenda-trigger"
+                  >
+                    <span className="min-w-0 text-left">
+                      <span className="flex flex-wrap items-center gap-2">
+                        <span className="stage-date">{step.date}</span>
+                        {badge && (
+                          <span className={badge.className}>
+                            {badge.dot && <span className="agenda-pulse-dot" aria-hidden="true" />}
+                            <span>{badge.label}</span>
+                          </span>
+                        )}
+                      </span>
+                      <strong>{step.title}</strong>
+                    </span>
+                    <ChevronDown
+                      className={`agenda-chevron ${isOpen ? 'agenda-chevron--open' : ''}`}
+                      size={18}
+                      aria-hidden="true"
+                    />
+                  </button>
+
+                  <div
+                    id={panelId}
+                    role="region"
+                    aria-hidden={!isOpen}
+                    className={`agenda-panel ${isOpen ? 'agenda-panel--open' : ''}`}
+                  >
+                    <div className="agenda-panel-inner">
+                      <p>{step.desc}</p>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            );
+          })}
         </ol>
       </div>
     </section>

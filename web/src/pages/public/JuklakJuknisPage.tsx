@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, BookOpen, Calendar, CheckCircle2, Download, FileText } from 'lucide-react';
-import { COMPETITIONS_DATA, TIMELINE_DATA } from '../../data/competitions';
+import { COMPETITIONS_DATA, TIMELINE_DATA, resolveTimelineStatuses } from '../../data/competitions';
 import {
   BatikKawungPattern,
   CornerFiligree,
@@ -11,6 +11,7 @@ import {
 export const JuklakJuknisPage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedSlug, setSelectedSlug] = useState<string>('esai-nasional');
+  const timelineStages = useMemo(() => resolveTimelineStatuses(TIMELINE_DATA), []);
 
   const activeComp =
     COMPETITIONS_DATA.find((c) => c.slug === selectedSlug) || COMPETITIONS_DATA[0];
@@ -60,24 +61,53 @@ export const JuklakJuknisPage: React.FC = () => {
             <span>Rincian Jadwal Pelaksanaan</span>
           </h2>
           <div className="space-y-3">
-            {TIMELINE_DATA.map((item, idx) => (
-              <div
-                key={item.title}
-                className="card-modern-hover rounded-2xl bg-[#fffdf9] border border-[#dfd0ba] p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6"
-              >
-                <span className="inline-flex items-center justify-center px-3.5 py-1 rounded-full bg-[#3b2412] text-[#f3d48c] font-poppins text-xs font-semibold shrink-0 w-fit">
-                  0{idx + 1} · {item.date}
-                </span>
-                <div>
-                  <h3 className="font-poppins text-sm sm:text-base font-semibold text-[#241308]">
-                    {item.title}
-                  </h3>
-                  <p className="font-sans text-xs sm:text-sm text-[#5c3e28] mt-0.5 leading-relaxed">
-                    {item.desc}
-                  </p>
+            {timelineStages.map((item, idx) => {
+              const isCurrent = item.status === 'current';
+              const isNext = item.status === 'upcoming_next';
+              const isDone = item.status === 'completed';
+              return (
+                <div
+                  key={item.id}
+                  className={`card-modern-hover rounded-2xl bg-[#fffdf9] border p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 ${
+                    isCurrent
+                      ? 'border-emerald-500 ring-1 ring-emerald-500/30'
+                      : isNext
+                        ? 'border-[#caa152]'
+                        : 'border-[#dfd0ba]'
+                  }`}
+                >
+                  <span className="inline-flex items-center justify-center px-3.5 py-1 rounded-full bg-[#3b2412] text-[#f3d48c] font-poppins text-xs font-semibold shrink-0 w-fit">
+                    0{idx + 1} · {item.shortDate}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-poppins text-sm sm:text-base font-semibold text-[#241308]">
+                        {item.title}
+                      </h3>
+                      {isCurrent && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] font-poppins font-semibold uppercase tracking-wider">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                          Sedang Berlangsung
+                        </span>
+                      )}
+                      {isNext && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#f3e6d3] text-[#6b4725] border border-[#caa152]/70 text-[10px] font-poppins font-semibold uppercase tracking-wider">
+                          {item.daysUntilStart > 0 ? `Tahap Berikutnya · H-${item.daysUntilStart}` : 'Segera Dimulai'}
+                        </span>
+                      )}
+                      {isDone && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#efe3d0] text-[#7a5530] text-[10px] font-poppins font-semibold uppercase tracking-wider">
+                          Selesai
+                        </span>
+                      )}
+                    </div>
+                    <p className="font-sans text-xs sm:text-sm text-[#5c3e28] mt-1 leading-relaxed">
+                      {item.desc}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -107,7 +137,7 @@ export const JuklakJuknisPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="relative rounded-3xl bg-[#fffdf9] border border-[#caa152]/65 p-6 sm:p-8 shadow-sm overflow-hidden">
+          <div className="card-modern-hover relative rounded-3xl bg-[#fffdf9] border border-[#caa152]/65 p-6 sm:p-8 shadow-sm overflow-hidden">
             <CornerFiligree color="#b88c52" className="w-6 h-6 opacity-50" />
             <div className="relative z-10">
               <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-5 border-b border-[#e5d4bc]">
