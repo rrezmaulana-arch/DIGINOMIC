@@ -6,6 +6,7 @@ import { ArrowRight, Calendar, Clock, Newspaper } from 'lucide-react';
 import { Hero } from '../../components/Hero';
 import { About } from '../../components/About';
 import { LogoMeaning } from '../../components/LogoMeaning';
+import { MascotSection } from '../../components/MascotSection';
 import { Competitions } from '../../components/Competitions';
 import { PrizeBenefitsSection } from '../../components/PrizeBenefitsSection';
 import { TimelineSection } from '../../components/TimelineSection';
@@ -68,35 +69,52 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
       />
 
       {/* 2. ABOUT & THEME SECTION */}
-      <About
-        onExploreComps={() => {
-          const el = document.getElementById('kompetisi');
-          if (el) el.scrollIntoView({ behavior: 'smooth' });
-        }}
-      />
+      <div className="cv-auto">
+        <About
+          onExploreComps={() => {
+            const el = document.getElementById('kompetisi');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }}
+        />
+      </div>
 
       <SectionWaveTransition fromColor="#ebdcc5" toColor="#2f1d10" accentColor="#caa152" variant="ridge" />
 
       {/* 3. LOGO MEANING & VISUAL IDENTITY */}
-      <LogoMeaning />
+      <div className="cv-auto">
+        <LogoMeaning />
+      </div>
 
-      <SectionWaveTransition fromColor="#1f1209" toColor="#efe2ce" accentColor="#caa152" variant="cloud" />
+      {/* 3B. MASCOT PHILOSOPHY SHOWCASE (Menyatu dalam Bab Identitas Visual Espresso) */}
+      <div className="cv-auto">
+        <MascotSection />
+      </div>
+
+      <SectionWaveTransition fromColor="#1d1008" toColor="#efe2ce" accentColor="#caa152" variant="cloud" />
 
       {/* 4. COMPETITIONS SHOWCASE */}
-      <Competitions onSelectCompetition={handleSelectCompetition} onExploreDetail={handleExploreDetail} />
+      <div className="cv-auto">
+        <Competitions onSelectCompetition={handleSelectCompetition} onExploreDetail={handleExploreDetail} />
+      </div>
 
       {/* 5. PRIZES & BENEFITS */}
-      <PrizeBenefitsSection />
+      <div className="cv-auto">
+        <PrizeBenefitsSection />
+      </div>
 
       <SectionWaveTransition fromColor="#efe1cc" toColor="#2b1a0e" accentColor="#caa152" variant="ridge" />
 
       {/* 6. TIMELINE S-CURVE */}
-      <TimelineSection />
+      <div className="cv-auto">
+        <TimelineSection />
+      </div>
 
       <SectionWaveTransition fromColor="#1e1108" toColor="#faf4e8" accentColor="#caa152" variant="cloud" />
 
       {/* 7. KILAS BALIK & GALERI 2025 */}
-      <GallerySection />
+      <div className="cv-auto">
+        <GallerySection />
+      </div>
 
       {/* 7B. BERITA & PENGUMUMAN RESMI (Menyatu mulus dengan gradasi #efe3d0 antara Galeri & FAQ) */}
       {homeNews.length > 0 && (
@@ -193,7 +211,9 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
       )}
 
       {/* 8. FAQ */}
-      <FAQSection onOpenWhatsAppHelp={handleOpenWhatsAppHelp} />
+      <div className="cv-auto">
+        <FAQSection onOpenWhatsAppHelp={handleOpenWhatsAppHelp} />
+      </div>
 
       <SectionWaveTransition fromColor="#e4d2b7" toColor="#382012" accentColor="#caa152" variant="wave" />
     </div>
