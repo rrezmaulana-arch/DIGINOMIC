@@ -177,7 +177,7 @@ export const PrivacyPolicyPage: React.FC = () => {
               <p className="font-semibold text-[#2f1e10]">{orgName}</p>
               <p>Email: <a href={`mailto:${contactEmail}`} className="text-[#7a5530] underline">{contactEmail}</a></p>
               <p>Website: <a href={appUrl} className="text-[#7a5530] underline">{appUrl}</a></p>
-              <p>Malang, Jawa Timur, Indonesia</p>
+              <p>Universitas Brawijaya, Malang, Jawa Timur</p>
             </div>
           </section>
 

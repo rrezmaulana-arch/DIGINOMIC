@@ -126,7 +126,7 @@ export const Footer: React.FC<FooterProps> = ({
             <div className="space-y-2.5 text-xs text-[#cfbc9f]">
               <div className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 text-[#d2b183] shrink-0 mt-0.5" />
-                <span>GenBI Komisariat Universitas Brawijaya &amp; KPw Bank Indonesia Malang, Jawa Timur</span>
+                <span>Universitas Brawijaya, Malang, Jawa Timur</span>
               </div>
               <div className="flex items-start gap-2">
                 <Phone className="w-4 h-4 text-[#d2b183] shrink-0 mt-0.5" />

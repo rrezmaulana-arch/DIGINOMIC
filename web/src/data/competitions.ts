@@ -4,7 +4,7 @@ export const COMPETITIONS_DATA: Competition[] = [
   {
     id: 'comp-1',
     slug: 'esai-nasional',
-    title: 'Esai Nasional',
+    title: 'Esai',
     category: 'TIM',
     fee: 35000,
     feeFormatted: 'Rp 35.000',
@@ -150,7 +150,7 @@ export const FAQ_DATA = [
   },
   {
     q: 'Bagaimana alur pendaftaran lomba di website ini?',
-    a: 'Alurnya sangat mudah: 1) Masuk dengan akun Google Anda, 2) Lengkapi biodata ketua tim & unggah KTM, 3) Pilih cabang lomba (Esai Nasional atau Mini Case Competition) dan isi data anggota tim (maks. 3 orang termasuk ketua), 4) Lakukan pembayaran QRIS resmi & unggah bukti bayar di Dashboard Peserta.'
+    a: 'Alurnya sangat mudah: 1) Masuk dengan akun Google Anda, 2) Lengkapi biodata ketua tim & unggah KTM, 3) Pilih cabang lomba (Esai atau Mini Case Competition) dan isi data anggota tim (maks. 3 orang termasuk ketua), 4) Lakukan pembayaran QRIS resmi & unggah bukti bayar di Dashboard Peserta.'
   },
   {
     q: 'Apakah ada payment gateway otomatis?',

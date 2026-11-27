@@ -440,7 +440,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           </div>
         ) : (
           <>
-            {!isJuri && activeTab === 'verif-esai' && renderVerificationList(esaiComp?.id, 'Verifikasi Pendaftar — Esai Nasional')}
+            {!isJuri && activeTab === 'verif-esai' && renderVerificationList(esaiComp?.id, 'Verifikasi Pendaftar — Esai')}
             {!isJuri && activeTab === 'verif-case' && renderVerificationList(caseComp?.id, 'Verifikasi Pendaftar — Mini Case Competition')}
 
             {/* PENJURIAN & PERINGKAT */}

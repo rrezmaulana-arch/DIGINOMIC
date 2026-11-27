@@ -40,7 +40,7 @@ const NAV_LINKS: NavLinkItem[] = [
 
 const COMPETITION_SUBMENU = [
   {
-    title: 'Esai Nasional',
+    title: 'Esai',
     subtitle: 'Kategori Tim (Maks. 3 Orang) • Pelajar & Mahasiswa',
     target: '/kompetisi/esai-nasional',
     icon: FileText,

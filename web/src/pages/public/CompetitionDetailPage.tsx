@@ -71,7 +71,7 @@ const STAGE_DETAILS: Record<
     periodLabel: '14 Des – 30 Jan 2027',
     finalDateLabel: '22 Maret 2027',
     finalistDateLabel: '20 Feb 2027',
-    flowHeading: 'Alur Kompetisi Esai Nasional',
+    flowHeading: 'Alur Kompetisi Esai',
     stages: [
       { num: '01', tag: 'Registration', title: 'Pendaftaran Tim & KTM', desc: 'Lengkapi biodata ketua & anggota tim (2–3 orang), unggah KTM, dan verifikasi QRIS.' },
       { num: '02', tag: 'Research', title: 'Eksplorasi Gagasan', desc: 'Riset isu aktual ekonomi digital dan daya saing UMKM lokal.' },

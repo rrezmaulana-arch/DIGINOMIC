@@ -363,7 +363,7 @@ Kami dari Panitia Pendaftaran Digiconomic Fest 2027 mengenai pendaftaran Anda (#
                 </h4>
                 <div className="space-y-2 text-xs text-[#5c3820]">
                   <div className="flex justify-between items-center py-1 border-b border-[#ebdcc8]">
-                    <span>Esai Nasional (Tim)</span>
+                    <span>Esai (Tim)</span>
                     <span className="font-bold text-[#2f1e10]">
                       {registrations.filter(r => r.competitionId === 'comp-1').length} Tim
                     </span>

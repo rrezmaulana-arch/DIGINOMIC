@@ -34,7 +34,7 @@ export const TermsOfServicePage: React.FC = () => {
             <p>
               {appName} adalah platform digital yang diselenggarakan oleh GenBI Komisariat Universitas Brawijaya
               bekerja sama dengan Kantor Perwakilan Bank Indonesia Malang untuk memfasilitasi pendaftaran, pengelolaan, dan penilaian
-              kompetisi akademik nasional, termasuk Esai Nasional dan Mini Case Competition.
+              kompetisi akademik nasional, termasuk Esai dan Mini Case Competition.
             </p>
           </section>
 

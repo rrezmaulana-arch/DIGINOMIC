@@ -127,7 +127,7 @@ export const NewsPage: React.FC = () => {
           </h1>
 
           <p className="mt-3 max-w-2xl mx-auto font-sans text-xs sm:text-sm md:text-base text-[#dec9ad] leading-relaxed">
-            Ikuti pengumuman resmi panitia, informasi <em>Technical Meeting</em>, tips Esai Nasional &amp; Mini Case Competition, serta kabar seputar UMKM binaan Bank Indonesia.
+            Ikuti pengumuman resmi panitia, informasi <em>Technical Meeting</em>, tips Esai &amp; Mini Case Competition, serta kabar seputar UMKM binaan Bank Indonesia.
           </p>
         </div>
       </section>

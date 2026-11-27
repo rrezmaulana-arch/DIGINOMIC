@@ -192,7 +192,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, staff = false }) 
           <div className="relative z-10 space-y-5">
             <div className="p-4 rounded-2xl bg-[#faf4e8]/80 border border-[#ebdcc8] flex flex-col items-center gap-3">
               <p className="text-xs text-[#5c3e28] text-center leading-relaxed">
-                Gunakan akun Google aktif Anda untuk mendaftar cabang lomba <strong>Esai Nasional</strong> atau{' '}
+                Gunakan akun Google aktif Anda untuk mendaftar cabang lomba <strong>Esai</strong> atau{' '}
                 <strong>Mini Case Competition</strong>.
               </p>
               <div className="flex justify-center py-1">

@@ -37,7 +37,7 @@ export async function seedDatabase(repo, options = {}) {
   if (!existingEsai) {
     await repo.createCompetition({
       slug: 'esai-nasional',
-      name: 'Esai Nasional',
+      name: 'Esai',
       fee: 35000,
       is_team: true,
       max_team_size: 3,
@@ -49,8 +49,8 @@ export async function seedDatabase(repo, options = {}) {
       guidebook_url: 'https://drive.google.com/file/d/digiconomic2027-guidebook/view',
       is_active: true,
     });
-  } else if (!existingEsai.is_team || Number(existingEsai.max_team_size) < 3) {
-    await repo.updateCompetition(existingEsai.id, { is_team: true, max_team_size: 3 });
+  } else if (!existingEsai.is_team || Number(existingEsai.max_team_size) < 3 || existingEsai.name === 'Esai Nasional') {
+    await repo.updateCompetition(existingEsai.id, { name: 'Esai', is_team: true, max_team_size: 3 });
   }
 
   if (!existingCase) {
@@ -81,10 +81,10 @@ export async function seedDatabase(repo, options = {}) {
           category: 'Pengumuman',
           title: 'Pendaftaran Digiconomic Fest 2027 Resmi Dibuka: Target 450+ Peserta Nasional',
           excerpt:
-            'GenBI Komisariat Universitas Brawijaya & KPw Bank Indonesia Malang resmi membuka pendaftaran Digiconomic Fest 2027 (14 Des 2026 – 30 Jan 2027) dengan dua cabang kompetisi tim nasional: Esai Nasional dan Mini Case Competition.',
+            'GenBI Komisariat Universitas Brawijaya & KPw Bank Indonesia Malang resmi membuka pendaftaran Digiconomic Fest 2027 (14 Des 2026 – 30 Jan 2027) dengan dua cabang kompetisi tim nasional: Esai dan Mini Case Competition.',
           content: [
             'GenBI Komisariat Universitas Brawijaya bersama Kantor Perwakilan Bank Indonesia Malang resmi membuka pendaftaran Digiconomic Fest 2027 mulai 14 Desember 2026 hingga 30 Januari 2027.',
-            'Tahun ini tersedia dua cabang kompetisi tim tingkat nasional yaitu Esai Nasional (kategori tim 2–3 orang) dan Mini Case Competition (kategori tim 2–3 orang). Setiap akun ketua tim hanya diperbolehkan mengikuti satu cabang lomba aktif agar kompetisi berjalan adil dan fokus.',
+            'Tahun ini tersedia dua cabang kompetisi tim tingkat nasional yaitu Esai (kategori tim 2–3 orang) dan Mini Case Competition (kategori tim 2–3 orang). Setiap akun ketua tim hanya diperbolehkan mengikuti satu cabang lomba aktif agar kompetisi berjalan adil dan fokus.',
             'Seluruh berkas pendaftaran dapat diunggah melalui portal resmi, dan status verifikasi serta akses grup peserta akan diperbarui langsung melalui Dashboard Peserta.',
           ].join('\n\n'),
           cover_image_url: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&fm=webp&q=75',
@@ -99,7 +99,7 @@ export async function seedDatabase(repo, options = {}) {
           excerpt:
             'Simak linimasa resmi mulai dari evaluasi karya (1–19 Feb 2027), pengumuman finalis (20 Feb 2027), babak final (21 Mar 2027), hingga Acara Puncak pada 22 Maret 2027.',
           content: [
-            'Setelah pendaftaran ditutup pada 30 Januari 2027, seluruh karya Esai Nasional dan Mini Case Competition akan memasuki tahap Judging & Evaluation pada 1–19 Februari 2027.',
+            'Setelah pendaftaran ditutup pada 30 Januari 2027, seluruh karya Esai dan Mini Case Competition akan memasuki tahap Judging & Evaluation pada 1–19 Februari 2027.',
             'Pengumuman finalis dijadwalkan pada 20 Februari 2027, diikuti Technical Meeting khusus finalis sebelum melaju ke Competition Final pada 21 Maret 2027 di Universitas Brawijaya.',
             'Rangkaian kegiatan akan ditutup dengan Digiconomic Fest Main Event pada 22 Maret 2027 yang menghadirkan Seminar bersama Bank Indonesia dan praktisi UMKM, Pameran UMKM binaan BI, serta Awarding Night.',
           ].join('\n\n'),
@@ -111,11 +111,11 @@ export async function seedDatabase(repo, options = {}) {
         {
           slug: 'tips-lolos-seleksi-esai-dan-mini-case',
           category: 'Kompetisi',
-          title: '5 Hal yang Paling Dinilai Juri di Esai Nasional & Mini Case Competition',
+          title: '5 Hal yang Paling Dinilai Juri di Kompetisi Esai & Mini Case Competition',
           excerpt:
             'Ketajaman riset masalah UMKM di emerging market, kelayakan implementasi, serta orisinalitas gagasan menjadi indikator utama dewan juri.',
           content: [
-            'Baik pada Esai Nasional maupun Mini Case Competition, karya yang menonjol selalu berangkat dari tantangan nyata pelaku UMKM lokal di tengah dinamika emerging market.',
+            'Baik pada Esai maupun Mini Case Competition, karya yang menonjol selalu berangkat dari tantangan nyata pelaku UMKM lokal di tengah dinamika emerging market.',
             'Lima aspek utama yang diperhatikan juri meliputi kesesuaian tema, kekuatan data pendukung, orisinalitas solusi digital/bisnis, kelayakan penerapan, serta kerapian sistematika penulisan sesuai Juklak & Juknis.',
             'Pastikan format PDF dan batas halaman sudah sesuai panduan resmi sebelum mengunggah karya melalui Dashboard Peserta.',
           ].join('\n\n'),

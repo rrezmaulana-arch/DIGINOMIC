@@ -123,7 +123,7 @@ test('End-to-End Functional & Business Rules Suite — Digiconomic Fest 2027', a
 
     const detail = await ctx.req('GET', '/api/competitions/esai-nasional');
     assert.equal(detail.status, 200);
-    assert.equal(detail.data.competition.name, 'Esai Nasional');
+    assert.equal(detail.data.competition.name, 'Esai');
 
     const missing = await ctx.req('GET', '/api/competitions/tidak-ada');
     assert.equal(missing.status, 404);

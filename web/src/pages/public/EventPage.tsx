@@ -108,8 +108,8 @@ export const EventPage: React.FC = () => {
                       </p>
                     </div>
                   </div>
-                  <span className="font-cinzel text-[9px] tracking-[0.14em] uppercase text-[#f3d48c] border border-[#caa152]/40 px-2.5 py-1 rounded-full text-center shrink-0">
-                    Univ. Brawijaya
+                  <span className="font-cinzel text-[9px] tracking-[0.12em] uppercase text-[#f3d48c] border border-[#caa152]/40 px-2.5 py-1 rounded-full text-center shrink-0">
+                    Universitas Brawijaya
                   </span>
                 </div>
 

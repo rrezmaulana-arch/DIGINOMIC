@@ -5,7 +5,8 @@ export function loadConfig(overrides = {}) {
   const nodeEnv = env.NODE_ENV || 'development';
   const isProd = nodeEnv === 'production';
 
-  const allowedOrigins = (env.APP_ORIGIN || 'http://localhost:5173')
+  const defaultDevOrigins = 'http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000';
+  const allowedOrigins = (env.APP_ORIGIN || (isProd ? 'http://localhost:5173' : defaultDevOrigins))
     .split(',')
     .map((o) => o.trim())
     .filter(Boolean);
