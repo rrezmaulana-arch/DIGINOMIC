@@ -107,7 +107,7 @@ export const MascotSection: React.FC = () => {
           </div>
 
           <p className="font-sans text-xs sm:text-sm text-[#dec9ad] leading-relaxed">
-            Perpaduan kehangatan koloni lebah dan kecerdasan teknologi digital—klik tubuh{' '}
+            Perpaduan kehangatan koloni lebah dan kecerdasan teknologi digital. Klik tubuh{' '}
             <strong className="text-[#f3d48c] font-semibold">{MASCOT_NAME}</strong> atau pilih 5 aspek filosofi untuk mengenal maknanya lebih dekat.
           </p>
         </div>

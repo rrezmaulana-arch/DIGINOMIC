@@ -254,7 +254,7 @@ export const GallerySection: React.FC = () => {
           </h2>
           <SectionDivider variant="light" />
           <p className="font-sans text-xs sm:text-sm text-[#5c3e28] leading-relaxed">
-            Jejak perjalanan dan momen terbaik Digiconomic Fest 2026—dari panggung kompetisi, seminar ekonomi digital Bank Indonesia, hingga malam penganugerahan juara menuju edisi 2027.
+            Jejak perjalanan dan momen terbaik Digiconomic Fest 2026, dari panggung kompetisi, seminar ekonomi digital Bank Indonesia, hingga malam penganugerahan juara menuju edisi 2027.
           </p>
 
           {/* Filter Pills */}

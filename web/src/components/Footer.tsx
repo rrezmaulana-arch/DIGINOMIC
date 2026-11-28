@@ -48,7 +48,7 @@ export const Footer: React.FC<FooterProps> = ({
             </div>
 
             <p className="text-xs text-[#cfbc9f] leading-relaxed max-w-sm">
-              Digiconomic Fest 2027 — Perjalanan Menuju Ekonomi Digital Masa Depan. Panggung kompetisi nasional,
+              Digiconomic Fest 2027: Perjalanan Menuju Ekonomi Digital Masa Depan. Panggung kompetisi nasional,
               literasi keuangan digital, dan kreasi inovasi UMKM bagi mahasiswa dan pelajar nusantara.
             </p>
 
@@ -176,7 +176,7 @@ export const Footer: React.FC<FooterProps> = ({
 
         {/* Bottom bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#a89278]">
-          <p>© 2027 Panitia Digiconomic Fest — GenBI Komisariat Universitas Brawijaya. Hak Cipta Dilindungi.</p>
+          <p>© 2027 Panitia Digiconomic Fest · GenBI Komisariat Universitas Brawijaya. Hak Cipta Dilindungi.</p>
           <div className="flex items-center gap-4">
             <button onClick={onOpenPrivacy} className="hover:text-[#f5ebd9] transition-colors">
               Kebijakan Privasi

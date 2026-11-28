@@ -1,4 +1,4 @@
-export const MASCOT_NAME = 'DigiBee';
+export const MASCOT_NAME = 'Bizzy';
 
 export const MASCOT_ASSETS = {
   main: '/maskot/digibee-main.webp',

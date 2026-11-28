@@ -180,7 +180,7 @@ export const ParticipantDashboardPage: React.FC<ParticipantDashboardPageProps> =
     }
     switch (registration.status) {
       case 'MENUNGGU_VERIFIKASI':
-        return `Berkasmu sudah diterima, ${firstName}! Tim panitia sedang memeriksa pendaftaranmu—santai dulu sambil matangkan ide karyamu ya ✨`;
+        return `Berkasmu sudah diterima, ${firstName}! Tim panitia sedang memeriksa pendaftaranmu, santai dulu sambil matangkan ide karyamu ya ✨`;
       case 'DITOLAK':
         return `Ada catatan revisi dari panitia nih, ${firstName}. Yuk perbaiki di menu Pendaftaran & Berkas biar cepat terverifikasi!`;
       case 'TERVERIFIKASI':

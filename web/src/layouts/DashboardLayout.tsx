@@ -295,7 +295,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       <footer className="border-t border-[#ebdcc8] bg-[#fffdf9]/80 py-4 text-center text-xs text-[#7a5530] font-sans">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p>© 2027 Digiconomic Fest — Portal Resmi Kompetisi GenBI × Bank Indonesia.</p>
+          <p>© 2027 Digiconomic Fest · Portal Resmi Kompetisi GenBI × Bank Indonesia.</p>
           <div className="flex items-center gap-3 text-[11px]">
             <Link to="/kebijakan-privasi" className="hover:text-[#2f1e10] underline-offset-2 hover:underline">
               Kebijakan Privasi

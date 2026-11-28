@@ -102,7 +102,7 @@ export const PrivacyPolicyPage: React.FC = () => {
             <ul className="list-disc pl-6 space-y-1">
               <li><strong>Dewan Juri:</strong> nama tim, institusi, dan karya lomba (tanpa informasi kontak pribadi)</li>
               <li><strong>Bank Indonesia:</strong> data statistik peserta secara agregat untuk keperluan pelaporan program</li>
-              <li><strong>Penyedia layanan teknis:</strong> Supabase (basis data), Google (OAuth & Drive, penyimpanan file), Vercel (hosting frontend), Railway (hosting backend) — sesuai kebijakan privasi masing-masing</li>
+              <li><strong>Penyedia layanan teknis:</strong> Supabase (basis data), Google (OAuth & Drive, penyimpanan file), Vercel (hosting frontend), Railway (hosting backend), sesuai kebijakan privasi masing-masing</li>
               <li><strong>Otoritas hukum:</strong> jika diwajibkan oleh peraturan perundangan yang berlaku</li>
             </ul>
           </section>
@@ -138,10 +138,10 @@ export const PrivacyPolicyPage: React.FC = () => {
             <h2 className="text-xl font-semibold text-[#2f1e10]">8. Layanan Pihak Ketiga</h2>
             <p>Platform mengintegrasikan layanan pihak ketiga berikut, masing-masing dengan kebijakan privasi sendiri:</p>
             <ul className="list-disc pl-6 space-y-1">
-              <li><strong>Google OAuth 2.0</strong> — untuk autentikasi login via akun Google (<a href="https://policies.google.com/privacy" className="text-[#7a5530] underline" target="_blank" rel="noopener noreferrer">Kebijakan Privasi Google</a>)</li>
-              <li><strong>Google Drive API</strong> — untuk penyimpanan berkas unggahan peserta</li>
-              <li><strong>Supabase</strong> — basis data cloud (<a href="https://supabase.com/privacy" className="text-[#7a5530] underline" target="_blank" rel="noopener noreferrer">Kebijakan Privasi Supabase</a>)</li>
-              <li><strong>Vercel & Railway</strong> — platform hosting aplikasi web dan API</li>
+              <li><strong>Google OAuth 2.0:</strong> untuk autentikasi login via akun Google (<a href="https://policies.google.com/privacy" className="text-[#7a5530] underline" target="_blank" rel="noopener noreferrer">Kebijakan Privasi Google</a>)</li>
+              <li><strong>Google Drive API:</strong> untuk penyimpanan berkas unggahan peserta</li>
+              <li><strong>Supabase:</strong> basis data cloud (<a href="https://supabase.com/privacy" className="text-[#7a5530] underline" target="_blank" rel="noopener noreferrer">Kebijakan Privasi Supabase</a>)</li>
+              <li><strong>Vercel & Railway:</strong> platform hosting aplikasi web dan API</li>
             </ul>
           </section>
 

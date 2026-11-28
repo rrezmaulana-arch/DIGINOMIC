@@ -440,8 +440,8 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           </div>
         ) : (
           <>
-            {!isJuri && activeTab === 'verif-esai' && renderVerificationList(esaiComp?.id, 'Verifikasi Pendaftar — Esai')}
-            {!isJuri && activeTab === 'verif-case' && renderVerificationList(caseComp?.id, 'Verifikasi Pendaftar — Mini Case Competition')}
+            {!isJuri && activeTab === 'verif-esai' && renderVerificationList(esaiComp?.id, 'Verifikasi Pendaftar: Esai')}
+            {!isJuri && activeTab === 'verif-case' && renderVerificationList(caseComp?.id, 'Verifikasi Pendaftar: Mini Case Competition')}
 
             {/* PENJURIAN & PERINGKAT */}
             {activeTab === 'penjurian' && (
@@ -783,7 +783,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           <form onSubmit={handleSubmitScore} className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 border border-[#caa152] shadow-2xl">
             <h4 className="font-cormorant text-2xl font-semibold text-[#2f1e10]">Lembar Penilaian Juri ({juryRound})</h4>
             <p className="text-xs text-[#7a5530]">
-              {scoringEntry.submission_title} — <strong>{scoringEntry.team_name || scoringEntry.leader_name}</strong>
+              {scoringEntry.submission_title} · <strong>{scoringEntry.team_name || scoringEntry.leader_name}</strong>
             </p>
             <div className="grid grid-cols-2 gap-3">
               {[
