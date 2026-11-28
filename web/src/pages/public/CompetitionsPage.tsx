@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FileText,
@@ -7,7 +7,8 @@ import {
   ArrowRight,
   Check,
 } from 'lucide-react';
-import { COMPETITIONS_DATA, TIMELINE_DATA, resolveTimelineStatuses } from '../../data/competitions';
+import { COMPETITIONS_DATA } from '../../data/competitions';
+import { useTimeline } from '../../hooks/useTimeline';
 import {
   BatikKawungPattern,
   SectionWaveTransition,
@@ -16,7 +17,7 @@ import {
 export const CompetitionsPage: React.FC = () => {
   const navigate = useNavigate();
 
-  const stages = useMemo(() => resolveTimelineStatuses(TIMELINE_DATA), []);
+  const { stages, effectiveDeadlineLabel } = useTimeline();
 
   const compactDetails: Record<string, { summary: string; audience: string; points: string[] }> = {
     'esai-nasional': {
@@ -26,17 +27,17 @@ export const CompetitionsPage: React.FC = () => {
       points: [
         'Tim 2–3 orang (1 akun ketua, 1 lomba aktif)',
         'Naskah orisinal 1.500–2.500 kata (PDF maks. 10 MB)',
-        'Presentasi finalis di Universitas Brawijaya pada 21–22 Maret 2027',
+        'Kompetisi final online (21 Mar) & Awarding offline di Universitas Brawijaya (22 Mar 2027)',
       ],
     },
     'mini-case-competition': {
       summary:
-        'Kompetisi pemecahan studi kasus bisnis nyata UMKM di emerging market—mulai dari diagnosis masalah hingga strategi pertumbuhan.',
+        'Kompetisi pemecahan studi kasus bisnis nyata UMKM di emerging market, mulai dari diagnosis masalah hingga strategi pertumbuhan.',
       audience: 'Mahasiswa D3/D4/S1',
       points: [
         'Tim 2–3 mahasiswa aktif se-Indonesia',
         'Proposal/deck solusi bisnis (PDF maks. 15 halaman)',
-        'Final pitching langsung di hadapan dewan juri & praktisi',
+        'Presentasi final online (21 Mar) & penganugerahan offline di Universitas Brawijaya (22 Mar 2027)',
       ],
     },
   };
@@ -113,7 +114,7 @@ export const CompetitionsPage: React.FC = () => {
                       </div>
                       <div>
                         <dt className="text-[10px] text-[#8a5e38] uppercase tracking-wider">Tutup</dt>
-                        <dd className="font-semibold text-[#241308] mt-0.5">{comp.deadline}</dd>
+                        <dd className="font-semibold text-[#241308] mt-0.5">{effectiveDeadlineLabel}</dd>
                       </div>
                       <div>
                         <dt className="text-[10px] text-[#8a5e38] uppercase tracking-wider">Peserta</dt>
@@ -195,24 +196,31 @@ export const CompetitionsPage: React.FC = () => {
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-cinzel text-[10px] text-[#8a5e38] font-semibold tracking-widest">
-                        0{idx + 1}
+                        {String(idx + 1).padStart(2, '0')}
                       </span>
-                      {isCurrent && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-[9px] font-poppins font-semibold uppercase tracking-wider">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-                          Berlangsung
-                        </span>
-                      )}
-                      {isNext && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#3b2412] text-[#f3d48c] text-[9px] font-poppins font-semibold uppercase tracking-wider">
-                          Berikutnya
-                        </span>
-                      )}
-                      {isDone && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#e6d5bc] text-[#6b4725] text-[9px] font-poppins font-semibold uppercase tracking-wider">
-                          Selesai
-                        </span>
-                      )}
+                      <div className="flex items-center gap-1 flex-wrap justify-end">
+                        {st.isExtended && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[9px] font-poppins font-semibold uppercase tracking-wider">
+                            Extended
+                          </span>
+                        )}
+                        {isCurrent && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-[9px] font-poppins font-semibold uppercase tracking-wider">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                            Berlangsung
+                          </span>
+                        )}
+                        {isNext && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#3b2412] text-[#f3d48c] text-[9px] font-poppins font-semibold uppercase tracking-wider">
+                            Berikutnya
+                          </span>
+                        )}
+                        {isDone && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#e6d5bc] text-[#6b4725] text-[9px] font-poppins font-semibold uppercase tracking-wider">
+                            Selesai
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <h4 className="font-poppins text-sm font-semibold text-[#241308] mt-1">{st.title}</h4>
                     <p className="font-sans text-xs text-[#6b4725] mt-0.5">{st.shortDate}</p>

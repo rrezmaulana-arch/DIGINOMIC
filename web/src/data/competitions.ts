@@ -18,7 +18,7 @@ export const COMPETITIONS_DATA: Competition[] = [
       'Format pengumpulan berkas PDF maksimal 10 MB melalui Portal Peserta.'
     ],
     prizes: 'Memperebutkan Total Hadiah Pembinaan Rp 26.000.000+ · Trofi & E-Sertifikat Nasional',
-    deadline: '30 Januari 2027',
+    deadline: '16 Januari 2027',
     iconName: 'FileText'
   },
   {
@@ -38,64 +38,136 @@ export const COMPETITIONS_DATA: Competition[] = [
       'Format pengumpulan Proposal/Deck Solusi PDF maksimal 15 halaman melalui Portal Peserta.'
     ],
     prizes: 'Memperebutkan Total Hadiah Pembinaan Rp 26.000.000+ · Mentoring Praktisi & Trofi',
-    deadline: '30 Januari 2027',
+    deadline: '16 Januari 2027',
     iconName: 'Briefcase'
   }
 ];
 
 export interface TimelineStage {
   id: string;
+  stageKey?: string;
   date: string;
   shortDate: string;
   title: string;
   desc: string;
   startAt: string; // ISO WIB (+07:00)
   endAt: string;   // ISO WIB (+07:00)
+  visibleFrom?: string | null;
+  isExtended?: boolean;
 }
 
 export const TIMELINE_DATA: TimelineStage[] = [
   {
     id: 'pendaftaran',
-    date: '14 Des 2026 – 30 Jan 2027',
-    shortDate: '14 Des 2026 – 30 Jan 2027',
-    title: 'Pendaftaran & Verifikasi',
-    desc: 'Daftarkan tim peserta (maks. 3 orang), lengkapi biodata & KTM, lalu lakukan pembayaran QRIS dan unggah bukti bayar di Dashboard Peserta untuk verifikasi panitia.',
-    startAt: '2026-12-14T00:00:00+07:00',
-    endAt: '2027-01-30T23:59:59+07:00',
+    stageKey: 'pendaftaran',
+    date: '26 Des 2026 – 16 Jan 2027',
+    shortDate: '26 Des – 16 Jan 2027',
+    title: 'Pendaftaran Lomba (Open Registration)',
+    desc: 'Pendaftaran resmi tim peserta Esai dan Mini Case Competition (maks. 3 orang). Lengkapi biodata, unggah KTM, lakukan pembayaran QRIS, dan unggah bukti bayar di Dashboard Peserta untuk verifikasi panitia.',
+    startAt: '2026-12-26T00:00:00+07:00',
+    endAt: '2027-01-16T23:59:59+07:00',
+    visibleFrom: null,
+    isExtended: false,
+  },
+  {
+    id: 'extended-registration',
+    stageKey: 'extended-registration',
+    date: '17 – 23 Jan 2027',
+    shortDate: '17 – 23 Jan 2027',
+    title: 'Perpanjangan Pendaftaran (Extended Registration)',
+    desc: 'Kesempatan tambahan bagi tim yang belum sempat mendaftar pada periode reguler. Segera lengkapi berkas pendaftaran dan konfirmasi pembayaran QRIS melalui Dashboard Peserta sebelum masa perpanjangan ditutup.',
+    startAt: '2027-01-17T08:00:00+07:00',
+    endAt: '2027-01-23T23:59:59+07:00',
+    visibleFrom: '2027-01-17T08:00:00+07:00',
+    isExtended: true,
+  },
+  {
+    id: 'submit-karya',
+    stageKey: 'submit-karya',
+    date: '24 Januari 2027',
+    shortDate: '24 Jan 2027',
+    title: 'Batas Akhir Pengumpulan Karya',
+    desc: 'Batas akhir unggah naskah Esai maupun proposal/deck solusi Mini Case Competition oleh seluruh tim terverifikasi melalui menu Unggah Karya di Dashboard Peserta.',
+    startAt: '2027-01-24T00:00:00+07:00',
+    endAt: '2027-01-24T23:59:59+07:00',
+  },
+  {
+    id: 'seleksi-administrasi',
+    stageKey: 'seleksi-administrasi',
+    date: '25 Januari 2027',
+    shortDate: '25 Jan 2027',
+    title: 'Seleksi Administrasi Internal',
+    desc: 'Pemeriksaan kelengkapan berkas, kesesuaian format naskah, dan validasi persyaratan administrasi seluruh peserta oleh Divisi Kompetisi.',
+    startAt: '2027-01-25T00:00:00+07:00',
+    endAt: '2027-01-25T23:59:59+07:00',
+  },
+  {
+    id: 'seleksi-eksternal',
+    stageKey: 'seleksi-eksternal',
+    date: '29 Jan – 6 Feb 2027',
+    shortDate: '29 Jan – 6 Feb 2027',
+    title: 'Seleksi Eksternal Tahap Pertama',
+    desc: 'Pelaksanaan seleksi eksternal tahap pertama terhadap karya Esai dan Mini Case Competition yang lolos tahap administrasi.',
+    startAt: '2027-01-29T00:00:00+07:00',
+    endAt: '2027-02-06T23:59:59+07:00',
   },
   {
     id: 'penjurian',
-    date: '1 – 19 Feb 2027',
-    shortDate: '1 – 19 Feb 2027',
-    title: 'Seleksi & Penjurian Karya',
-    desc: 'Karya esai dan proposal solusi mini case yang telah dikumpulkan masuk ke tahap evaluasi dan penilaian objektif oleh dewan juri praktisi & akademisi.',
-    startAt: '2027-02-01T00:00:00+07:00',
+    stageKey: 'penjurian',
+    date: '7 – 19 Februari 2027',
+    shortDate: '7 – 19 Feb 2027',
+    title: 'Penjurian & Evaluasi Karya',
+    desc: 'Proses penjurian dan evaluasi mendalam oleh dewan juri profesional, praktisi, dan akademisi untuk menentukan tim terbaik yang berhak melaju sebagai finalis.',
+    startAt: '2027-02-07T00:00:00+07:00',
     endAt: '2027-02-19T23:59:59+07:00',
   },
   {
     id: 'pengumuman-finalis',
+    stageKey: 'pengumuman-finalis',
     date: '20 Februari 2027',
     shortDate: '20 Feb 2027',
-    title: 'Pengumuman Finalis',
+    title: 'Pengumuman Finalis Kompetisi',
     desc: 'Pengumuman resmi daftar tim finalis terbaik yang berhak melaju ke babak penentuan melalui Dashboard Peserta dan halaman Berita Resmi.',
     startAt: '2027-02-20T00:00:00+07:00',
     endAt: '2027-02-20T23:59:59+07:00',
   },
   {
+    id: 'technical-meeting',
+    stageKey: 'technical-meeting',
+    date: '22 Februari 2027',
+    shortDate: '22 Feb 2027',
+    title: 'Technical Meeting (TM) Finalis',
+    desc: 'Pengarahan teknis daring (Zoom Meeting) bersama panitia dan perwakilan seluruh tim finalis mengenai tata tertib, mekanisme pitching, dan penilaian babak final.',
+    startAt: '2027-02-22T00:00:00+07:00',
+    endAt: '2027-02-22T23:59:59+07:00',
+  },
+  {
+    id: 'pengumpulan-ppt',
+    stageKey: 'pengumpulan-ppt',
+    date: '5 Maret 2027',
+    shortDate: '5 Mar 2027',
+    title: 'Batas Akhir Pengumpulan PPT Final',
+    desc: 'Batas akhir pengumpulan salindia presentasi (PPT) oleh seluruh tim finalis sebagai bahan pemaparan pada sesi kompetisi final.',
+    startAt: '2027-03-05T00:00:00+07:00',
+    endAt: '2027-03-05T23:59:59+07:00',
+  },
+  {
     id: 'grand-final',
-    date: '21 Maret 2027',
+    stageKey: 'grand-final',
+    date: '21 Maret 2027 (Online)',
     shortDate: '21 Mar 2027',
-    title: 'Final Kompetisi',
-    desc: 'Tim finalis terpilih mempresentasikan karya dan strategi solusi UMKM secara langsung di hadapan dewan juri di Universitas Brawijaya.',
+    title: 'Kompetisi Final (Online)',
+    desc: 'Pelaksanaan babak final kompetisi secara daring (online), di mana tim finalis mempresentasikan gagasan serta strategi solusi UMKM secara langsung di hadapan dewan juri.',
     startAt: '2027-03-21T00:00:00+07:00',
     endAt: '2027-03-21T23:59:59+07:00',
   },
   {
     id: 'main-event',
-    date: '22 Maret 2027 — Acara Puncak',
+    stageKey: 'main-event',
+    date: '22 Maret 2027 (Offline UB)',
     shortDate: '22 Mar 2027',
-    title: 'Main Event, Pameran UMKM & Awarding Night',
-    desc: 'Rangkaian Digiconomic Fest ditutup dengan Seminar Bank Indonesia, Pameran UMKM binaan BI Malang, dan malam penganugerahan pemenang Rp 26.000.000+ di Universitas Brawijaya.',
+    title: 'Seminar Nasional, Pameran UMKM & Awarding',
+    desc: 'Rangkaian Digiconomic Fest ditutup secara luring (offline) di Universitas Brawijaya dengan Seminar Bank Indonesia, Pameran UMKM binaan BI Malang, serta malam penganugerahan pemenang Rp 26.000.000+.',
     startAt: '2027-03-22T00:00:00+07:00',
     endAt: '2027-03-22T23:59:59+07:00',
   },
@@ -115,7 +187,15 @@ export function resolveTimelineStatuses(
   let hasActive = false;
   let assignedNext = false;
 
-  const base = stages.map((stage) => {
+  const visibleStages = stages.filter((stage) => {
+    if (stage.visibleFrom) {
+      const vfMs = new Date(stage.visibleFrom).getTime();
+      if (Number.isFinite(vfMs) && nowMs < vfMs) return false;
+    }
+    return true;
+  });
+
+  const base = visibleStages.map((stage) => {
     const startMs = new Date(stage.startAt).getTime();
     const endMs = new Date(stage.endAt).getTime();
     const daysUntilStart = Math.max(0, Math.ceil((startMs - nowMs) / (1000 * 60 * 60 * 24)));

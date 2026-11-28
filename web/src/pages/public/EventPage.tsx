@@ -53,7 +53,7 @@ export const EventPage: React.FC = () => {
             </h1>
 
             <p className="font-sans text-xs sm:text-sm md:text-base text-[#dec9ad] leading-relaxed max-w-xl mx-auto lg:mx-0">
-              Diselenggarakan oleh <strong className="text-[#fffdf9]">GenBI Komisariat Universitas Brawijaya</strong> bersama <strong className="text-[#fffdf9]">Kantor Perwakilan Bank Indonesia Malang</strong>—mempertemukan finalis nasional, seminar ekonomi digital, dan pameran UMKM binaan BI.
+              Diselenggarakan oleh <strong className="text-[#fffdf9]">GenBI Komisariat Universitas Brawijaya</strong> bersama <strong className="text-[#fffdf9]">Kantor Perwakilan Bank Indonesia Malang</strong>, mempertemukan finalis nasional, seminar ekonomi digital, dan pameran UMKM binaan BI.
             </p>
 
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 text-xs text-[#f3d48c] font-sans pt-1">
@@ -115,7 +115,7 @@ export const EventPage: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-3 pt-4 border-t border-[#caa152]/25 text-left">
                   <div className="p-3.5 rounded-2xl bg-[#201209]/90 border border-[#caa152]/20 hover:border-[#caa152]/65 hover:-translate-y-0.5 transition-all duration-250">
-                    <p className="font-cinzel text-[9.5px] tracking-[0.18em] uppercase text-[#caa152]">Hari 1</p>
+                    <p className="font-cinzel text-[9.5px] tracking-[0.18em] uppercase text-[#caa152]">Hari 1 · Online</p>
                     <p className="font-cormorant text-2xl text-[#fffdf9] font-semibold mt-0.5">21 Mar</p>
                     <p className="font-sans text-[11px] text-[#dec9ad] mt-0.5">Competition Final</p>
                   </div>
@@ -179,14 +179,14 @@ export const EventPage: React.FC = () => {
 
             <div className="lg:col-span-6 space-y-4">
               <p className="font-cinzel text-[10px] sm:text-xs tracking-[0.24em] uppercase text-[#8a5e38] font-semibold">
-                Agenda 01 · Babak Final
+                Agenda 01 · Babak Final (Online)
               </p>
               <h2 className="font-cormorant text-3xl sm:text-4xl text-[#241308] font-normal leading-tight">
                 Grand Final Pitching{' '}
                 <span className="text-[#9a6522]">Esai &amp; Mini Case</span>
               </h2>
               <p className="font-sans text-xs sm:text-sm text-[#4a2e18] leading-relaxed">
-                Tim finalis terbaik dari seluruh Indonesia memaparkan gagasan dan solusi bisnis UMKM secara langsung di hadapan dewan juri praktisi dan akademisi di Universitas Brawijaya.
+                Tim finalis terbaik dari seluruh Indonesia memaparkan gagasan dan solusi bisnis UMKM secara daring (online) di hadapan dewan juri praktisi dan akademisi.
               </p>
               <ul className="space-y-2.5 pt-2">
                 {[
@@ -216,7 +216,7 @@ export const EventPage: React.FC = () => {
                 <span className="text-[#9a6522]">Expo UMKM &amp; Awarding</span>
               </h2>
               <p className="font-sans text-xs sm:text-sm text-[#4a2e18] leading-relaxed">
-                Acara puncak Digiconomic Fest 2027 yang terbuka bagi 375+ peserta—memadukan seminar ekonomi digital bersama KPw Bank Indonesia Malang, pameran produk UMKM binaan BI, hingga penganugerahan juara.
+                Acara puncak Digiconomic Fest 2027 yang terbuka bagi 375+ peserta, memadukan seminar ekonomi digital bersama KPw Bank Indonesia Malang, pameran produk UMKM binaan BI, hingga penganugerahan juara.
               </p>
               <ul className="space-y-2.5 pt-2">
                 {[
@@ -288,24 +288,24 @@ export const EventPage: React.FC = () => {
             <div className="space-y-4 pl-4 border-l-2 border-[#caa152]/60">
               <div>
                 <p className="font-cinzel text-[10px] tracking-[0.18em] uppercase text-[#caa152]">
-                  Sesi 01 · Babak Penyisihan
+                  Technical Meeting Finalis
                 </p>
                 <p className="font-poppins text-sm sm:text-base font-semibold text-[#fffdf9] mt-0.5">
-                  Awal Februari 2027
+                  22 Februari 2027
                 </p>
                 <p className="font-sans text-xs text-[#dec9ad] mt-0.5">
-                  Dilaksanakan setelah penutupan registrasi 30 Januari 2027.
+                  Dilaksanakan daring setelah Pengumuman Finalis (20 Februari 2027) untuk pengarahan teknis pitching &amp; tata tertib.
                 </p>
               </div>
               <div>
                 <p className="font-cinzel text-[10px] tracking-[0.18em] uppercase text-[#caa152]">
-                  Sesi 02 · Khusus Finalis
+                  Batas Pengumpulan PPT Final
                 </p>
                 <p className="font-poppins text-sm sm:text-base font-semibold text-[#fffdf9] mt-0.5">
-                  Setelah 20 Februari 2027
+                  5 Maret 2027
                 </p>
                 <p className="font-sans text-xs text-[#dec9ad] mt-0.5">
-                  Pengarahan teknis pitching menuju Grand Final 21 Maret 2027.
+                  Seluruh tim finalis mengumpulkan deck presentasi menuju Kompetisi Final Online pada 21 Maret 2027.
                 </p>
               </div>
             </div>

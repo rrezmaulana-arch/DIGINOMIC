@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, BookOpen, Calendar, CheckCircle2, Download, FileText } from 'lucide-react';
-import { COMPETITIONS_DATA, TIMELINE_DATA, resolveTimelineStatuses } from '../../data/competitions';
+import { COMPETITIONS_DATA } from '../../data/competitions';
+import { useTimeline } from '../../hooks/useTimeline';
 import {
   BatikKawungPattern,
   CornerFiligree,
@@ -11,7 +12,7 @@ import {
 export const JuklakJuknisPage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedSlug, setSelectedSlug] = useState<string>('esai-nasional');
-  const timelineStages = useMemo(() => resolveTimelineStatuses(TIMELINE_DATA), []);
+  const { stages: timelineStages } = useTimeline();
 
   const activeComp =
     COMPETITIONS_DATA.find((c) => c.slug === selectedSlug) || COMPETITIONS_DATA[0];
@@ -77,13 +78,18 @@ export const JuklakJuknisPage: React.FC = () => {
                   }`}
                 >
                   <span className="inline-flex items-center justify-center px-3.5 py-1 rounded-full bg-[#3b2412] text-[#f3d48c] font-poppins text-xs font-semibold shrink-0 w-fit">
-                    0{idx + 1} · {item.shortDate}
+                    {String(idx + 1).padStart(2, '0')} · {item.shortDate}
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="font-poppins text-sm sm:text-base font-semibold text-[#241308]">
                         {item.title}
                       </h3>
+                      {item.isExtended && (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-poppins font-semibold uppercase tracking-wider">
+                          Diperpanjang
+                        </span>
+                      )}
                       {isCurrent && (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] font-poppins font-semibold uppercase tracking-wider">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />

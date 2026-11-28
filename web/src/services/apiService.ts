@@ -53,9 +53,32 @@ export const AuthApi = {
   },
 };
 
+export interface TimelineStageRecord {
+  id: string;
+  stage_key: string;
+  sort_order: number;
+  date_label: string;
+  short_date: string;
+  title: string;
+  description: string;
+  start_at: string;
+  end_at: string;
+  is_visible: boolean;
+  visible_from: string | null;
+  is_extended: boolean;
+}
+
 export const PublicApi = {
   async getCompetitions() {
     return apiRequest<{ competitions: any[] }>('/api/competitions');
+  },
+  async getTimeline() {
+    return apiRequest<{
+      stages: TimelineStageRecord[];
+      server_time: string;
+      extended_active: boolean;
+      extended_end_at: string | null;
+    }>('/api/timeline');
   },
   async getNews(homeOnly = false) {
     const qs = homeOnly ? '?home=true' : '';
@@ -266,6 +289,24 @@ export const SuperAdminApi = {
   },
   async deleteNews(id: string) {
     return apiRequest<{ ok: boolean }>(`/api/superadmin/news/${id}`, { method: 'DELETE' });
+  },
+  async listTimeline() {
+    return apiRequest<{ stages: TimelineStageRecord[]; server_time: string }>('/api/superadmin/timeline');
+  },
+  async createTimelineStage(payload: Partial<TimelineStageRecord>) {
+    return apiRequest<{ stage: TimelineStageRecord }>('/api/superadmin/timeline', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+  async updateTimelineStage(id: string, patch: Partial<TimelineStageRecord>) {
+    return apiRequest<{ stage: TimelineStageRecord }>(`/api/superadmin/timeline/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(patch),
+    });
+  },
+  async deleteTimelineStage(id: string) {
+    return apiRequest<{ ok: boolean }>(`/api/superadmin/timeline/${id}`, { method: 'DELETE' });
   },
   async getAuditLogs(limit = 100) {
     return apiRequest<{ audit_logs: any[] }>(`/api/superadmin/audit-logs?limit=${limit}`);
