@@ -14,12 +14,61 @@ export async function createPostgresRepo(databaseUrl) {
   if (needsSsl && !rejectUnauthorized && process.env.NODE_ENV === 'production') {
     console.warn('[DB SSL WARNING] Koneksi PostgreSQL SSL berjalan tanpa verifikasi sertifikat CA. Set DB_SSL_CA atau DB_SSL_REJECT_UNAUTHORIZED=true untuk keamanan penuh.');
   }
-  const pool = new Pool({
-    connectionString: databaseUrl,
+  const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+  const isSupabasePooler = /pooler\.supabase\.com/i.test(databaseUrl);
+  // Di Vercel Serverless, Supabase Session Pooler (port 5432) hanya membatasi 15 klien total.
+  // Otomatis gunakan Transaction Pooler (port 6543, kapasitas 200+ klien) agar bebas EMAXCONNSESSION.
+  const effectiveConnectionString =
+    isServerless && isSupabasePooler && process.env.DB_KEEP_SESSION_PORT !== 'true'
+      ? databaseUrl.replace(/(pooler\.supabase\.com):5432(\/|$|\?)/i, '$1:6543$2')
+      : databaseUrl;
+  const defaultMaxPool = isServerless ? 1 : isSupabasePooler ? 3 : 6;
+  const maxPool = Math.max(1, Math.min(10, Number(process.env.DB_POOL_MAX || defaultMaxPool)));
+
+  const rawPool = new Pool({
+    connectionString: effectiveConnectionString,
     ...(needsSsl ? { ssl: { rejectUnauthorized, ...(caCert ? { ca: caCert } : {}) } } : {}),
-    max: 10, // Sesuai PRD Bagian 9.9 untuk VPS 2 GB
-    idleTimeoutMillis: 30_000,
+    max: maxPool,
+    idleTimeoutMillis: isServerless ? 3_000 : 15_000,
+    connectionTimeoutMillis: 10_000,
+    allowExitOnIdle: true,
   });
+
+  // Auto-retry ringan jika Supabase Session Pooler sempat penuh sesaat (EMAXCONNSESSION / 53300)
+  const isPoolBusyError = (err) => {
+    const msg = String(err?.message || '');
+    return err?.code === '53300' || msg.includes('EMAXCONNSESSION') || msg.includes('max clients reached');
+  };
+
+  const pool = {
+    async query(...args) {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          return await rawPool.query(...args);
+        } catch (err) {
+          if (attempt < 2 && isPoolBusyError(err)) {
+            await new Promise((r) => setTimeout(r, 180 * (attempt + 1) + Math.floor(Math.random() * 120)));
+            continue;
+          }
+          throw err;
+        }
+      }
+    },
+    async connect() {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          return await rawPool.connect();
+        } catch (err) {
+          if (attempt < 2 && isPoolBusyError(err)) {
+            await new Promise((r) => setTimeout(r, 180 * (attempt + 1) + Math.floor(Math.random() * 120)));
+            continue;
+          }
+          throw err;
+        }
+      }
+    },
+    end: () => rawPool.end(),
+  };
 
   const ALLOWED_COLUMNS = {
     users: new Set(['name', 'password_hash', 'role', 'status', 'division', 'assigned_competition_id', 'nim', 'google_id', 'avatar_url', 'privacy_accepted_at', 'reset_token_hash', 'reset_token_expires_at', 'last_login_at']),
@@ -41,14 +90,13 @@ export async function createPostgresRepo(databaseUrl) {
     const r = regRes.rows[0];
     if (!r) return null;
 
-    const [compRes, userRes, profRes, memRes, logRes, subRes] = await Promise.all([
-      pool.query('SELECT * FROM competitions WHERE id = $1', [r.competition_id]),
-      pool.query('SELECT id, name, email, role FROM users WHERE id = $1', [r.user_id]),
-      pool.query('SELECT * FROM participant_profiles WHERE user_id = $1', [r.user_id]),
-      pool.query('SELECT * FROM team_members WHERE registration_id = $1', [r.id]),
-      pool.query('SELECT * FROM status_logs WHERE registration_id = $1 ORDER BY created_at ASC', [r.id]),
-      pool.query('SELECT * FROM submissions WHERE registration_id = $1 ORDER BY version DESC', [r.id]),
-    ]);
+    // Eksekusi hemat koneksi (1 slot pool per request) agar aman di Supabase Session Pooler
+    const compRes = await pool.query('SELECT * FROM competitions WHERE id = $1', [r.competition_id]);
+    const userRes = await pool.query('SELECT id, name, email, role FROM users WHERE id = $1', [r.user_id]);
+    const profRes = await pool.query('SELECT * FROM participant_profiles WHERE user_id = $1', [r.user_id]);
+    const memRes = await pool.query('SELECT * FROM team_members WHERE registration_id = $1', [r.id]);
+    const logRes = await pool.query('SELECT * FROM status_logs WHERE registration_id = $1 ORDER BY created_at ASC', [r.id]);
+    const subRes = await pool.query('SELECT * FROM submissions WHERE registration_id = $1 ORDER BY version DESC', [r.id]);
 
     return {
       ...r,
@@ -383,14 +431,12 @@ export async function createPostgresRepo(databaseUrl) {
       const compIds = [...new Set(orderedRegs.map((r) => r.competition_id))];
       const userIds = [...new Set(orderedRegs.map((r) => r.user_id))];
 
-      const [compRes, userRes, profRes, memRes, logRes, subRes] = await Promise.all([
-        pool.query('SELECT * FROM competitions WHERE id = ANY($1::uuid[])', [compIds]),
-        pool.query('SELECT id, name, email, role FROM users WHERE id = ANY($1::uuid[])', [userIds]),
-        pool.query('SELECT * FROM participant_profiles WHERE user_id = ANY($1::uuid[])', [userIds]),
-        pool.query('SELECT * FROM team_members WHERE registration_id = ANY($1::uuid[]) ORDER BY sequence_no ASC, id ASC', [ids]),
-        pool.query('SELECT * FROM status_logs WHERE registration_id = ANY($1::uuid[]) ORDER BY created_at ASC', [ids]),
-        pool.query('SELECT * FROM submissions WHERE registration_id = ANY($1::uuid[]) ORDER BY version DESC', [ids]),
-      ]);
+      const compRes = await pool.query('SELECT * FROM competitions WHERE id = ANY($1::uuid[])', [compIds]);
+      const userRes = await pool.query('SELECT id, name, email, role FROM users WHERE id = ANY($1::uuid[])', [userIds]);
+      const profRes = await pool.query('SELECT * FROM participant_profiles WHERE user_id = ANY($1::uuid[])', [userIds]);
+      const memRes = await pool.query('SELECT * FROM team_members WHERE registration_id = ANY($1::uuid[]) ORDER BY sequence_no ASC, id ASC', [ids]);
+      const logRes = await pool.query('SELECT * FROM status_logs WHERE registration_id = ANY($1::uuid[]) ORDER BY created_at ASC', [ids]);
+      const subRes = await pool.query('SELECT * FROM submissions WHERE registration_id = ANY($1::uuid[]) ORDER BY version DESC', [ids]);
 
       const compMap = new Map(compRes.rows.map((c) => [c.id, c]));
       const userMap = new Map(userRes.rows.map((u) => [u.id, u]));
@@ -423,23 +469,21 @@ export async function createPostgresRepo(databaseUrl) {
     },
 
     async getAdminSummary(statuses = []) {
-      const [statusRes, compRes, pendingRes] = await Promise.all([
-        pool.query('SELECT status, COUNT(*)::int AS cnt FROM registrations GROUP BY status'),
-        pool.query(
-          `SELECT COALESCE(c.name, r.competition_id::text) AS name, COUNT(*)::int AS cnt
-           FROM registrations r
-           LEFT JOIN competitions c ON c.id = r.competition_id
-           GROUP BY c.name, r.competition_id`
-        ),
-        pool.query(
-          `SELECT r.id, r.registration_code, u.name, r.created_at
-           FROM registrations r
-           LEFT JOIN users u ON u.id = r.user_id
-           WHERE r.status = 'MENUNGGU_VERIFIKASI'
-           ORDER BY r.created_at ASC
-           LIMIT 10`
-        ),
-      ]);
+      const statusRes = await pool.query('SELECT status, COUNT(*)::int AS cnt FROM registrations GROUP BY status');
+      const compRes = await pool.query(
+        `SELECT COALESCE(c.name, r.competition_id::text) AS name, COUNT(*)::int AS cnt
+         FROM registrations r
+         LEFT JOIN competitions c ON c.id = r.competition_id
+         GROUP BY c.name, r.competition_id`
+      );
+      const pendingRes = await pool.query(
+        `SELECT r.id, r.registration_code, u.name, r.created_at
+         FROM registrations r
+         LEFT JOIN users u ON u.id = r.user_id
+         WHERE r.status = 'MENUNGGU_VERIFIKASI'
+         ORDER BY r.created_at ASC
+         LIMIT 10`
+      );
 
       const byStatus = {};
       for (const s of statuses) byStatus[s] = 0;
@@ -766,28 +810,26 @@ export async function createPostgresRepo(databaseUrl) {
 
     // ── Demographics & Statistics (Superadmin) ───────────────────────
     async getDemographics() {
-      const [instRes, compRes, roleRes] = await Promise.all([
-        pool.query(
-          `SELECT COALESCE(NULLIF(TRIM(p.institution), ''), 'Tidak Diketahui') AS institution, COUNT(*)::int AS total
-           FROM registrations r
-           JOIN participant_profiles p ON p.user_id = r.user_id
-           WHERE r.status <> 'DIBATALKAN'
-           GROUP BY 1
-           ORDER BY total DESC
-           LIMIT 20`
-        ),
-        pool.query(
-          `SELECT c.id, c.slug, c.name, c.max_quota, COUNT(r.id) FILTER (WHERE r.status <> 'DIBATALKAN')::int AS registered,
-                  COUNT(r.id) FILTER (WHERE r.status = 'TERVERIFIKASI')::int AS verified
-           FROM competitions c
-           LEFT JOIN registrations r ON r.competition_id = c.id
-           GROUP BY c.id
-           ORDER BY c.created_at ASC`
-        ),
-        pool.query(
-          `SELECT role, COUNT(*)::int AS total FROM users GROUP BY role`
-        ),
-      ]);
+      const instRes = await pool.query(
+        `SELECT COALESCE(NULLIF(TRIM(p.institution), ''), 'Tidak Diketahui') AS institution, COUNT(*)::int AS total
+         FROM registrations r
+         JOIN participant_profiles p ON p.user_id = r.user_id
+         WHERE r.status <> 'DIBATALKAN'
+         GROUP BY 1
+         ORDER BY total DESC
+         LIMIT 20`
+      );
+      const compRes = await pool.query(
+        `SELECT c.id, c.slug, c.name, c.max_quota, COUNT(r.id) FILTER (WHERE r.status <> 'DIBATALKAN')::int AS registered,
+                COUNT(r.id) FILTER (WHERE r.status = 'TERVERIFIKASI')::int AS verified
+         FROM competitions c
+         LEFT JOIN registrations r ON r.competition_id = c.id
+         GROUP BY c.id
+         ORDER BY c.created_at ASC`
+      );
+      const roleRes = await pool.query(
+        `SELECT role, COUNT(*)::int AS total FROM users GROUP BY role`
+      );
       return {
         by_institution: instRes.rows,
         by_competition: compRes.rows,

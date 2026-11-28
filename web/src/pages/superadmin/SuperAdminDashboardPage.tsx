@@ -89,25 +89,55 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
   const loadAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [demoRes, usersRes, compRes, regRes, newsRes, timelineRes, logsRes] = await Promise.all([
+      // Muat dalam 3 gelombang kecil (maks. 2-3 request paralel) + allSettled
+      // agar hemat koneksi database serverless dan kegagalan parsial tidak mengosongkan seluruh dashboard.
+      const errors: string[] = [];
+
+      const [demoR, usersR, compR] = await Promise.allSettled([
         SuperAdminApi.getDemographics(),
         SuperAdminApi.listUsers(),
         AdminApi.listCompetitions(),
+      ]);
+      if (demoR.status === 'fulfilled') setDemographics(demoR.value);
+      else errors.push('Statistik');
+      if (usersR.status === 'fulfilled') setAllUsers(usersR.value.users || []);
+      else errors.push('Akun');
+      if (compR.status === 'fulfilled') {
+        const comps = compR.value.competitions || [];
+        setCompetitions(comps);
+        setStaffCompId((prev) => prev || comps[0]?.id || '');
+      } else {
+        errors.push('Kompetisi');
+      }
+
+      const [regR, newsR] = await Promise.allSettled([
         AdminApi.listRegistrations({ page: 1, page_size: 100 }),
         SuperAdminApi.listNews(),
-        SuperAdminApi.listTimeline().catch(() => ({ stages: [], server_time: undefined })),
+      ]);
+      if (regR.status === 'fulfilled') setRegistrations(regR.value.items || []);
+      else errors.push('Registrasi');
+      if (newsR.status === 'fulfilled') setNewsList(newsR.value.articles || []);
+      else errors.push('Berita');
+
+      const [timelineR, logsR] = await Promise.allSettled([
+        SuperAdminApi.listTimeline(),
         SuperAdminApi.getAuditLogs(100),
       ]);
-      const comps = compRes.competitions || [];
-      setDemographics(demoRes);
-      setAllUsers(usersRes.users || []);
-      setCompetitions(comps);
-      setRegistrations(regRes.items || []);
-      setNewsList(newsRes.articles || []);
-      setTimelineList(timelineRes.stages || []);
-      setTimelineServerTime(timelineRes.server_time);
-      setAuditLogs(logsRes.audit_logs || []);
-      setStaffCompId((prev) => prev || comps[0]?.id || '');
+      if (timelineR.status === 'fulfilled') {
+        setTimelineList(timelineR.value.stages || []);
+        setTimelineServerTime(timelineR.value.server_time);
+      } else {
+        errors.push('Linimasa');
+      }
+      if (logsR.status === 'fulfilled') setAuditLogs(logsR.value.audit_logs || []);
+      else errors.push('Audit Log');
+
+      if (errors.length > 0) {
+        setFeedback({
+          type: 'error',
+          msg: `Sebagian data gagal dimuat (${errors.join(', ')}). Klik tombol Segarkan untuk mencoba ulang.`,
+        });
+      }
     } catch (err: any) {
       setFeedback({ type: 'error', msg: err?.message || 'Gagal memuat data SuperAdmin.' });
     } finally {
