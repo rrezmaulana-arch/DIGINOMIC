@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { DashboardLayout, SidebarNavItem } from '../../layouts/DashboardLayout';
-import { AdminApi, SuperAdminApi } from '../../services/apiService';
+import { AdminApi, SuperAdminApi, type TimelineStageRecord } from '../../services/apiService';
+import { SuperAdminTimelineManager } from '../../components/SuperAdminTimelineManager';
 import type { DemographicsData, NewsArticle, UserProfile } from '../../types';
 import {
   BarChart3,
+  CalendarClock,
   Users,
   Newspaper,
   Settings,
@@ -52,6 +54,8 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
   const [competitions, setCompetitions] = useState<any[]>([]);
   const [registrations, setRegistrations] = useState<any[]>([]);
   const [newsList, setNewsList] = useState<NewsArticle[]>([]);
+  const [timelineList, setTimelineList] = useState<TimelineStageRecord[]>([]);
+  const [timelineServerTime, setTimelineServerTime] = useState<string | undefined>(undefined);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
 
   // Form Tambah Staff / Juri
@@ -85,12 +89,13 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
   const loadAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [demoRes, usersRes, compRes, regRes, newsRes, logsRes] = await Promise.all([
+      const [demoRes, usersRes, compRes, regRes, newsRes, timelineRes, logsRes] = await Promise.all([
         SuperAdminApi.getDemographics(),
         SuperAdminApi.listUsers(),
         AdminApi.listCompetitions(),
         AdminApi.listRegistrations({ page: 1, page_size: 100 }),
         SuperAdminApi.listNews(),
+        SuperAdminApi.listTimeline().catch(() => ({ stages: [], server_time: undefined })),
         SuperAdminApi.getAuditLogs(100),
       ]);
       const comps = compRes.competitions || [];
@@ -99,6 +104,8 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
       setCompetitions(comps);
       setRegistrations(regRes.items || []);
       setNewsList(newsRes.articles || []);
+      setTimelineList(timelineRes.stages || []);
+      setTimelineServerTime(timelineRes.server_time);
       setAuditLogs(logsRes.audit_logs || []);
       setStaffCompId((prev) => prev || comps[0]?.id || '');
     } catch (err: any) {
@@ -139,6 +146,7 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
     { id: 'stats', label: 'Statistik & Demografi', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'users', label: 'Manajemen Akun & Hak', icon: <Users className="w-4 h-4" />, badge: allUsers.length || undefined },
     { id: 'news', label: 'Manajemen Berita', icon: <Newspaper className="w-4 h-4" />, badge: newsList.length || undefined },
+    { id: 'timeline', label: 'Linimasa Lomba', icon: <CalendarClock className="w-4 h-4" />, badge: timelineList.length || undefined },
     { id: 'settings', label: 'Kuota & Jadwal Lomba', icon: <Settings className="w-4 h-4" /> },
     { id: 'logs', label: 'Audit Log Sistem', icon: <Activity className="w-4 h-4" /> },
   ];
@@ -689,7 +697,7 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
                         >
                           <div>
                             <p className="text-xs font-semibold text-[#2f1e10]">
-                              {r.registration_code} — {r.team_name || r.user?.name} ({r.competition?.name})
+                              {r.registration_code} · {r.team_name || r.user?.name} ({r.competition?.name})
                             </p>
                             <p className="text-[11px] text-[#7a5530]">Status saat ini: {r.status}</p>
                           </div>
@@ -955,7 +963,17 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
               </div>
             )}
 
-            {/* TAB 4: KUOTA & JADWAL LOMBA */}
+            {/* TAB 4: LINIMASA LOMBA (DINAMIS SUPERADMIN) */}
+            {activeTab === 'timeline' && (
+              <SuperAdminTimelineManager
+                stages={timelineList}
+                serverTime={timelineServerTime}
+                onRefresh={loadAll}
+                onFeedback={setFeedback}
+              />
+            )}
+
+            {/* TAB 5: KUOTA & JADWAL LOMBA */}
             {activeTab === 'settings' && (
               <div className="space-y-4">
                 {competitions.length === 0 ? (
