@@ -527,4 +527,68 @@ test('End-to-End Functional & Business Rules Suite — Digiconomic Fest 2027', a
     assert.equal(runRet.skipped, false);
     assert.ok(runRet.deletedFiles >= 2);
   });
+
+  await t.test('10. Dynamic Timeline SuperAdmin CRUD, visible_from scheduling, dan Extended Registration auto-open', async () => {
+    // Publik sebelum 17 Jan 2027 08:00 WIB -> Extended Registration tersembunyi (10 tahap tayang)
+    const pubBefore = await ctx.req('GET', '/api/timeline');
+    assert.equal(pubBefore.status, 200);
+    assert.equal(pubBefore.data.stages.length, 10);
+    assert.equal(pubBefore.data.extended_active, false);
+    assert.ok(!pubBefore.data.stages.some((s) => s.stage_key === 'extended-registration'));
+
+    // SuperAdmin melihat semua 11 tahap termasuk Extended yang terjadwal
+    const saList = await ctx.req('GET', '/api/superadmin/timeline', { cookie: superCookie });
+    assert.equal(saList.status, 200);
+    assert.equal(saList.data.stages.length, 11);
+    const extStage = saList.data.stages.find((s) => s.stage_key === 'extended-registration');
+    assert.ok(extStage && extStage.is_extended === true);
+
+    // Non-SuperAdmin ditolak mengakses endpoint superadmin timeline
+    const forbidden = await ctx.req('GET', '/api/superadmin/timeline', { cookie: p2Cookie });
+    assert.equal(forbidden.status, 403);
+
+    // Simulasi Extended Registration aktif sekarang (visible_from di masa lalu, end_at di masa depan)
+    const pastIso = new Date(Date.now() - 60_000).toISOString();
+    const futureIso = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const patchExt = await ctx.req('PATCH', `/api/superadmin/timeline/${extStage.id}`, {
+      cookie: superCookie,
+      body: { visible_from: pastIso, start_at: pastIso, end_at: futureIso },
+    });
+    assert.equal(patchExt.status, 200);
+
+    // Publik sekarang melihat 11 tahap termasuk Extended Registration & extended_active = true
+    const pubAfter = await ctx.req('GET', '/api/timeline');
+    assert.equal(pubAfter.status, 200);
+    assert.equal(pubAfter.data.stages.length, 11);
+    assert.equal(pubAfter.data.extended_active, true);
+
+    // Uji sinkronisasi Extended ke pintu pendaftaran: tutup reg_close_at reguler ke kemarin,
+    // lomba tetap is_open = true karena Extended Registration sedang aktif!
+    const yesterdayIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const esaiComp = (await ctx.repo.listCompetitions({ includeInactive: true })).find((c) => c.slug === 'esai-nasional');
+    await ctx.repo.updateCompetition(esaiComp.id, { reg_close_at: yesterdayIso });
+    const compRes = await ctx.req('GET', '/api/competitions/esai-nasional');
+    assert.equal(compRes.status, 200);
+    assert.equal(compRes.data.competition.is_extended_open, true);
+    assert.equal(compRes.data.competition.is_open, true);
+
+    // Tambah & hapus tahap baru oleh SuperAdmin
+    const created = await ctx.req('POST', '/api/superadmin/timeline', {
+      cookie: superCookie,
+      body: {
+        title: 'Workshop Finalis Khusus',
+        date_label: '10 Maret 2027',
+        short_date: '10 Mar 2027',
+        description: 'Sesi pembekalan pitching.',
+        start_at: '2027-03-10T09:00:00+07:00',
+        end_at: '2027-03-10T17:00:00+07:00',
+        is_visible: true,
+      },
+    });
+    assert.equal(created.status, 201);
+    const delRes = await ctx.req('DELETE', `/api/superadmin/timeline/${created.data.stage.id}`, {
+      cookie: superCookie,
+    });
+    assert.equal(delRes.status, 200);
+  });
 });

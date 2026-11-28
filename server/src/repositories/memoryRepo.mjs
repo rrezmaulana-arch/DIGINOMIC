@@ -18,6 +18,7 @@ export function createMemoryRepo() {
     admin_invites: new Map(), // email -> invite
     email_outbox: [],
     audit_logs: [],
+    timeline_stages: new Map(), // id -> stage
   };
 
   function clone(obj) {
@@ -613,6 +614,86 @@ export function createMemoryRepo() {
 
     async listAuditLogs(limit = 100) {
       return db.audit_logs.slice(0, limit).map((l) => clone(l));
+    },
+
+    // ── TIMELINE STAGES ──
+    async listTimelineStages({ publicOnly = false, nowMs = Date.now() } = {}) {
+      return [...db.timeline_stages.values()]
+        .filter((s) => {
+          if (!publicOnly) return true;
+          if (!s.is_visible) return false;
+          if (s.visible_from && new Date(s.visible_from).getTime() > nowMs) return false;
+          return true;
+        })
+        .sort((a, b) => (a.sort_order - b.sort_order) || String(a.start_at).localeCompare(String(b.start_at)))
+        .map((s) => clone(s));
+    },
+
+    async findTimelineStageById(id) {
+      return clone(db.timeline_stages.get(id) || null);
+    },
+
+    async createTimelineStage({
+      stage_key,
+      sort_order = 1,
+      date_label,
+      short_date,
+      title,
+      description = '',
+      start_at,
+      end_at,
+      is_visible = true,
+      visible_from = null,
+      is_extended = false,
+      updated_by = null,
+    }) {
+      for (const existing of db.timeline_stages.values()) {
+        if (existing.stage_key === stage_key) {
+          const err = new Error('Kode tahap (stage_key) sudah digunakan.');
+          err.code = '23505';
+          throw err;
+        }
+      }
+      const now = new Date().toISOString();
+      const stage = {
+        id: generateUuid(),
+        stage_key,
+        sort_order: Number(sort_order) || 1,
+        date_label,
+        short_date,
+        title,
+        description,
+        start_at,
+        end_at,
+        is_visible: Boolean(is_visible),
+        visible_from: visible_from || null,
+        is_extended: Boolean(is_extended),
+        updated_by,
+        created_at: now,
+        updated_at: now,
+      };
+      db.timeline_stages.set(stage.id, stage);
+      return clone(stage);
+    },
+
+    async updateTimelineStage(id, patch) {
+      const s = db.timeline_stages.get(id);
+      if (!s) return null;
+      if (patch.stage_key && patch.stage_key !== s.stage_key) {
+        for (const existing of db.timeline_stages.values()) {
+          if (existing.id !== id && existing.stage_key === patch.stage_key) {
+            const err = new Error('Kode tahap (stage_key) sudah digunakan.');
+            err.code = '23505';
+            throw err;
+          }
+        }
+      }
+      Object.assign(s, patch, { updated_at: new Date().toISOString() });
+      return clone(s);
+    },
+
+    async deleteTimelineStage(id) {
+      return db.timeline_stages.delete(id);
     },
   };
 }

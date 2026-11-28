@@ -27,6 +27,7 @@ async function runMigration(filename) {
 try {
   await runMigration('001_init.sql');
   await runMigration('002_system_upgrade.sql');
+  await runMigration('003_timeline_stages.sql');
 
   const res = await pool.query(
     "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name"

@@ -1,6 +1,7 @@
 import { loadConfig } from '../src/config/env.mjs';
 import { createRepository } from '../src/repositories/index.mjs';
 import { hashPassword } from '../src/utils/crypto.mjs';
+import { DEFAULT_TIMELINE_STAGES } from '../src/data/defaultTimeline.mjs';
 
 export async function seedDatabase(repo, options = {}) {
   const isProd = process.env.NODE_ENV === 'production';
@@ -31,8 +32,8 @@ export async function seedDatabase(repo, options = {}) {
 
   const now = Date.now();
   const defaultOpen = options.regOpenAt || new Date(now - 24 * 60 * 60 * 1000).toISOString();
-  const defaultClose = options.regCloseAt || '2027-01-30T16:59:59.000Z';
-  const defaultSubDeadline = options.submissionDeadline || '2027-02-15T16:59:59.000Z';
+  const defaultClose = options.regCloseAt || '2027-01-16T16:59:59.000Z';
+  const defaultSubDeadline = options.submissionDeadline || '2027-01-24T16:59:59.000Z';
 
   if (!existingEsai) {
     await repo.createCompetition({
@@ -81,9 +82,9 @@ export async function seedDatabase(repo, options = {}) {
           category: 'Pengumuman',
           title: 'Pendaftaran Digiconomic Fest 2027 Resmi Dibuka: Target 450+ Peserta Nasional',
           excerpt:
-            'GenBI Komisariat Universitas Brawijaya & KPw Bank Indonesia Malang resmi membuka pendaftaran Digiconomic Fest 2027 (14 Des 2026 – 30 Jan 2027) dengan dua cabang kompetisi tim nasional: Esai dan Mini Case Competition.',
+            'GenBI Komisariat Universitas Brawijaya & KPw Bank Indonesia Malang resmi membuka pendaftaran Digiconomic Fest 2027 (26 Des 2026 – 16 Jan 2027) dengan dua cabang kompetisi tim nasional: Esai dan Mini Case Competition.',
           content: [
-            'GenBI Komisariat Universitas Brawijaya bersama Kantor Perwakilan Bank Indonesia Malang resmi membuka pendaftaran Digiconomic Fest 2027 mulai 14 Desember 2026 hingga 30 Januari 2027.',
+            'GenBI Komisariat Universitas Brawijaya bersama Kantor Perwakilan Bank Indonesia Malang resmi membuka pendaftaran Digiconomic Fest 2027 mulai 26 Desember 2026 hingga 16 Januari 2027.',
             'Tahun ini tersedia dua cabang kompetisi tim tingkat nasional yaitu Esai (kategori tim 2–3 orang) dan Mini Case Competition (kategori tim 2–3 orang). Setiap akun ketua tim hanya diperbolehkan mengikuti satu cabang lomba aktif agar kompetisi berjalan adil dan fokus.',
             'Seluruh berkas pendaftaran dapat diunggah melalui portal resmi, dan status verifikasi serta akses grup peserta akan diperbarui langsung melalui Dashboard Peserta.',
           ].join('\n\n'),
@@ -95,13 +96,13 @@ export async function seedDatabase(repo, options = {}) {
         {
           slug: 'jadwal-seleksi-hingga-main-event-2027',
           category: 'Technical Meeting',
-          title: 'Catat Tanggal Penting: Penjurian Februari, Final 21 Maret & Main Event 22 Maret 2027',
+          title: 'Catat Tanggal Penting: Penjurian Februari, Final Online 21 Maret & Main Event 22 Maret 2027',
           excerpt:
-            'Simak linimasa resmi mulai dari evaluasi karya (1–19 Feb 2027), pengumuman finalis (20 Feb 2027), babak final (21 Mar 2027), hingga Acara Puncak pada 22 Maret 2027.',
+            'Simak linimasa resmi mulai dari seleksi & evaluasi karya (25 Jan – 19 Feb 2027), pengumuman finalis (20 Feb 2027), Technical Meeting (22 Feb 2027), final online (21 Mar 2027), hingga Acara Puncak pada 22 Maret 2027.',
           content: [
-            'Setelah pendaftaran ditutup pada 30 Januari 2027, seluruh karya Esai dan Mini Case Competition akan memasuki tahap Judging & Evaluation pada 1–19 Februari 2027.',
-            'Pengumuman finalis dijadwalkan pada 20 Februari 2027, diikuti Technical Meeting khusus finalis sebelum melaju ke Competition Final pada 21 Maret 2027 di Universitas Brawijaya.',
-            'Rangkaian kegiatan akan ditutup dengan Digiconomic Fest Main Event pada 22 Maret 2027 yang menghadirkan Seminar bersama Bank Indonesia dan praktisi UMKM, Pameran UMKM binaan BI, serta Awarding Night.',
+            'Setelah pendaftaran ditutup pada 16 Januari 2027 dan pengumpulan karya pada 24 Januari 2027, seluruh karya Esai dan Mini Case Competition akan melalui seleksi administrasi (25 Jan), seleksi eksternal tahap pertama (29 Jan – 6 Feb), serta penjurian profesional (7 – 19 Februari 2027).',
+            'Pengumuman finalis dijadwalkan pada 20 Februari 2027, diikuti Technical Meeting khusus finalis pada 22 Februari 2027, batas pengumpulan PPT final pada 5 Maret 2027, dan Kompetisi Final secara online pada 21 Maret 2027.',
+            'Rangkaian kegiatan akan ditutup secara offline di Universitas Brawijaya pada 22 Maret 2027 melalui Seminar bersama Bank Indonesia dan praktisi UMKM, Pameran UMKM binaan BI Malang, serta Awarding Night.',
           ].join('\n\n'),
           cover_image_url: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&fm=webp&q=75',
           show_on_home: true,
@@ -142,6 +143,22 @@ export async function seedDatabase(repo, options = {}) {
       ];
       for (const item of initialNews) {
         await repo.createNewsArticle({ ...item, created_by: superAdmin.id });
+      }
+    }
+  }
+
+  if (typeof repo.listTimelineStages === 'function' && typeof repo.createTimelineStage === 'function') {
+    const existingTimeline = await repo.listTimelineStages({ publicOnly: false });
+    if (existingTimeline.length === 0) {
+      for (const stage of DEFAULT_TIMELINE_STAGES) {
+        try {
+          await repo.createTimelineStage({
+            ...stage,
+            updated_by: superAdmin?.id || null,
+          });
+        } catch (err) {
+          if (err?.code !== '23505' && err?.code !== '42P01') throw err;
+        }
       }
     }
   }

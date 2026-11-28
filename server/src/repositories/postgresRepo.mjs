@@ -28,6 +28,7 @@ export async function createPostgresRepo(databaseUrl) {
     announcements: new Set(['title', 'body', 'published_at', 'competition_id', 'is_pinned']),
     news_articles: new Set(['slug', 'title', 'category', 'excerpt', 'content', 'cover_image_url', 'show_on_home', 'is_featured', 'is_published', 'published_at']),
     email_outbox: new Set(['status', 'attempts', 'send_after', 'sent_at']),
+    timeline_stages: new Set(['stage_key', 'sort_order', 'date_label', 'short_date', 'title', 'description', 'start_at', 'end_at', 'is_visible', 'visible_from', 'is_extended', 'updated_by']),
   };
 
   function safeKeys(table, patch) {
@@ -792,6 +793,91 @@ export async function createPostgresRepo(databaseUrl) {
         by_competition: compRes.rows,
         users_by_role: roleRes.rows,
       };
+    },
+
+    // ── Timeline Stages (Superadmin Managed) ─────────────────────────
+    async listTimelineStages({ publicOnly = false, nowMs = Date.now() } = {}) {
+      try {
+        if (publicOnly) {
+          const nowIso = new Date(nowMs).toISOString();
+          const { rows } = await pool.query(
+            `SELECT * FROM timeline_stages
+             WHERE is_visible = TRUE
+               AND (visible_from IS NULL OR visible_from <= $1::timestamptz)
+             ORDER BY sort_order ASC, start_at ASC`,
+            [nowIso]
+          );
+          return rows;
+        }
+        const { rows } = await pool.query(
+          `SELECT * FROM timeline_stages ORDER BY sort_order ASC, start_at ASC`
+        );
+        return rows;
+      } catch (err) {
+        // Fallback aman jika tabel belum dimigrasi (PostgreSQL undefined_table 42P01)
+        if (err?.code === '42P01') return [];
+        throw err;
+      }
+    },
+
+    async findTimelineStageById(id) {
+      const { rows } = await pool.query('SELECT * FROM timeline_stages WHERE id = $1', [id]);
+      return rows[0] || null;
+    },
+
+    async createTimelineStage({
+      stage_key,
+      sort_order = 1,
+      date_label,
+      short_date,
+      title,
+      description = '',
+      start_at,
+      end_at,
+      is_visible = true,
+      visible_from = null,
+      is_extended = false,
+      updated_by = null,
+    }) {
+      const { rows } = await pool.query(
+        `INSERT INTO timeline_stages
+           (stage_key, sort_order, date_label, short_date, title, description, start_at, end_at, is_visible, visible_from, is_extended, updated_by)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         RETURNING *`,
+        [
+          stage_key,
+          Number(sort_order) || 1,
+          date_label,
+          short_date,
+          title,
+          description,
+          start_at,
+          end_at,
+          Boolean(is_visible),
+          visible_from || null,
+          Boolean(is_extended),
+          updated_by,
+        ]
+      );
+      return rows[0];
+    },
+
+    async updateTimelineStage(id, patch) {
+      const keys = safeKeys('timeline_stages', patch);
+      if (keys.length === 0) return this.findTimelineStageById(id);
+      const sets = keys.map((k, i) => `${k} = $${i + 2}`);
+      sets.push('updated_at = NOW()');
+      const values = keys.map((k) => patch[k]);
+      const { rows } = await pool.query(
+        `UPDATE timeline_stages SET ${sets.join(', ')} WHERE id = $1 RETURNING *`,
+        [id, ...values]
+      );
+      return rows[0] || null;
+    },
+
+    async deleteTimelineStage(id) {
+      const res = await pool.query('DELETE FROM timeline_stages WHERE id = $1', [id]);
+      return (res.rowCount || 0) > 0;
     },
   };
 }

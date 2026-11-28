@@ -1,5 +1,6 @@
 import http from 'node:http';
 import crypto from 'node:crypto';
+import { DEFAULT_TIMELINE_STAGES } from './data/defaultTimeline.mjs';
 import {
   applySecurityHeaders,
   applyCors,
@@ -105,11 +106,35 @@ function getDriveAuth(config) {
   };
 }
 
-function isWithinRegistrationPeriod(comp, nowMs = Date.now()) {
+async function getActiveExtendedWindow(repo, nowMs = Date.now()) {
+  if (!repo || typeof repo.listTimelineStages !== 'function') return null;
+  const stages = await repo.listTimelineStages({ publicOnly: true, nowMs });
+  let latestEndMs = null;
+  let latestStage = null;
+  for (const s of stages) {
+    if (!s.is_extended) continue;
+    const visibleFromMs = s.visible_from ? new Date(s.visible_from).getTime() : new Date(s.start_at).getTime();
+    const endMs = new Date(s.end_at).getTime();
+    if (!Number.isFinite(endMs)) continue;
+    if (nowMs >= visibleFromMs && nowMs <= endMs) {
+      if (latestEndMs === null || endMs > latestEndMs) {
+        latestEndMs = endMs;
+        latestStage = s;
+      }
+    }
+  }
+  return latestStage ? { endMs: latestEndMs, endAt: latestStage.end_at, stage: latestStage } : null;
+}
+
+function isWithinRegistrationPeriod(comp, nowMs = Date.now(), extendedEndMs = null) {
   if (!comp || !comp.is_active) return false;
   const open = new Date(comp.reg_open_at).getTime();
-  const close = new Date(comp.reg_close_at).getTime();
-  return nowMs >= open && nowMs <= close;
+  const baseClose = new Date(comp.reg_close_at).getTime();
+  const effectiveClose =
+    extendedEndMs !== null && Number.isFinite(extendedEndMs)
+      ? Math.max(baseClose, extendedEndMs)
+      : baseClose;
+  return nowMs >= open && nowMs <= effectiveClose;
 }
 
 function serializeRegistrationForParticipant(reg) {
@@ -288,12 +313,16 @@ export function createApp({ repo, config, verifyGoogleToken = verifyGoogleIdToke
       // A. PUBLIC COMPETITIONS
       // ════════════════════════════════════════════════════════════════
       if (method === 'GET' && pathname === '/api/competitions') {
-        const comps = await repo.listCompetitions({ includeInactive: false });
-        const activeReg = user && user.role === 'PESERTA' ? await repo.findActiveRegistrationByUserId(user.id) : null;
+        const nowMs = Date.now();
+        const [comps, activeReg, extWindow] = await Promise.all([
+          repo.listCompetitions({ includeInactive: false }),
+          user && user.role === 'PESERTA' ? repo.findActiveRegistrationByUserId(user.id) : Promise.resolve(null),
+          getActiveExtendedWindow(repo, nowMs),
+        ]);
         const enriched = await Promise.all(
           comps.map(async (c) => {
             const count = await repo.countActiveRegistrationsByCompetition(c.id);
-            const isOpen = isWithinRegistrationPeriod(c) && count < c.max_quota;
+            const isOpen = isWithinRegistrationPeriod(c, nowMs, extWindow?.endMs ?? null) && count < c.max_quota;
             let locked = false;
             let lockReason = null;
             if (user && user.role !== 'PESERTA') {
@@ -306,6 +335,8 @@ export function createApp({ repo, config, verifyGoogleToken = verifyGoogleIdToke
               locked = true;
               lockReason = count >= c.max_quota ? 'Kuota penuh.' : 'Periode pendaftaran ditutup.';
             }
+            const baseCloseMs = new Date(c.reg_close_at).getTime();
+            const isExtendedOpen = Boolean(extWindow && extWindow.endMs > baseCloseMs);
             return {
               id: c.id,
               slug: c.slug,
@@ -317,6 +348,8 @@ export function createApp({ repo, config, verifyGoogleToken = verifyGoogleIdToke
               registered_count: count,
               reg_open_at: c.reg_open_at,
               reg_close_at: c.reg_close_at,
+              effective_reg_close_at: isExtendedOpen ? extWindow.endAt : c.reg_close_at,
+              is_extended_open: isExtendedOpen,
               submission_deadline: c.submission_deadline,
               guidebook_url: c.guidebook_url,
               is_open: isOpen,
@@ -330,11 +363,17 @@ export function createApp({ repo, config, verifyGoogleToken = verifyGoogleIdToke
 
       const compSlugMatch = pathname.match(/^\/api\/competitions\/([a-z0-9-]+)$/i);
       if (method === 'GET' && compSlugMatch) {
-        const comp = await repo.findCompetitionBySlug(compSlugMatch[1]);
+        const nowMs = Date.now();
+        const [comp, extWindow] = await Promise.all([
+          repo.findCompetitionBySlug(compSlugMatch[1]),
+          getActiveExtendedWindow(repo, nowMs),
+        ]);
         if (!comp || !comp.is_active) {
           return sendError(res, 404, 'COMPETITION_NOT_FOUND', 'Cabang lomba tidak ditemukan.');
         }
         const count = await repo.countActiveRegistrationsByCompetition(comp.id);
+        const baseCloseMs = new Date(comp.reg_close_at).getTime();
+        const isExtendedOpen = Boolean(extWindow && extWindow.endMs > baseCloseMs);
         return sendJson(res, 200, {
           competition: {
             id: comp.id,
@@ -347,10 +386,41 @@ export function createApp({ repo, config, verifyGoogleToken = verifyGoogleIdToke
             registered_count: count,
             reg_open_at: comp.reg_open_at,
             reg_close_at: comp.reg_close_at,
+            effective_reg_close_at: isExtendedOpen ? extWindow.endAt : comp.reg_close_at,
+            is_extended_open: isExtendedOpen,
             submission_deadline: comp.submission_deadline,
             guidebook_url: comp.guidebook_url,
-            is_open: isWithinRegistrationPeriod(comp) && count < comp.max_quota,
+            is_open: isWithinRegistrationPeriod(comp, nowMs, extWindow?.endMs ?? null) && count < comp.max_quota,
           },
+        });
+      }
+
+      // ════════════════════════════════════════════════════════════════
+      // A1B. PUBLIC TIMELINE STAGES (SuperAdmin Managed + Auto Visible From)
+      // ════════════════════════════════════════════════════════════════
+      if (method === 'GET' && pathname === '/api/timeline') {
+        const nowMs = Date.now();
+        let stages = repo.listTimelineStages
+          ? await repo.listTimelineStages({ publicOnly: true, nowMs })
+          : [];
+        if (stages.length === 0) {
+          // Fallback aman jika tabel belum diseed / belum dimigrasi
+          stages = DEFAULT_TIMELINE_STAGES.filter((s) => {
+            if (!s.is_visible) return false;
+            if (s.visible_from && new Date(s.visible_from).getTime() > nowMs) return false;
+            return true;
+          }).map((s) => ({ id: s.stage_key, ...s }));
+        }
+        const extendedStage = stages.find((s) => {
+          if (!s.is_extended) return false;
+          const startCheck = s.visible_from ? new Date(s.visible_from).getTime() : new Date(s.start_at).getTime();
+          return nowMs >= startCheck && nowMs <= new Date(s.end_at).getTime();
+        });
+        return sendJson(res, 200, {
+          stages,
+          server_time: new Date(nowMs).toISOString(),
+          extended_active: Boolean(extendedStage),
+          extended_end_at: extendedStage ? extendedStage.end_at : null,
         });
       }
 
@@ -705,8 +775,10 @@ export function createApp({ repo, config, verifyGoogleToken = verifyGoogleIdToke
         if (!comp) {
           return sendError(res, 404, 'COMPETITION_NOT_FOUND', 'Cabang lomba tidak ditemukan.');
         }
-        // BR-02: cek aktif & periode buka
-        if (!isWithinRegistrationPeriod(comp)) {
+        // BR-02: cek aktif & periode buka (termasuk otomatis Extended Registration bila sedang aktif)
+        const regNowMs = Date.now();
+        const extRegWindow = await getActiveExtendedWindow(repo, regNowMs);
+        if (!isWithinRegistrationPeriod(comp, regNowMs, extRegWindow?.endMs ?? null)) {
           return sendError(res, 403, 'REGISTRATION_CLOSED', 'Periode pendaftaran untuk lomba ini sedang ditutup.');
         }
 
@@ -793,8 +865,10 @@ export function createApp({ repo, config, verifyGoogleToken = verifyGoogleIdToke
         if (reg.status !== 'DITOLAK') {
           return sendError(res, 409, 'REVISION_NOT_ALLOWED', 'Revisi hanya diizinkan saat status pendaftaran DITOLAK.');
         }
-        // BR-02 & BR-07: periode masih buka
-        if (!isWithinRegistrationPeriod(reg.competition)) {
+        // BR-02 & BR-07: periode masih buka (termasuk Extended Registration bila aktif)
+        const revNowMs = Date.now();
+        const extRevWindow = await getActiveExtendedWindow(repo, revNowMs);
+        if (!isWithinRegistrationPeriod(reg.competition, revNowMs, extRevWindow?.endMs ?? null)) {
           return sendError(res, 403, 'REGISTRATION_CLOSED', 'Periode pendaftaran sudah tutup sehingga tidak dapat merevisi.');
         }
 
@@ -1850,6 +1924,188 @@ export function createApp({ repo, config, verifyGoogleToken = verifyGoogleIdToke
         if (!isValidUuid(newsId)) return sendError(res, 404, 'NEWS_NOT_FOUND', 'Berita tidak ditemukan.');
         const ok = await repo.deleteNewsArticle(newsId);
         if (!ok) return sendError(res, 404, 'NEWS_NOT_FOUND', 'Berita tidak ditemukan.');
+        return sendJson(res, 200, { ok: true });
+      }
+
+      // ════════════════════════════════════════════════════════════════
+      // G2. SUPERADMIN TIMELINE STAGES MANAGEMENT
+      // ════════════════════════════════════════════════════════════════
+      if (method === 'GET' && pathname === '/api/superadmin/timeline') {
+        if (!requireRoles(['SUPERADMIN'])) return;
+        const stages = repo.listTimelineStages
+          ? await repo.listTimelineStages({ publicOnly: false })
+          : [];
+        return sendJson(res, 200, { stages, server_time: new Date().toISOString() });
+      }
+
+      if (method === 'POST' && pathname === '/api/superadmin/timeline') {
+        if (!requireRoles(['SUPERADMIN'])) return;
+        const body = await readJsonBody(req);
+        const title = sanitizePlainText(body.title, 200);
+        const dateLabel = sanitizePlainText(body.date_label, 120);
+        const shortDate = sanitizePlainText(body.short_date || body.date_label, 80);
+        const description = sanitizePlainText(body.description || '', 1500);
+        const startAt = body.start_at ? new Date(body.start_at) : null;
+        const endAt = body.end_at ? new Date(body.end_at) : null;
+        const visibleFrom = body.visible_from ? new Date(body.visible_from) : null;
+
+        if (title.length < 3 || dateLabel.length < 2 || containsHtmlTags(title)) {
+          return sendError(res, 422, 'INVALID_TIMELINE', 'Judul dan label tanggal tahap wajib diisi dengan valid.');
+        }
+        if (!startAt || Number.isNaN(startAt.getTime()) || !endAt || Number.isNaN(endAt.getTime())) {
+          return sendError(res, 422, 'INVALID_TIMELINE_DATE', 'Tanggal mulai dan selesai tahap harus berupa format waktu valid.');
+        }
+        if (endAt.getTime() < startAt.getTime()) {
+          return sendError(res, 422, 'INVALID_TIMELINE_RANGE', 'Waktu selesai tidak boleh lebih awal dari waktu mulai.');
+        }
+        if (body.visible_from && (!visibleFrom || Number.isNaN(visibleFrom.getTime()))) {
+          return sendError(res, 422, 'INVALID_VISIBLE_FROM', 'Format jadwal mulai tampil (visible_from) tidak valid.');
+        }
+
+        const rawKey = String(body.stage_key || title)
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .slice(0, 72);
+        const stageKey = rawKey || `stage-${Date.now()}`;
+        const existingAll = await repo.listTimelineStages({ publicOnly: false });
+        const sortOrder =
+          Number.isFinite(Number(body.sort_order)) && Number(body.sort_order) > 0
+            ? Math.floor(Number(body.sort_order))
+            : existingAll.length + 1;
+
+        try {
+          const created = await repo.createTimelineStage({
+            stage_key: stageKey,
+            sort_order: sortOrder,
+            date_label: dateLabel,
+            short_date: shortDate,
+            title,
+            description,
+            start_at: startAt.toISOString(),
+            end_at: endAt.toISOString(),
+            is_visible: body.is_visible !== false,
+            visible_from: visibleFrom ? visibleFrom.toISOString() : null,
+            is_extended: Boolean(body.is_extended),
+            updated_by: user.id,
+          });
+          await repo.createAuditLog({
+            actor_id: user.id,
+            action: 'CREATE_TIMELINE_STAGE',
+            target_type: 'timeline_stage',
+            target_id: created.id,
+            meta: { stage_key: created.stage_key, title: created.title, is_visible: created.is_visible, is_extended: created.is_extended },
+          });
+          return sendJson(res, 201, { stage: created });
+        } catch (err) {
+          if (err?.code === '23505') {
+            return sendError(res, 409, 'DUPLICATE_STAGE_KEY', 'Kode tahap sudah digunakan. Gunakan kode tahap lain.');
+          }
+          throw err;
+        }
+      }
+
+      const superTimelineMatch = pathname.match(/^\/api\/superadmin\/timeline\/([^/]+)$/);
+      if (method === 'PATCH' && superTimelineMatch) {
+        if (!requireRoles(['SUPERADMIN'])) return;
+        const stageId = superTimelineMatch[1];
+        if (!isValidUuid(stageId)) return sendError(res, 404, 'TIMELINE_NOT_FOUND', 'Tahap linimasa tidak ditemukan.');
+        const existing = await repo.findTimelineStageById(stageId);
+        if (!existing) return sendError(res, 404, 'TIMELINE_NOT_FOUND', 'Tahap linimasa tidak ditemukan.');
+
+        const body = await readJsonBody(req);
+        const patch = { updated_by: user.id };
+        if (body.title !== undefined) {
+          const t = sanitizePlainText(body.title, 200);
+          if (t.length < 3 || containsHtmlTags(t)) {
+            return sendError(res, 422, 'INVALID_TIMELINE', 'Judul tahap minimal 3 karakter.');
+          }
+          patch.title = t;
+        }
+        if (body.stage_key !== undefined) {
+          const sk = String(body.stage_key).toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 72);
+          if (!sk) return sendError(res, 422, 'INVALID_TIMELINE', 'Kode tahap tidak valid.');
+          patch.stage_key = sk;
+        }
+        if (body.date_label !== undefined) {
+          const dl = sanitizePlainText(body.date_label, 120);
+          if (dl.length < 2) return sendError(res, 422, 'INVALID_TIMELINE', 'Label tanggal tidak valid.');
+          patch.date_label = dl;
+        }
+        if (body.short_date !== undefined) {
+          const sd = sanitizePlainText(body.short_date, 80);
+          if (sd.length < 2) return sendError(res, 422, 'INVALID_TIMELINE', 'Label tanggal singkat tidak valid.');
+          patch.short_date = sd;
+        }
+        if (body.description !== undefined) {
+          patch.description = sanitizePlainText(body.description, 1500);
+        }
+        if (body.sort_order !== undefined) {
+          const so = Math.floor(Number(body.sort_order));
+          if (!Number.isFinite(so) || so < 1 || so > 999) {
+            return sendError(res, 422, 'INVALID_SORT_ORDER', 'Urutan harus berupa angka 1–999.');
+          }
+          patch.sort_order = so;
+        }
+        if (body.start_at !== undefined) {
+          const d = new Date(body.start_at);
+          if (Number.isNaN(d.getTime())) return sendError(res, 422, 'INVALID_TIMELINE_DATE', 'Tanggal mulai tidak valid.');
+          patch.start_at = d.toISOString();
+        }
+        if (body.end_at !== undefined) {
+          const d = new Date(body.end_at);
+          if (Number.isNaN(d.getTime())) return sendError(res, 422, 'INVALID_TIMELINE_DATE', 'Tanggal selesai tidak valid.');
+          patch.end_at = d.toISOString();
+        }
+        const finalStart = new Date(patch.start_at || existing.start_at).getTime();
+        const finalEnd = new Date(patch.end_at || existing.end_at).getTime();
+        if (finalEnd < finalStart) {
+          return sendError(res, 422, 'INVALID_TIMELINE_RANGE', 'Waktu selesai tidak boleh lebih awal dari waktu mulai.');
+        }
+        if (body.visible_from !== undefined) {
+          if (body.visible_from === null || body.visible_from === '') {
+            patch.visible_from = null;
+          } else {
+            const vf = new Date(body.visible_from);
+            if (Number.isNaN(vf.getTime())) return sendError(res, 422, 'INVALID_VISIBLE_FROM', 'Format jadwal mulai tampil tidak valid.');
+            patch.visible_from = vf.toISOString();
+          }
+        }
+        if (typeof body.is_visible === 'boolean') patch.is_visible = body.is_visible;
+        if (typeof body.is_extended === 'boolean') patch.is_extended = body.is_extended;
+
+        try {
+          const updated = await repo.updateTimelineStage(stageId, patch);
+          await repo.createAuditLog({
+            actor_id: user.id,
+            action: 'UPDATE_TIMELINE_STAGE',
+            target_type: 'timeline_stage',
+            target_id: stageId,
+            meta: { title: updated?.title, is_visible: updated?.is_visible, visible_from: updated?.visible_from, is_extended: updated?.is_extended },
+          });
+          return sendJson(res, 200, { stage: updated });
+        } catch (err) {
+          if (err?.code === '23505') {
+            return sendError(res, 409, 'DUPLICATE_STAGE_KEY', 'Kode tahap sudah digunakan.');
+          }
+          throw err;
+        }
+      }
+
+      if (method === 'DELETE' && superTimelineMatch) {
+        if (!requireRoles(['SUPERADMIN'])) return;
+        const stageId = superTimelineMatch[1];
+        if (!isValidUuid(stageId)) return sendError(res, 404, 'TIMELINE_NOT_FOUND', 'Tahap linimasa tidak ditemukan.');
+        const existing = await repo.findTimelineStageById(stageId);
+        if (!existing) return sendError(res, 404, 'TIMELINE_NOT_FOUND', 'Tahap linimasa tidak ditemukan.');
+        await repo.deleteTimelineStage(stageId);
+        await repo.createAuditLog({
+          actor_id: user.id,
+          action: 'DELETE_TIMELINE_STAGE',
+          target_type: 'timeline_stage',
+          target_id: stageId,
+          meta: { stage_key: existing.stage_key, title: existing.title },
+        });
         return sendJson(res, 200, { ok: true });
       }
 
